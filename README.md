@@ -1,1 +1,360 @@
-ETF Portfolio Manager – Fineco + n8nStrumento self‑hosted per la gestione di un portafoglio di ETF (e pochi fondi residui) detenuti su Fineco, con operatività totalmente manuale ma analisi automatizzate tramite n8n e fonti dati esterne.Questo progetto nasce come alternativa strutturata ai fogli di calcolo personali usati da molti investitori retail italiani per monitorare azioni ed ETF.​Panoramica del progettoETF Portfolio Manager è una web‑app PHP/JS, eseguita in Docker, che funge da backend + frontend per il monitoraggio del portafoglio titoli detenuto su Fineco, con particolare focus su ETF.Tutta l’operatività di acquisto/vendita rimane manuale sulla piattaforma Fineco: la web‑app serve come “centro di controllo” per inserire le operazioni effettuate, tracciare storico, costi, dividendi e ricevere analisi e suggerimenti operativi.L’applicazione integra uno o più workflow n8n self‑hosted che recuperano dati di mercato, calcolano indicatori tecnici, analizzano news/macro e generano raccomandazioni su:gestione del portafoglio in essere (hold/trim/add, ribilanciamenti)nuove opportunità (ETF acquistabili su Fineco, con preferenza per strumenti a commissioni ridotte o zero)Questo README descrive: domini funzionali, modello dati logico, API, flussi n8n e modalità di setup, in modo che un LLM possa generare il codice a partire da queste specifiche.Architettura e componentiIl sistema è pensato come un singolo stack Docker in “produzione diretta” per uso personale, senza distinzione dev/prod.Componenti principali:Frontend Web (PHP + JS)Usa template PHP/CSS già esistenti, in versione responsive.Espone le viste per dashboard, gestione posizioni, transazioni, dividendi, analisi e opportunità.Backend REST (PHP)Espone API per CRUD di holdings, transazioni, dividendi, snapshots e risultati di analisi.Contiene la business logic di calcolo di P&L, allocazioni, drift, aggregazioni per dashboard e storico.Database relazionale (PostgreSQL, modello logico)Tabella logica “holdings” per le posizioni correnti (ISIN, ticker, quantità, prezzo medio, valuta, asset class, settore, target allocation).Tabella logica “transactions” per lo storico delle operazioni (BUY/SELL/DIVIDEND, data, quantità, prezzo, commissione, note, sorgente import).Tabella logica “dividends” per il dettaglio delle distribuzioni con ex‑date, data pagamento e importi.Tabella logica “portfolio_snapshots” per lo storico consolidato giornaliero del portafoglio (valore, investito, P&L, dividendi cumulati).Tabella logica “analysis_results” per i risultati dei workflow n8n (indicatori tecnici, macro/news, opportunità, raccomandazioni, confidence).Tabella logica “fineco_commission_cache” per memorizzare il profilo commissionale associato agli ISIN rilevanti (zero commissioni, standard, USA, ecc.).Motore di workflow (n8n Community Edition, self‑hosted)Esegue workflow schedulati e/o on‑demand per: analisi tecnica, macro/news sentiment, scouting opportunità e suggerimenti di ribilanciamento.Comunica con il backend tramite chiamate HTTP interne (container‑to‑container) e webhooks autenticati con segreto condiviso (HMAC).Fonti dati esterneAPI di prezzi/indicatori tecnici per ETF (es. Alpha Vantage o equivalenti, con rispetto dei rate limit).Feed RSS / API news finanziarie per analisi macro e sentiment.Pagine pubbliche Fineco sugli ETF a zero commissioni, da usare per costruire una lista locale di strumenti candidati.Il README assume che lo stack venga gestito tramite un file di orchestrazione (ad esempio Docker Compose) che definisce: servizio web PHP, DB PostgreSQL, istanza n8n e, facoltativamente, un servizio di cache (es. Redis) per i prezzi.Funzionalità della web‑appDashboard portafoglioLa dashboard è la landing page e offre una vista sintetica dello stato del portafoglio:Panoramica numericaValore totale corrente del portafoglio (in EUR, calcolato dai prezzi più recenti).Capitale investito (somma dei controvalori BUY al netto dei SELL).P&L non realizzato (valore attuale meno capitale investito) e P&L realizzato cumulato.Dividendi totali incassati e rendimento totale (in %).Allocazione e driftGrafico di allocazione attuale per singolo strumento e/o per asset class/settore.Visualizzazione del confronto tra allocazione attuale e target allocation per strumento.Indicatori di drift (ad esempio: verde se entro ±2% dal target, giallo se tra 2–5%, rosso se oltre 5%).Tabella principali posizioniElenco dei titoli ordinati per valore di mercato, con colonne: ISIN, ticker, nome, quantità, prezzo medio, prezzo corrente, valore, P&L %.Sintesi degli ultimi segnali tecnici per ciascun titolo (es. “tecnicamente positivo”, “neutro”, “attenzione”).Feed alert e raccomandazioniElenco degli ultimi alert generati dai workflow n8n (es. “RSI in ipercomprato”, “opportunità ETF X a zero commissioni”, “ribilanciamento consigliato”).Ogni alert indica titolo/ISIN, tipo di raccomandazione, confidence score e timestamp.Gestione posizioni (holdings)Quest’area consente la gestione strutturata delle posizioni in portafoglio:Elenco e dettaglio holdingsVista tabellare di tutte le posizioni, con possibilità di filtrare/ordinare per ISIN, ticker, nome, asset class, settore, P&L, drift, ecc.Possibilità di visualizzare per ciascun titolo i dati anagrafici (nome, ISIN, ticker, valuta), quantitativi (quantità, prezzo medio) e di allocazione (target %).Creazione nuova posizioneFlusso per inserire un nuovo titolo in portafoglio con dati minimi: ISIN, ticker, nome, quantità iniziale, prezzo medio, data acquisto.Opzioni aggiuntive: asset class, settore, target allocation desiderata, valuta se diversa da EUR.Il primo inserimento può essere interpretato anche come registrazione di una prima operazione BUY nello storico.Aggiornamento posizionePossibilità di modificare asset class, settore, target allocation e metadati senza alterare la storia delle transazioni.Aggiornamento dei campi timestamp per tenere traccia delle ultime modifiche manuali.Eliminazione posizioneSoft delete: la posizione viene marcata come inattiva, ma lo storico rimane per analisi e reporting.Hard delete opzionale per casi estremi (da usare con conferma esplicita, consapevoli della perdita di storico).Gestione operazioni e dividendiLe operazioni restano manuali su Fineco, ma vanno registrate nella web‑app per tenere allineato il database:Tipi di operazioneBUY: acquisto di quote, aumenta la quantità e aggiorna il prezzo medio ponderato.SELL: vendita di quote, diminuisce la quantità e genera P&L realizzato.DIVIDEND: incasso dividendo, registra la distribuzione sul titolo e aggiorna dividend yield e reddito da cedole.Inserimento manuale singola operazioneForm con campi: tipo operazione, titolo (selettore per ISIN/ticker), data, quantità (se rilevante), prezzo unitario, commissione, note.Validazioni logiche: nessuna vendita con quantità superiore a quella posseduta, date coerenti, valori non negativi.Timeline operazioniVista cronologica di tutte le operazioni con filtri per intervallo temporale, titolo e tipo di operazione.Possibilità di esportare lo storico in CSV per analisi esterne o fiscalità.Gestione dividendiRegistrazione di dividendi con ex‑date, data pagamento, importo per quota, importo totale e valuta.Calcolo del rendimento da dividendo per titolo e complessivo (su base storica).Import iniziale CSV da FinecoFlusso per caricare un CSV esportato da Fineco (es. movimenti titoli o situazione portafoglio).Step di mappatura colonne (es. colonna ISIN, colonna quantità, colonna prezzo, commissione, data).Anteprima delle righe prima dell’import definitivo, con gestione di eventuali errori/righe scartate.Dopo l’import iniziale, la gestione quotidiana si basa su edit/add/delete manuale delle posizioni e delle singole operazioni.Analisi, news e opportunità (integrazione n8n)La parte “intelligente” del sistema è delegata ai workflow n8n, che arricchiscono i dati del portafoglio con analisi e suggerimenti:Analisi tecnica giornalieraPer ciascun titolo in portafoglio, n8n recupera serie storiche di prezzi e calcola indicatori tecnici (es. EMA, MACD, RSI, Bande di Bollinger).In base a regole configurabili (sovravenduto, sovracomprato, incroci di medie, ecc.) genera un segnale sintetico (es. BUY, SELL, HOLD, WATCH) e un punteggio di confidenza.I risultati vengono salvati nella tabella logica “analysis_results” e visualizzati nella web‑app nella sezione Analisi del titolo e nella dashboard.Macro / news sentimentWorkflow che leggono feed RSS o API di news finanziarie e applicano un modello di sentiment analysis su ciascun articolo.Ogni notizia viene associata a uno o più settori o asset class e correlata ai titoli presenti nel portafoglio.La web‑app mostra, per settore e per titolo, un sentiment aggregato recente (positivo/negativo/neutro) e le principali notizie rilevanti.Scouting nuove opportunitàWorkflow periodici che prendono l’universo ETF acquistabile su Fineco (con focus su ETF a zero o basse commissioni) e filtrano solo quelli non già presenti in portafoglio.Per questi strumenti viene eseguita una verifica tecnica base (es. trend, RSI, posizione rispetto a EMA), eventuale filtro macro e viene generata una lista di “candidati” con segnale e confidenza.La web‑app espone una sezione “Opportunità” con la lista degli ETF suggeriti, ordina per punteggio e mostra dati chiave (nome, ISIN, categoria, segnale).Suggerimenti di ribilanciamentoWorkflow mensili che leggono le allocazioni target e attuali e calcolano il drift per ciascun titolo.Quando il drift supera una soglia (es. ±5%), viene calcolata la quantità teorica da acquistare/vendere per riportare il portafoglio in linea.In base all’eventuale cache delle commissioni Fineco per ciascun ISIN, viene stimato il costo transazionale di ogni operazione di ribilanciamento.La web‑app mostra un “piano di ribilanciamento” consultivo che l’utente può scegliere di eseguire manualmente su Fineco.API logiche e flussi n8nQuesta sezione definisce in modo verbale gli endpoint e i workflow, così che un LLM possa tradurli in implementazione concreta.Dominio API principale (backend PHP)Area holdingsEndpoint per ottenere la lista completa delle posizioni, con i campi necessari alla dashboard e alla sezione di dettaglio.Endpoint per creare una nuova posizione (con eventuale creazione della prima transazione BUY implicita).Endpoint per aggiornare una posizione (asset class, settore, target allocation) senza modificare lo storico delle transazioni.Endpoint per marcare una posizione come inattiva o eliminarla definitivamente.Area transactionsEndpoint per recuperare lo storico delle operazioni, con filtri per titolo, intervallo di date, tipo operazione.Endpoint per inserire una singola operazione (BUY/SELL/DIVIDEND), che aggiorna di conseguenza quantità, prezzo medio, P&L realizzato.Endpoint dedicato per l’import CSV, che riceve il file o i dati già parse‑ati e restituisce un report di successo/errori.Area portfolioEndpoint per ottenere uno snapshot aggregato del portafoglio: valore totale, investito, P&L, dividendi, elenco holdings con percentuali di allocazione.Endpoint per ottenere lo storico giornaliero (snapshot nel tempo) per alimentare grafici di performance.Area analysisEndpoint per ricevere in ingresso i risultati dei workflow n8n (analisi tecnica, macro, opportunità, ribilanciamento), autenticati con firma HMAC su payload.Endpoint per leggere gli ultimi risultati di analisi per un dato ISIN o per il portafoglio nel suo complesso.Area commissioni FinecoEndpoint per leggere e, se serve, aggiornare la cache delle commissioni per singoli strumenti, utile per stimare i costi dei trade suggeriti.Workflow n8n (alto livello)Workflow A – Analisi tecnica giornalieraTrigger schedulato (una volta al giorno, orario configurabile).Recupera l’elenco holdings dal backend, per ciascun titolo chiama la fonte dati prezzi/indicatori rispettando i limiti di frequenza.Applica logica di segnali (regole su EMA, MACD, RSI, ecc.) e invia al backend i risultati tramite chiamata autenticata.Workflow B – Scouting ETF opportunitàTrigger settimanale.Recupera elenco ETF candidati (es. da lista locale derivata da Fineco).Esclude titoli già in portafoglio, calcola un set minimo di indicatori e segnali, invia al backend le opportunità classificate.Workflow C – Macro / news sentimentTrigger bisettimanale.Legge news finanziarie, applica sentiment analysis, mappa le notizie ai settori e ai titoli del portafoglio, registra risultati nel backend.Workflow D – Advisor di ribilanciamentoTrigger mensile.Legge snapshot e target allocation, calcola drift, genera piano ipotetico di trade di ribilanciamento e stima i costi sulla base delle commissioni Fineco salvate.Registra i suggerimenti nel backend perché siano visibili in app.Tutti i workflow che inviano dati al backend devono utilizzare una forma di autenticazione condivisa (es. header con firma HMAC del body) e un segreto comune configurato sia in n8n sia nella web‑app.Configurazione, utilizzo e sviluppoQuesta sezione descrive i passi logici da seguire per usare il progetto e per far sì che un LLM possa generare il codice relativo.Configurazione ambienteDefinire le variabili di ambiente per: connessione al database, segreto condiviso per la firma HMAC, chiavi API per i provider di dati di mercato e per eventuali servizi di sentiment.Definire nel file di orchestrazione (ad es. Docker) tre servizi minimi: web‑app PHP, database PostgreSQL, istanza n8n, con una rete interna condivisa.Prevedere volumi persistenti per i dati del DB e per la configurazione n8n.Primo avvio e import inizialeAl primo avvio, l’utente accede alla web‑app e viene guidato a:caricare un CSV di partenza esportato da Fineco con la situazione titoli;mappare le colonne del CSV sui campi logici del sistema;confermare l’import e generare la base di holdings e transactions.Dopo l’import, la dashboard mostra il portafoglio iniziale e i workflow n8n possono essere attivati.Utilizzo quotidianoPer ogni nuova operazione fatta manualmente su Fineco (BUY/SELL, incasso dividendi), l’utente registra l’operazione nella sezione dedicata della web‑app.I workflow n8n girano secondo la scheduling configurata e arricchiscono quotidianamente il sistema con analisi tecniche, news e suggerimenti.L’utente usa dashboard, sezione analisi e area opportunità per supportare il proprio processo decisionale, mantenendo l’esecuzione degli ordini su Fineco.Evoluzione e sviluppoIl README è strutturato affinché un LLM possa:generare lo schema fisico del database a partire dal modello logico descritto;implementare le API REST coerenti con i domini funzionali;creare le viste frontend basate sulle sezioni funzionali (dashboard, holdings, transazioni, analisi, opportunità);costruire i workflow n8n descritti nei flussi A–D.Estensioni future possibili:migliore gestione multi‑valuta con FX automatico;analisi di rischio (volatilità, drawdown, correlazioni tra strumenti);logiche di ottimizzazione fiscale specifiche per il contesto italiano;PWA e notifiche push per alert critici.Note legali e disclaimerQuesto progetto è pensato per uso personale e didattico e non costituisce in alcun modo consulenza finanziaria o sollecitazione al pubblico risparmio.L’utente rimane pienamente responsabile delle decisioni di investimento prese sulla base delle informazioni fornite dallo strumento.Fineco Bank e gli altri marchi citati appartengono ai rispettivi proprietari; il progetto non è affiliato né sponsorizzato da tali soggetti.s
+# ETF Portfolio Manager – Fineco + n8n
+
+Strumento self‑hosted per la gestione strutturata di un portafoglio ETF detenuto su Fineco Bank, con analisi automatizzate, tracciamento dividendi/commissioni e suggerimenti operativi via n8n.
+
+---
+
+## Stack tecnico
+
+| Componente | Versione | Ruolo |
+|-----------|----------|-------|
+| PHP | 8.2 | Backend REST API + Frontend (OOP semplice, niente framework pesanti) |
+| MariaDB | 10.5.29 | Database relazionale (schema separato: market_data + utente) |
+| n8n | Latest CE | Workflow automation (analisi, news, suggerimenti) |
+| Docker | Latest | Containerizzazione e orchestrazione (production-ready) |
+| Apache | 2.4 | Web server |
+
+---
+
+## Architettura
+
+```
+┌─────────────────┐
+│  Web Browser    │
+└────────┬────────┘
+         │ HTTP/HTTPS
+         ▼
+┌──────────────────────────────────────┐
+│   PHP 8.2 + Apache (portfolio-app)   │
+│   - Dashboard                         │
+│   - CRUD Holdings/Transactions        │
+│   - API REST (HMAC per n8n)           │
+│   - Session Management                │
+└─────────┬──────────────────┬─────────┘
+          │                  │
+          │ Query            │ HTTP
+          ▼                  ▼
+┌──────────────┐    ┌──────────────────┐
+│ MariaDB 10.5 │    │ n8n Community Ed.│
+│     (DB)     │    │   (Workflows)    │
+│ - market_data│    │     A/B/C/D      │
+│ - utente     │    └──────────────────┘
+└──────────────┘
+```
+
+**Due schemi database separati:**
+
+- **market_data**: quotazioni, ETF info, commissioni Fineco (condivisi tra tutti gli utenti)
+- **utente**: users, portfolios, holdings, transactions, snapshots (specifici per utente/portafoglio)
+
+---
+
+## Che cosa è
+
+ETF Portfolio Manager è una **web‑app PHP 8.2 + MariaDB 10.5** (eseguita in Docker) che funziona come centro di controllo per investitori retail italiani che gestiscono portafogli ETF su Fineco.
+
+**Caratteristiche principali:**
+
+- ✅ Gestione posizioni, transazioni e dividendi (operatività manuale su Fineco, registrazione in app)
+- ✅ Dashboard unificata con P&L, allocazioni, drift da target
+- ✅ Autenticazione multi‑utente (registrazione, login/logout, sessioni sicure)
+- ✅ Multi‑portafoglio per utente (es. "Pensione", "Trading")
+- ✅ Integrazione n8n per analisi tecnica giornaliera, macro/news sentiment, opportunità ETF
+- ✅ Import CSV iniziale da Fineco, edit/add/delete manuale successivo
+- ✅ Storico operazioni e snapshots portafoglio nel tempo
+- ✅ Tracciamento costi, commissioni Fineco, dividendi percepiti
+
+**Cosa NON è:**
+
+- ❌ Non esegue ordini automatici (tutti manualmente su Fineco)
+- ❌ Non è una copia di eToro, Moneyfarm o altri robo-advisor
+- ❌ Non fornisce consulenza finanziaria (è strumento di controllo e analisi)
+
+---
+
+## Funzionalità principali
+
+### 👤 Gestione Utenti
+
+- Registrazione con validazione password robusta
+- Login con hashing Argon2id + pepper
+- Sessioni sicure (HttpOnly, Secure, SameSite)
+- Logout con invalidazione server-side
+- Supporto multi-utente con isolamento dati per `user_id`
+
+### 💼 Gestione Portafogli
+
+- Multipli portafogli per utente (es. "Lungo Termine", "Trading Attivo")
+- Base currency per portafoglio
+- Soft delete portafogli
+
+### 📊 Dashboard Portafoglio
+
+- Valore totale, P&L realizzato/non realizzato
+- Allocazione target vs attuale con drift indicator
+- Top holdings, segnali tecnici sintetici
+- Feed alert da workflow n8n
+
+### 💼 Gestione Posizioni
+
+- CRUD holdings (add, edit, delete soft/hard)
+- Registrazione transazioni (BUY/SELL/DIVIDEND)
+- Import CSV da Fineco con mappatura colonne
+- Timeline storico operazioni filtrabile ed esportabile
+
+### 💰 Tracciamento Dividendi
+
+- Registrazione ex-date, data pagamento, importi
+- Calcolo dividend yield per titolo e portafoglio
+- Storico distribuzioni
+- Ritenute fiscali
+
+### 🤖 Analisi Automatizzate (n8n)
+
+- **Workflow A - Tecnica**: EMA, MACD, RSI, Bollinger Bands giornalieri → segnali BUY/SELL/HOLD/WATCH
+- **Workflow B - Opportunità**: ETF Fineco a zero commissioni non in portafoglio → segnali + confidence
+- **Workflow C - Macro/News**: Sentiment analysis su feed finanziari → aggregato per settore/titolo
+- **Workflow D - Ribilanciamento**: Calcolo drift mensile vs target → piano consultivo con stima costi
+
+---
+
+## API logiche
+
+### Area holdings
+
+- `GET /api/holdings` - lista posizioni per utente/portafoglio
+- `POST /api/holdings` - crea nuova posizione
+- `PUT /api/holdings/{id}` - aggiorna metadati (asset class, target allocation)
+- `DELETE /api/holdings/{id}` - soft delete (default) o hard delete con conferma
+
+### Area transactions
+
+- `GET /api/transactions` - storico con filtri (portafoglio, titolo, date, tipo)
+- `POST /api/transactions` - inserisci operazione singola (aggiorna holdings)
+- `POST /api/transactions/import-csv` - import CSV Fineco con report errori
+
+### Area portfolio
+
+- `GET /api/portfolio/snapshot` - metriche aggregate attuali
+- `GET /api/portfolio/history` - storico giornaliero per grafici performance
+
+### Area analysis
+
+- `POST /api/analysis/results` - riceve risultati workflow n8n (HMAC autenticato)
+- `GET /api/analysis/latest` - ultimi risultati per ISIN o portafoglio completo
+
+### Area commissioni Fineco
+
+- `GET /api/commissions/{isin}` - legge profilo commissionale cache
+- `PUT /api/commissions/{isin}` - aggiorna cache (usa n8n per scraping)
+
+---
+
+## Configurazione e setup
+
+### Prerequisiti
+
+- Docker + Docker Compose
+- Account Fineco (per operatività manuale)
+- API keys: Alpha Vantage (o equivalente) per dati tecnici
+
+### Environment variables (`.env`)
+
+```bash
+# Database
+DB_HOST=db
+DB_PORT=3306
+DB_NAME=etf_portfolio
+DB_USER=portfolio_user
+DB_PASS=secure_password
+
+# n8n HMAC secret (condiviso con n8n workflows)
+N8N_WEBHOOK_SECRET=your_32_char_random_secret
+
+# API Keys
+ALPHA_VANTAGE_API_KEY=your_key
+```
+
+### Docker Compose (base)
+
+```yaml
+services:
+  db:
+    image: mariadb:10.5
+    env_file: .env
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+  app:
+    build: ./php-app
+    depends_on:
+      - db
+    env_file: .env
+    ports:
+      - "8080:80"
+
+  n8n:
+    image: n8nio/n8n:latest
+    env_file: .env
+    volumes:
+      - n8n_data:/home/node/.n8n
+    ports:
+      - "5678:5678"
+
+volumes:
+  db_data:
+  n8n_data:
+```
+
+### Primo avvio
+
+1. `docker compose up -d`
+2. Naviga su `http://localhost:8080`
+3. Registra primo utente
+4. Crea primo portafoglio
+5. Import CSV Fineco iniziale
+6. Configura workflow n8n (`http://localhost:5678`)
+7. Attiva scheduler workflow
+
+---
+
+## Struttura progetto
+
+```
+etf-portfolio-manager/
+├── README.md
+├── docker-compose.yml
+├── .env.example
+├── php-app/
+│   ├── public/
+│   │   ├── index.php
+│   │   ├── css/           # Template CSS responsive
+│   │   └── js/            # JS per interazioni
+│   ├── src/
+│   │   ├── api/           # Endpoint REST
+│   │   ├── lib/           # Classi utility (DB, Auth, HMAC)
+│   │   ├── services/      # Business logic
+│   │   └── config.php     # Config loader
+│   ├── composer.json
+│   └── .htaccess
+├── db/
+│   └── init.sql           # Schema MariaDB
+├── docs/
+│   ├── 01-ARCHITETTURA.md
+│   ├── 02-GESTIONE-UTENTI.md
+│   ├── 03-DATABASE.md
+│   ├── 04-API-REST.md
+│   ├── 05-FRONTEND.md
+│   └── 06-N8N-WORKFLOWS.md
+└── n8n-workflows/
+    ├── workflow-technical-analysis.json
+    ├── workflow-opportunities-scouting.json
+    ├── workflow-macro-news.json
+    └── workflow-rebalancing-advisor.json
+```
+
+---
+
+## Documentazione
+
+La documentazione tecnica è organizzata in `docs/`. **IMPORTANTE**: Prima di procedere con qualsiasi integrazione, modifica o operazione sul progetto, consulta sempre la documentazione relativa.
+
+| File | Contenuto |
+|------|-----------|
+| [`docs/01-ARCHITETTURA.md`](docs/01-ARCHITETTURA.md) | Panoramica componenti, flussi, integrazioni, schemi DB |
+| [`docs/02-GESTIONE-UTENTI.md`](docs/02-GESTIONE-UTENTI.md) | Registrazione, login, sessioni, sicurezza password, HMAC |
+| [`docs/03-DATABASE.md`](docs/03-DATABASE.md) | Schema fisico MariaDB, indici, viste, prepared statements |
+| [`docs/04-API-REST.md`](docs/04-API-REST.md) | Endpoint, autenticazione, payload, errori, rate limiting |
+| [`docs/05-FRONTEND.md`](docs/05-FRONTEND.md) | Layout dashboard, componenti, template PHP, responsive |
+| [`docs/06-N8N-WORKFLOWS.md`](docs/06-N8N-WORKFLOWS.md) | Workflow A/B/C/D, trigger, logica, nodi, error handling |
+
+### ⚠️ Linee guida per sviluppatori e manutentori
+
+**OBBLIGATORIO - Prima di qualsiasi operazione:**
+
+1. **Consulta sempre la documentazione** prima di:
+   - Modificare codice, database schema, o workflow
+   - Integrare nuove funzionalità o servizi esterni
+   - Effettuare operazioni di deployment o configurazione
+   - Apportare modifiche all'architettura del sistema
+
+2. **Mantenere la documentazione AGGIORNATA**:
+   - Ogni modifica al codice deve riflettersi nella documentazione
+   - I nuovi endpoint API devono essere documentati in `docs/04-API-REST.md`
+   - Le modifiche al database in `docs/03-DATABASE.md`
+   - I cambiamenti architetturali in `docs/01-ARCHITETTURA.md`
+   - Workflow n8n aggiornati in `docs/06-N8N-WORKFLOWS.md`
+
+3. **Procedure di aggiornamento documentazione**:
+   ```bash
+   # Dopo ogni modifica significativa:
+   1. Identifica quali documenti necessitano aggiornamento
+   2. Modifica i file .md in docs/ mantenendo sintassi markdown corretta
+   3. Verifica che non ci siano line endings CR (usare LF)
+   4. Rimuovi eventuali istanze di "text" isolate
+   5. Testa la visualizzazione su GitHub/GitLab
+   6. Commit con messaggio chiaro che includa la lista dei file aggiornati
+   ```
+
+4. **Quality check documentazione**:
+   - Controlla sintassi markdown (linting automatico se disponibile)
+   - Verifica che i link interni siano corretti
+   - Mantieni coerenza terminologica tra documenti
+   - Assicurati che esempi di codice siano testati e funzionanti
+
+5. **Priorità di lettura per nuovi contributori**:
+   1. `README.md` (questo file) - panoramica generale
+   2. `docs/01-ARCHITETTURA.md` - comprensione sistema
+   3. `docs/03-DATABASE.md` - schema dati
+   4. `docs/04-API-REST.md` - integrazioni
+   5. `docs/02-GESTIONE-UTENTI.md` - sicurezza
+   6. `docs/05-FRONTEND.md` + `docs/06-N8N-WORKFLOWS.md` - specifiche
+
+---
+
+## Utilizzo quotidiano
+
+1. **Login** con email/password (sessione 24h)
+2. **Dashboard**: Visualizza portfolio, P&L, drift, alert
+3. **Registra operazione**: Dopo ogni trade su Fineco, inserisci transazione (BUY/SELL/DIVIDEND)
+4. **Monitora analisi**: Leggi segnali tecnici, opportunità, macro sentiment
+5. **Mensile**: Verifica piano di ribilanciamento (se drift >5%)
+6. **Logout**: Termina sessione quando non in uso
+
+---
+
+## Roadmap
+
+- [ ] Supporto multi-valuta (USD, GBP, CHF) con FX automatico
+- [ ] Analisi di rischio (volatilità, Sharpe ratio, drawdown, correlazioni)
+- [ ] Ottimizzazione fiscale italiana (mod. 730, PFU)
+- [ ] PWA e notifiche push per alert critici
+- [ ] RBAC (ruoli: viewer, editor, admin per portafoglio)
+- [ ] OAuth Fineco (se API diventa pubblica)
+
+---
+
+## Sicurezza
+
+- ✅ Password hashing Argon2id + pepper
+- ✅ Sessioni regenerate dopo login
+- ✅ Cookie Secure, HttpOnly, SameSite=Strict
+- ✅ Rate limiting login (5 tentativi/15 min per IP)
+- ✅ Webhook HMAC-SHA256 per n8n → backend
+- ✅ Prepared statements su tutte le query
+- ✅ Validazione input lato server
+- ⚠️ Per production: aggiungi SSL/TLS, WAF, fail2ban
+
+---
+
+## Disclaimer
+
+**Questo progetto è per uso personale e didattico. Non costituisce consulenza finanziaria.**
+L'utente rimane pienamente responsabile delle decisioni di investimento.
+Fineco Bank è marchio registrato. Nessuna affiliazione né sponsorizzazione.
+
+---
+
+**Ultimo aggiornamento**: 24 Nov 2025
