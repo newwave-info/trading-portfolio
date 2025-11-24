@@ -1,0 +1,11 @@
+{
+  "identifier" : "16CC28F1-ED11-4DBA-8BBC-076C935905C3",
+  "ignoredFilePatterns" : [
+    "DS_Store",
+    "Configuration.json"
+  ],
+  "remotePath" : "\/var\/www\/vhosts\/portfolio.newwave-media.it\/httpdocs",
+  "remoteURL" : "https:\/\/portfolio.newwave-media.it\/",
+  "server" : "NW STARTER HP",
+  "usesPublishing" : true
+}
