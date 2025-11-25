@@ -7,8 +7,15 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
                     <div class="widget-card widget-purple p-6">
                         <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Totale 2025</div>
-                        <div class="text-2xl font-bold text-primary">€<?php echo number_format($metadata['total_dividends'], 2, ',', '.'); ?></div>
-                        <div class="text-[11px] text-positive mt-1"><?php echo count($dividends); ?> pagamenti</div>
+                        <div class="text-2xl font-bold text-primary">€<?php echo number_format(
+                            $metadata["total_dividends"],
+                            2,
+                            ",",
+                            "."
+                        ); ?></div>
+                        <div class="text-[11px] text-positive mt-1"><?php echo count(
+                            $dividends
+                        ); ?> pagamenti</div>
                     </div>
                     <div class="widget-card widget-purple p-6">
                         <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Previsto 6 Mesi</div>
@@ -59,32 +66,100 @@
                         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                             <?php
                             $months_forecast = [
-                                ['month' => 'Dicembre', 'year' => '2025', 'events' => 3, 'amount' => 90.54],
-                                ['month' => 'Gennaio', 'year' => '2026', 'events' => 0, 'amount' => 0],
-                                ['month' => 'Febbraio', 'year' => '2026', 'events' => 0, 'amount' => 0],
-                                ['month' => 'Marzo', 'year' => '2026', 'events' => 3, 'amount' => 90.54],
-                                ['month' => 'Aprile', 'year' => '2026', 'events' => 0, 'amount' => 0],
-                                ['month' => 'Maggio', 'year' => '2026', 'events' => 0, 'amount' => 0],
+                                [
+                                    "month" => "Dicembre",
+                                    "year" => "2025",
+                                    "events" => 3,
+                                    "amount" => 90.54,
+                                ],
+                                [
+                                    "month" => "Gennaio",
+                                    "year" => "2026",
+                                    "events" => 0,
+                                    "amount" => 0,
+                                ],
+                                [
+                                    "month" => "Febbraio",
+                                    "year" => "2026",
+                                    "events" => 0,
+                                    "amount" => 0,
+                                ],
+                                [
+                                    "month" => "Marzo",
+                                    "year" => "2026",
+                                    "events" => 3,
+                                    "amount" => 90.54,
+                                ],
+                                [
+                                    "month" => "Aprile",
+                                    "year" => "2026",
+                                    "events" => 0,
+                                    "amount" => 0,
+                                ],
+                                [
+                                    "month" => "Maggio",
+                                    "year" => "2026",
+                                    "events" => 0,
+                                    "amount" => 0,
+                                ],
                             ];
                             foreach ($months_forecast as $month):
-                                $has_events = $month['events'] > 0;
-                            ?>
+                                $has_events = $month["events"] > 0; ?>
                             <div class="p-4 bg-white border border-gray-200">
-                                <div class="font-semibold text-primary text-sm"><?php echo $month['month']; ?></div>
-                                <div class="text-[10px] text-gray-500 mb-2"><?php echo $month['year']; ?></div>
+                                <div class="font-semibold text-primary text-sm"><?php echo $month[
+                                    "month"
+                                ]; ?></div>
+                                <div class="text-[10px] text-gray-500 mb-2"><?php echo $month[
+                                    "year"
+                                ]; ?></div>
                                 <?php if ($has_events): ?>
                                     <div class="text-xs text-gray-600 mb-1">
-                                        <span class="px-2 py-0.5 bg-purple-100 text-purple-700 font-semibold"><?php echo $month['events']; ?> evento/i</span>
+                                        <span class="px-2 py-0.5 bg-purple-100 text-purple-700 font-semibold"><?php echo $month[
+                                            "events"
+                                        ]; ?> evento/i</span>
                                     </div>
-                                    <div class="text-sm font-bold text-positive mt-2">€<?php echo number_format($month['amount'], 2, ',', '.'); ?></div>
+                                    <div class="text-sm font-bold text-positive mt-2">€<?php echo number_format(
+                                        $month["amount"],
+                                        2,
+                                        ",",
+                                        "."
+                                    ); ?></div>
                                 <?php else: ?>
                                     <div class="text-xs text-gray-400">Nessun evento</div>
                                 <?php endif; ?>
                             </div>
-                            <?php endforeach; ?>
+                            <?php
+                            endforeach;
+                            ?>
                         </div>
                     </div>
                 </div>
+                
+                <!-- Grafici Dividendi -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <div class="widget-card widget-purple p-6">
+                            <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-calendar-check text-purple text-sm"></i>
+                                    <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Dividendi Mensili 2025</span>
+                                </div>
+                            </div>
+                            <div class="relative h-[300px]">
+                                <canvas id="dividendsMonthlyChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="widget-card widget-purple p-6">
+                            <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-money-bill-trend-up text-purple text-sm"></i>
+                                    <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Rendita Cumulativa</span>
+                                </div>
+                            </div>
+                            <div class="relative h-[300px]">
+                                <canvas id="dividendsCumulativeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
 
                 <!-- Asset Distributivi -->
                 <div class="mb-8">
@@ -158,11 +233,21 @@
                             <?php foreach ($dividends as $div): ?>
                             <div class="flex justify-between items-center p-3 bg-gray-50 border border-gray-200">
                                 <div>
-                                    <div class="font-semibold text-primary text-sm"><?php echo htmlspecialchars($div['ticker']); ?></div>
-                                    <div class="text-[11px] text-gray-500"><?php echo date('d/m/Y', strtotime($div['pay_date'])); ?></div>
+                                    <div class="font-semibold text-primary text-sm"><?php echo htmlspecialchars(
+                                        $div["ticker"]
+                                    ); ?></div>
+                                    <div class="text-[11px] text-gray-500"><?php echo date(
+                                        "d/m/Y",
+                                        strtotime($div["pay_date"])
+                                    ); ?></div>
                                 </div>
                                 <div class="text-right">
-                                    <div class="font-bold text-positive">€<?php echo number_format($div['amount'], 2, ',', '.'); ?></div>
+                                    <div class="font-bold text-positive">€<?php echo number_format(
+                                        $div["amount"],
+                                        2,
+                                        ",",
+                                        "."
+                                    ); ?></div>
                                 </div>
                             </div>
                             <?php endforeach; ?>
@@ -170,31 +255,7 @@
                     </div>
                 </div>
 
-                <!-- Grafici Dividendi -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    <div class="widget-card widget-purple p-6">
-                        <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
-                            <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-calendar-check text-purple text-sm"></i>
-                                <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Dividendi Mensili 2025</span>
-                            </div>
-                        </div>
-                        <div class="relative h-[300px]">
-                            <canvas id="dividendsMonthlyChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="widget-card widget-purple p-6">
-                        <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
-                            <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-money-bill-trend-up text-purple text-sm"></i>
-                                <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Rendita Cumulativa</span>
-                            </div>
-                        </div>
-                        <div class="relative h-[300px]">
-                            <canvas id="dividendsCumulativeChart"></canvas>
-                        </div>
-                    </div>
-                </div>
+                
             </div>
 
             <!-- View: Recommendations -->
