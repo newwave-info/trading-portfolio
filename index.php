@@ -74,7 +74,7 @@
 <body class="flex flex-col h-screen overflow-hidden bg-gray-50">
     <?php
     // ============================================
-    // DATI STATICI ESEMPIO - PORTFOLIO ETF
+    // DATI STATICI ESEMPIO - PORTAFOGLIO ETF
     // ============================================
 
     // Metadata del portafoglio
@@ -357,8 +357,11 @@
             <div class="text-[11px] text-gray-500 hidden sm:block">
                 Ultimo aggiornamento: <strong class="text-gray-700"><?php echo htmlspecialchars($metadata['last_update']); ?></strong>
             </div>
-            <button id="themeToggle" class="text-gray-500 hover:text-purple text-lg transition-colors" onclick="toggleTheme()" title="Cambia tema">
-                <i class="fa-solid fa-moon"></i>
+            <button id="themeToggle" class="text-gray-500 hover:text-purple text-lg transition-colors" onclick="toggleTheme()">
+                <div class="tooltip-container inline-flex">
+                    <i class="fa-solid fa-moon"></i>
+                    <div class="tooltip-content">Passa alla modalità tema scuro o chiaro</div>
+                </div>
             </button>
             <button id="mobileMenuBtn" class="md:hidden text-primary text-xl" onclick="toggleSidebar()">
                 <i class="fa-solid fa-bars"></i>
@@ -427,70 +430,26 @@
                     <h1 class="text-[18px] sm:text-[20px] font-medium text-primary tracking-tight">Dashboard Overview</h1>
                 </div>
 
-                <!-- Cards Overview -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-            <div class="widget-card widget-purple p-6">
-                <div class="flex items-center gap-2 mb-3">
-                    <i class="fa-solid fa-wallet text-purple"></i>
-                    <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Valore Totale</span>
-                </div>
-                <div class="text-2xl font-bold text-primary mb-1">€<?php echo number_format($metadata['total_value'], 2, ',', '.'); ?></div>
-                <div class="text-[11px] text-gray-500">Investito: €<?php echo number_format($metadata['total_invested'], 2, ',', '.'); ?></div>
-            </div>
-
-            <div class="widget-card widget-purple p-6">
-                <div class="flex items-center gap-2 mb-3">
-                    <i class="fa-solid fa-chart-line text-purple"></i>
-                    <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">P&L Non Realizzato</span>
-                </div>
-                <div class="text-2xl font-bold text-positive mb-1">€<?php echo number_format($metadata['unrealized_pnl'], 2, ',', '.'); ?></div>
-                <div class="text-[11px] text-gray-500">+<?php echo number_format($metadata['unrealized_pnl_pct'], 2, ',', '.'); ?>%</div>
-            </div>
-
-            <div class="widget-card widget-purple p-6">
-                <div class="flex items-center gap-2 mb-3">
-                    <i class="fa-solid fa-coins text-purple"></i>
-                    <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Dividendi Totali</span>
-                </div>
-                <div class="text-2xl font-bold text-primary mb-1">€<?php echo number_format($metadata['total_dividends'], 2, ',', '.'); ?></div>
-                <div class="text-[11px] text-gray-500"><?php echo count($dividends); ?> pagamenti</div>
-            </div>
-
-            <div class="widget-card widget-purple p-6">
-                <div class="flex items-center gap-2 mb-3">
-                    <i class="fa-solid fa-boxes-stacked text-purple"></i>
-                    <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Posizioni</span>
-                </div>
-                <div class="text-2xl font-bold text-primary mb-1"><?php echo $holdings_count; ?></div>
-                <div class="text-[11px] text-gray-500">ETF attivi</div>
-            </div>
-        </div>
-
-        <!-- Info Banner -->
+                <!-- Dashboard Overview - 2 Columns Layout -->
         <?php
         $portfolio_score = 74; // Calcolo dinamico in seguito
         $score_label = $portfolio_score >= 75 ? 'Ottimo' : ($portfolio_score >= 60 ? 'Buono' : 'Migliorabile');
-        $banner_date = date('d/m/Y H:i', strtotime($metadata['last_update']));
         ?>
-        <div class="mb-8 p-4 bg-gray-50 border border-gray-200">
-            <div class="flex items-start gap-3">
-                <i class="fa-solid fa-bullhorn text-gray-500 text-base mt-0.5"></i>
-                <div class="flex-1">
-                    <p class="text-[13px] text-gray-700">
-                        <strong>Aggiornamento <?php echo $banner_date; ?>:</strong>
-                        Portfolio con score <?php echo $portfolio_score; ?>/100 (<?php echo $score_label; ?>).
-                        Performance attuale +<?php echo number_format($metadata['unrealized_pnl_pct'], 2, ',', '.'); ?>%.
-                        Top performer: <?php echo htmlspecialchars($best_performer['ticker']); ?>
-                        +<?php echo number_format($best_performer['pnl_percentage'], 2, ',', '.'); ?>%.
-                    </p>
-                </div>
-            </div>
-        </div>
 
-        <!-- Score di Salute Portfolio -->
-        <div class="mb-8">
+        <!-- First Row: Salute Portafoglio + 4 Metrics -->
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 mb-6">
+            <!-- Salute Portafoglio -->
             <div class="widget-card widget-purple p-6">
-                <h2 class="text-base font-semibold mb-4 text-primary">Salute Portafoglio</h2>
+                <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-heart-pulse text-purple text-sm"></i>
+                        <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Salute Portafoglio</span>
+                        <div class="tooltip-container">
+                            <i class="fa-solid fa-circle-info text-gray-400 text-[9px] cursor-help"></i>
+                            <div class="tooltip-content">Indicatore sintetico della salute del portafoglio basato su diversificazione, performance e profilo di rischio</div>
+                        </div>
+                    </div>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div class="flex flex-col items-center justify-center">
                         <div class="text-5xl font-bold text-purple"><?php echo $portfolio_score; ?></div>
@@ -519,14 +478,77 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 4 Metrics Grid -->
+            <div class="grid grid-cols-2 gap-4 lg:w-[500px]">
+                <!-- Valore Totale -->
+                <div class="widget-card widget-purple p-6 flex flex-col">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-wallet text-purple"></i>
+                        <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Valore Totale</span>
+                        <div class="tooltip-container">
+                            <i class="fa-solid fa-circle-info text-gray-400 text-[9px] cursor-help"></i>
+                            <div class="tooltip-content">Valore totale corrente del portafoglio calcolato sui prezzi di mercato più recenti</div>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold text-primary mb-1">€<?php echo number_format($metadata['total_value'], 2, ',', '.'); ?></div>
+                    <div class="text-[11px] text-gray-500">Investito: €<?php echo number_format($metadata['total_invested'], 2, ',', '.'); ?></div>
+                </div>
+
+                <!-- P&L Non Realizzato -->
+                <div class="widget-card widget-purple p-6 flex flex-col">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-chart-line text-purple"></i>
+                        <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">P&L Non Realizzato</span>
+                        <div class="tooltip-container">
+                            <i class="fa-solid fa-circle-info text-gray-400 text-[9px] cursor-help"></i>
+                            <div class="tooltip-content">Profitto/perdita non realizzato sulle posizioni aperte rispetto al prezzo di carico</div>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold text-positive mb-1">€<?php echo number_format($metadata['unrealized_pnl'], 2, ',', '.'); ?></div>
+                    <div class="text-[11px] text-gray-500">+<?php echo number_format($metadata['unrealized_pnl_pct'], 2, ',', '.'); ?>%</div>
+                </div>
+
+                <!-- Dividendi Totali -->
+                <div class="widget-card widget-purple p-6 flex flex-col">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-coins text-purple"></i>
+                        <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Dividendi Totali</span>
+                        <div class="tooltip-container">
+                            <i class="fa-solid fa-circle-info text-gray-400 text-[9px] cursor-help"></i>
+                            <div class="tooltip-content">Totale dividendi lordi ricevuti da tutte le posizioni nel periodo</div>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold text-primary mb-1">€<?php echo number_format($metadata['total_dividends'], 2, ',', '.'); ?></div>
+                    <div class="text-[11px] text-gray-500"><?php echo count($dividends); ?> pagamenti</div>
+                </div>
+
+                <!-- Posizioni -->
+                <div class="widget-card widget-purple p-6 flex flex-col">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-boxes-stacked text-purple"></i>
+                        <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Posizioni</span>
+                        <div class="tooltip-container">
+                            <i class="fa-solid fa-circle-info text-gray-400 text-[9px] cursor-help"></i>
+                            <div class="tooltip-content">Numero totale di asset diversi attualmente presenti nel portafoglio</div>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold text-primary mb-1"><?php echo $holdings_count; ?></div>
+                    <div class="text-[11px] text-gray-500">ETF attivi</div>
+                </div>
+            </div>
         </div>
 
-        <!-- AI Insights -->
+        <!-- Second Row: AI Insights Riepilogo Portafoglio (Full Width) -->
         <div class="mb-8">
             <div class="widget-ai-insight px-6 py-4 transition-all duration-300">
-                <div class="flex items-center gap-2.5 mb-3 pb-2.5 border-b border-gray-200/40">
+                <div class="flex items-center gap-2.5 mb-3 pb-2.5 border-b border-purple/20">
                     <span class="badge-ai bg-purple text-white text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-wide">AI Insight</span>
-                    <span class="text-xs font-semibold text-primary uppercase tracking-wide">Riepilogo Portfolio <?php echo date('Y', strtotime($metadata['last_update'])); ?></span>
+                    <span class="text-[11px] font-medium text-purple uppercase tracking-wider">Riepilogo Portafoglio <?php echo date('Y', strtotime($metadata['last_update'])); ?></span>
+                    <div class="tooltip-container ml-1">
+                        <i class="fa-solid fa-circle-info text-purple/60 text-[9px] cursor-help"></i>
+                        <div class="tooltip-content">Analisi automatica del portafoglio con evidenza dei punti di attenzione e delle opportunità</div>
+                    </div>
                 </div>
                 <div class="text-[13px] leading-relaxed text-gray-700">
                     <div class="pl-4 relative py-2 border-b border-dashed border-gray-300">
@@ -539,18 +561,24 @@
                     </div>
                     <div class="pl-4 relative py-2">
                         <span class="absolute left-0 text-purple font-bold">→</span>
-                        Portfolio bilanciato con <?php echo $holdings_count; ?> posizioni. Allocazione concentrata su global equity (<?php echo number_format($allocation_by_asset_class[0]['percentage'], 1, ',', '.'); ?>%).
+                        Portafoglio bilanciato con <?php echo $holdings_count; ?> posizioni. Allocazione concentrata su global equity (<?php echo number_format($allocation_by_asset_class[0]['percentage'], 1, ',', '.'); ?>%).
                     </div>
                 </div>
             </div>
         </div>
+        <!-- End Dashboard Overview -->
 
         <!-- Performance Chart -->
         <div class="mb-8">
             <div class="widget-card widget-purple p-6">
                 <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
                     <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-chart-area text-purple text-sm"></i>
                         <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Andamento Portafoglio</span>
+                        <div class="tooltip-container">
+                            <i class="fa-solid fa-circle-info text-gray-400 text-[9px] cursor-help"></i>
+                            <div class="tooltip-content">Evoluzione temporale del valore complessivo del portafoglio</div>
+                        </div>
                     </div>
                 </div>
                 <div class="relative h-[300px]">
@@ -565,7 +593,14 @@
                 <!-- Top 5 Performers -->
                 <div class="widget-card widget-purple p-6">
                     <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
-                        <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Top 5 Performer</span>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-arrow-trend-up text-purple text-sm"></i>
+                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Top 5 Performer</span>
+                            <div class="tooltip-container">
+                                <i class="fa-solid fa-circle-info text-gray-400 text-[9px] cursor-help"></i>
+                                <div class="tooltip-content">Migliori 5 asset per performance percentuale nel periodo</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm sortable-table">
@@ -599,7 +634,14 @@
                 <!-- Bottom 5 Performers -->
                 <div class="widget-card widget-negative p-6">
                     <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
-                        <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Bottom 5 Performer</span>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-arrow-trend-down text-purple text-sm"></i>
+                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Bottom 5 Performer</span>
+                            <div class="tooltip-container">
+                                <i class="fa-solid fa-circle-info text-gray-400 text-[9px] cursor-help"></i>
+                                <div class="tooltip-content">Peggiori 5 asset per performance, richiedono monitoraggio attivo</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm sortable-table">
@@ -633,7 +675,14 @@
         <div class="mb-8">
             <div class="widget-card widget-purple p-6">
                 <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
-                    <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Breakdown per Tipo</span>
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-purple text-sm"></i>
+                        <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Breakdown per Tipo</span>
+                        <div class="tooltip-container">
+                            <i class="fa-solid fa-circle-info text-gray-400 text-[9px] cursor-help"></i>
+                            <div class="tooltip-content">Distribuzione del portafoglio per tipologia di strumento finanziario</div>
+                        </div>
+                    </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm sortable-table">
@@ -682,7 +731,14 @@
         <div class="mb-8">
             <div class="widget-card widget-purple p-6">
                 <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
-                    <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Top Holdings</span>
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-ranking-star text-purple text-sm"></i>
+                        <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Top Holdings</span>
+                        <div class="tooltip-container">
+                            <i class="fa-solid fa-circle-info text-gray-400 text-[9px] cursor-help"></i>
+                            <div class="tooltip-content">Principali posizioni ordinate per valore assoluto detenuto</div>
+                        </div>
+                    </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm sortable-table">
@@ -732,7 +788,12 @@
             <div class="widget-card widget-purple p-6">
                 <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
                     <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-circle-half-stroke text-purple text-sm"></i>
                         <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Allocazione per Asset Class</span>
+                        <div class="tooltip-container">
+                            <i class="fa-solid fa-circle-info text-gray-400 text-[9px] cursor-help"></i>
+                            <div class="tooltip-content">Distribuzione percentuale del capitale per classe di asset (equity, bond, cash)</div>
+                        </div>
                     </div>
                 </div>
                 <div class="relative h-[250px]">
@@ -743,7 +804,12 @@
             <div class="widget-card widget-purple p-6">
                 <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
                     <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-purple text-sm"></i>
                         <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Analisi Tecnica</span>
+                        <div class="tooltip-container">
+                            <i class="fa-solid fa-circle-info text-gray-400 text-[9px] cursor-help"></i>
+                            <div class="tooltip-content">Snapshot degli indicatori tecnici principali per valutare trend e timing di ingresso</div>
+                        </div>
                     </div>
                 </div>
                 <div class="space-y-4">
@@ -840,7 +906,10 @@
                 <!-- Holdings Table -->
                 <div class="widget-card widget-purple p-6">
                     <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
-                        <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Tutte le Posizioni</span>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-list text-purple text-sm"></i>
+                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Tutte le Posizioni</span>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm sortable-table">
@@ -937,7 +1006,10 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                     <div class="widget-card widget-purple p-6">
                         <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
-                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Andamento Portafoglio</span>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-chart-area text-purple text-sm"></i>
+                                <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Andamento Portafoglio</span>
+                            </div>
                         </div>
                         <div class="relative h-[250px]">
                             <canvas id="performanceDetailChart"></canvas>
@@ -946,7 +1018,10 @@
 
                     <div class="widget-card widget-purple p-6">
                         <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
-                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Guadagno Cumulativo</span>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-sack-dollar text-purple text-sm"></i>
+                                <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Guadagno Cumulativo</span>
+                            </div>
                         </div>
                         <div class="relative h-[250px]">
                             <canvas id="cumulativeGainChart"></canvas>
@@ -955,7 +1030,10 @@
 
                     <div class="widget-card widget-purple p-6">
                         <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
-                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Valore Portfolio</span>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-briefcase text-purple text-sm"></i>
+                                <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Valore Portafoglio</span>
+                            </div>
                         </div>
                         <div class="relative h-[250px]">
                             <canvas id="valueOverTimeChart"></canvas>
@@ -966,7 +1044,10 @@
                 <!-- Tabella Storica Progressiva -->
                 <div class="mb-8 widget-card p-6">
                     <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
-                        <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Storico Performance Giornaliero</span>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-table text-purple text-sm"></i>
+                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Storico Performance Giornaliero</span>
+                        </div>
                         <button class="px-3 py-1 bg-purple text-white text-[11px] font-semibold hover:bg-purple-dark transition-colors">
                             <i class="fa-solid fa-download mr-1"></i> Export CSV
                         </button>
@@ -976,7 +1057,7 @@
                             <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>
                                     <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Data</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Valore Portfolio</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Valore Portafoglio</th>
                                     <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Guadagno Cumulativo</th>
                                     <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Guadagno %</th>
                                     <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Posizioni Aperte</th>
@@ -1025,9 +1106,9 @@
                 <!-- AI Insights per Technical -->
                 <div class="mb-8">
                     <div class="widget-ai-insight px-6 py-4 transition-all duration-300">
-                        <div class="flex items-center gap-2.5 mb-3 pb-2.5 border-b border-gray-200/40">
+                        <div class="flex items-center gap-2.5 mb-3 pb-2.5 border-b border-purple/20">
                             <span class="badge-ai bg-purple text-white text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-wide">AI Insight</span>
-                            <span class="text-xs font-semibold text-primary uppercase tracking-wide">Analisi Tecnica</span>
+                            <span class="text-[11px] font-medium text-purple uppercase tracking-wider">Analisi Tecnica</span>
                         </div>
                         <div class="text-[13px] leading-relaxed text-gray-700">
                             <div class="pl-4 relative py-2 border-b border-dashed border-gray-300">
@@ -1133,7 +1214,7 @@
                         <div class="text-[11px] text-gray-500 mt-1">Gen - Giu 2026</div>
                     </div>
                     <div class="widget-card widget-purple p-6">
-                        <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Yield Medio Portfolio</div>
+                        <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Yield Medio Portafoglio</div>
                         <div class="text-xl font-bold text-primary">2.8%</div>
                         <div class="text-[11px] text-gray-500 mt-1">Annualizzato</div>
                     </div>
@@ -1147,14 +1228,14 @@
                 <!-- AI Insights per Dividends -->
                 <div class="mb-8">
                     <div class="widget-ai-insight px-6 py-4 transition-all duration-300">
-                        <div class="flex items-center gap-2.5 mb-3 pb-2.5 border-b border-gray-200/40">
+                        <div class="flex items-center gap-2.5 mb-3 pb-2.5 border-b border-purple/20">
                             <span class="badge-ai bg-purple text-white text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-wide">AI Insight</span>
-                            <span class="text-xs font-semibold text-primary uppercase tracking-wide">Analisi Dividendi</span>
+                            <span class="text-[11px] font-medium text-purple uppercase tracking-wider">Analisi Dividendi</span>
                         </div>
                         <div class="text-[13px] leading-relaxed text-gray-700">
                             <div class="pl-4 relative py-2 border-b border-dashed border-gray-300">
                                 <span class="absolute left-0 text-purple font-bold">→</span>
-                                Portfolio con yield medio 2.8%, in linea con ETF diversificati. Focus su crescita capitale piuttosto che rendita.
+                                Portafoglio con yield medio 2.8%, in linea con ETF diversificati. Focus su crescita capitale piuttosto che rendita.
                             </div>
                             <div class="pl-4 relative py-2">
                                 <span class="absolute left-0 text-purple font-bold">→</span>
@@ -1168,7 +1249,10 @@
                 <div class="mb-8">
                     <div class="widget-card widget-purple p-6">
                         <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
-                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Calendario Prossimi 6 Mesi</span>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-calendar-days text-purple text-sm"></i>
+                                <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Calendario Prossimi 6 Mesi</span>
+                            </div>
                         </div>
                         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                             <?php
@@ -1204,7 +1288,10 @@
                 <div class="mb-8">
                     <div class="widget-card widget-purple p-6">
                         <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
-                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Asset Distributivi</span>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-piggy-bank text-purple text-sm"></i>
+                                <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Asset Distributivi</span>
+                            </div>
                             <button class="px-3 py-1 bg-purple text-white text-[11px] font-semibold hover:bg-purple-dark transition-colors">
                                 <i class="fa-solid fa-download mr-1"></i> Export CSV
                             </button>
@@ -1260,7 +1347,10 @@
                 <div class="mb-8">
                     <div class="widget-card widget-purple p-6">
                         <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
-                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Storico Dividendi Ricevuti 2025</span>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-clock-rotate-left text-purple text-sm"></i>
+                                <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Storico Dividendi Ricevuti 2025</span>
+                            </div>
                         </div>
                         <div class="space-y-3">
                             <?php foreach ($dividends as $div): ?>
@@ -1282,7 +1372,10 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     <div class="widget-card widget-purple p-6">
                         <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
-                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Dividendi Mensili 2025</span>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-calendar-check text-purple text-sm"></i>
+                                <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Dividendi Mensili 2025</span>
+                            </div>
                         </div>
                         <div class="relative h-[300px]">
                             <canvas id="dividendsMonthlyChart"></canvas>
@@ -1290,7 +1383,10 @@
                     </div>
                     <div class="widget-card widget-purple p-6">
                         <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
-                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Rendita Cumulativa</span>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-money-bill-trend-up text-purple text-sm"></i>
+                                <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Rendita Cumulativa</span>
+                            </div>
                         </div>
                         <div class="relative h-[300px]">
                             <canvas id="dividendsCumulativeChart"></canvas>
@@ -1308,9 +1404,9 @@
                 <!-- AI Insights per Recommendations -->
                 <div class="mb-8">
                     <div class="widget-ai-insight px-6 py-4 transition-all duration-300">
-                        <div class="flex items-center gap-2.5 mb-3 pb-2.5 border-b border-gray-200/40">
+                        <div class="flex items-center gap-2.5 mb-3 pb-2.5 border-b border-purple/20">
                             <span class="badge-ai bg-purple text-white text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-wide">AI Insight</span>
-                            <span class="text-xs font-semibold text-primary uppercase tracking-wide">Strategia Consigliata</span>
+                            <span class="text-[11px] font-medium text-purple uppercase tracking-wider">Strategia Consigliata</span>
                         </div>
                         <div class="text-[13px] leading-relaxed text-gray-700">
                             <div class="pl-4 relative py-2 border-b border-dashed border-gray-300">
@@ -1471,7 +1567,7 @@
                                     <p class="text-xs text-gray-700">Volatilità attesa per dicembre legata a decisioni Fed e BCE. Possibili correzioni 3-5% su equity globale.</p>
                                 </div>
                                 <div class="p-4 bg-yellow-50 border border-yellow-200">
-                                    <div class="font-semibold text-warning mb-2">Rischi Portfolio</div>
+                                    <div class="font-semibold text-warning mb-2">Rischi Portafoglio</div>
                                     <p class="text-xs text-gray-700">Concentrazione su equity globale (87%). Considerare diversificazione su bond o commodities se risk appetite diminuisce.</p>
                                 </div>
                                 <div class="p-4 bg-gray-50 border border-gray-200">
@@ -1517,14 +1613,14 @@
                 <!-- AI Insights per Flows -->
                 <div class="mb-8">
                     <div class="widget-ai-insight px-6 py-4 transition-all duration-300">
-                        <div class="flex items-center gap-2.5 mb-3 pb-2.5 border-b border-gray-200/40">
+                        <div class="flex items-center gap-2.5 mb-3 pb-2.5 border-b border-purple/20">
                             <span class="badge-ai bg-purple text-white text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-wide">AI Insight</span>
-                            <span class="text-xs font-semibold text-primary uppercase tracking-wide">Analisi Flussi</span>
+                            <span class="text-[11px] font-medium text-purple uppercase tracking-wider">Analisi Flussi</span>
                         </div>
                         <div class="text-[13px] leading-relaxed text-gray-700">
                             <div class="pl-4 relative py-2 border-b border-dashed border-gray-300">
                                 <span class="absolute left-0 text-purple font-bold">→</span>
-                                Portfolio in crescita costante con +<?php echo number_format($metadata['unrealized_pnl_pct'], 2, ',', '.'); ?>% da inizio tracking.
+                                Portafoglio in crescita costante con +<?php echo number_format($metadata['unrealized_pnl_pct'], 2, ',', '.'); ?>% da inizio tracking.
                             </div>
                             <div class="pl-4 relative py-2">
                                 <span class="absolute left-0 text-purple font-bold">→</span>
@@ -1537,7 +1633,10 @@
                 <!-- Tabella Storica -->
                 <div class="mb-8 widget-card p-6">
                     <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
-                        <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Tabella Storica Progressiva</span>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-table-list text-purple text-sm"></i>
+                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Tabella Storica Progressiva</span>
+                        </div>
                         <button class="px-3 py-1 bg-purple text-white text-[11px] font-semibold hover:bg-purple-dark transition-colors">
                             <i class="fa-solid fa-download mr-1"></i> Export CSV
                         </button>
@@ -1547,7 +1646,7 @@
                             <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>
                                     <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Data</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Valore Portfolio</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Valore Portafoglio</th>
                                     <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Guadagno Cumulativo</th>
                                     <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Guadagno %</th>
                                     <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Posizioni Aperte</th>
@@ -1591,7 +1690,10 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     <div class="widget-card widget-purple p-6">
                         <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
-                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Guadagno Cumulativo nel Tempo</span>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-chart-column text-purple text-sm"></i>
+                                <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Guadagno Cumulativo nel Tempo</span>
+                            </div>
                         </div>
                         <div class="relative h-[300px]">
                             <canvas id="cumulativeGainChart"></canvas>
@@ -1599,7 +1701,10 @@
                     </div>
                     <div class="widget-card widget-purple p-6">
                         <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
-                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Valore Portfolio nel Tempo</span>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-chart-gantt text-purple text-sm"></i>
+                                <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Valore Portafoglio nel Tempo</span>
+                            </div>
                         </div>
                         <div class="relative h-[300px]">
                             <canvas id="valueOverTimeChart"></canvas>
@@ -1609,7 +1714,10 @@
 
                 <!-- Statistiche Performance -->
                 <div class="mb-8">
-                    <div class="text-[11px] font-medium text-gray-600 uppercase tracking-wider mb-4">Statistiche Performance</div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <i class="fa-solid fa-chart-simple text-purple text-sm"></i>
+                        <div class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Statistiche Performance</div>
+                    </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                         <div class="widget-card widget-purple p-6">
                             <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Performance Since Start</div>
@@ -1639,74 +1747,69 @@
 </div>
 
 <script>
-        // Performance Chart
+        // Performance Chart - Inizializzazione manuale con dati dinamici PHP
         const performanceCtxEl = document.getElementById('performanceChart');
         if (performanceCtxEl) {
             const performanceCtx = performanceCtxEl.getContext('2d');
-        new Chart(performanceCtx, {
-            type: 'line',
-            data: {
-                labels: <?php echo json_encode(array_column($monthly_performance, 'month')); ?>,
-                datasets: [{
-                    label: 'Valore Portafoglio',
-                    data: <?php echo json_encode(array_column($monthly_performance, 'value')); ?>,
-                    borderColor: '#8b5cf6',
-                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
+            new Chart(performanceCtx, {
+                type: 'line',
+                data: {
+                    labels: <?php echo json_encode(array_column($monthly_performance, 'month')); ?>,
+                    datasets: [{
+                        label: 'Valore Portafoglio',
+                        data: <?php echo json_encode(array_column($monthly_performance, 'value')); ?>,
+                        borderColor: '#8b5cf6',
+                        backgroundColor: pattern.draw('diagonal', 'rgba(139, 92, 246, 0.05)'),
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0,
+                        pointStyle: 'rect',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                        ticks: {
-                            callback: function(value) {
-                                return '€' + value.toLocaleString('it-IT');
-                            }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: { callback: v => '€' + v.toLocaleString('it-IT') }
                         }
                     }
                 }
-            }
-        });
+            });
         }
 
-        // Allocation Chart
+        // Allocation Chart - Inizializzazione manuale con dati dinamici PHP
         const allocationCtxEl = document.getElementById('allocationChart');
         if (allocationCtxEl) {
             const allocationCtx = allocationCtxEl.getContext('2d');
-        new Chart(allocationCtx, {
-            type: 'doughnut',
-            data: {
-                labels: <?php echo json_encode(array_column($allocation_by_asset_class, 'class')); ?>,
-                datasets: [{
-                    data: <?php echo json_encode(array_column($allocation_by_asset_class, 'percentage')); ?>,
-                    backgroundColor: [
-                        '#8b5cf6',
-                        '#3b82f6',
-                        '#10b981',
-                        '#f59e0b',
-                        '#ef4444'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
+            new Chart(allocationCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: <?php echo json_encode(array_column($allocation_by_asset_class, 'class')); ?>,
+                    datasets: [{
+                        data: <?php echo json_encode(array_column($allocation_by_asset_class, 'percentage')); ?>,
+                        backgroundColor: ['#8b5cf6', '#a78bfa', '#c4b5fd', '#52525b', '#71717a'],
+                        borderColor: '#ffffff',
+                        borderWidth: 0,
+                        spacing: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 15, font: { size: 11 }, usePointStyle: true, pointStyle: 'rect' }
+                        }
                     }
                 }
-            }
-        });
+            });
         }
     </script>
     <script src="/assets/js/app.js?v=<?php echo time(); ?>"></script>

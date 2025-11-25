@@ -1,9 +1,9 @@
 # Trading Portfolio Dashboard - Style Guide
 
-**Versione:** 1.1
+**Versione:** 1.2
 **Data:** 25 Novembre 2025
 **Tipo Progetto:** ETF Portfolio Manager Dashboard
-**Ultima Modifica:** Aggiunta sezione REGOLE FERREE
+**Ultima Modifica:** Icone widget obbligatorie + AI Insight viola + Tooltip strutturale
 
 ---
 
@@ -285,34 +285,94 @@ const chartColors = {
 
 ---
 
-### 🎯 Regola #7: NO Linee Curve - Sempre Dritte
+### 🎯 Regola #7: Grafici a Linea - Dritte e Punti Quadrati
 
-**Grafici a linea devono avere tension: 0 (linee dritte, NO curve).**
+**Grafici a linea devono avere:**
+- **tension: 0** (linee dritte, NO curve)
+- **pointStyle: 'rect'** (punti quadrati, NO circolari)
 
 ```javascript
-// ✅ CORRETTO - Linee dritte
+// ✅ CORRETTO - Linee dritte con punti quadrati
 {
   type: 'line',
   data: {
     datasets: [{
-      tension: 0,  // Linee dritte
+      tension: 0,           // Linee dritte
       borderWidth: 3,
-      borderColor: '#8b5cf6'
+      borderColor: '#8b5cf6',
+      pointStyle: 'rect',   // Punti quadrati
+      pointRadius: 4,
+      pointHoverRadius: 6
     }]
   }
 }
 
-// ❌ SBAGLIATO - Linee curve
+// ❌ SBAGLIATO - Linee curve o punti circolari
 {
   type: 'line',
   data: {
     datasets: [{
-      tension: 0.4,  // NO! Deve essere 0
+      tension: 0.4,           // NO! Deve essere 0
+      pointStyle: 'circle',   // NO! Deve essere 'rect'
       borderColor: '#8b5cf6'
     }]
   }
 }
 ```
+
+---
+
+### 🎯 Regola #7b: Grafici Donut - Sottili e Separati
+
+**Grafici donut/doughnut devono essere:**
+- **Molto sottili**: `cutout: '75%'` o superiore
+- **Fette separate**: `spacing: 6` o superiore
+- **Solo colori sistema**: viola (#8b5cf6) e grigio (#52525b) con varianti
+
+```javascript
+// ✅ CORRETTO - Donut sottile e separato
+{
+  type: 'doughnut',
+  data: {
+    datasets: [{
+      data: [45, 30, 25],
+      backgroundColor: [
+        '#8b5cf6',  // Viola primario
+        '#a78bfa',  // Viola chiaro
+        '#52525b'   // Grigio scuro
+      ],
+      borderWidth: 0,
+      spacing: 6,      // Fette ben separate
+      cutout: '75%'    // Molto sottile
+    }]
+  },
+  options: {
+    plugins: {
+      legend: { display: true }
+    }
+  }
+}
+
+// ❌ SBAGLIATO - Troppo spesso o colori non conformi
+{
+  type: 'doughnut',
+  data: {
+    datasets: [{
+      cutout: '50%',      // NO! Troppo spesso
+      spacing: 0,         // NO! Fette attaccate
+      backgroundColor: [
+        '#3b82f6',        // NO! Blu non consentito
+        '#ef4444',        // NO! Rosso non per dati
+        '#10b981'         // NO! Verde non per dati
+      ]
+    }]
+  }
+}
+```
+
+**Palette colori per donut:**
+- Viola: `#8b5cf6`, `#a78bfa`, `#c4b5fd`, `#7c3aed`
+- Grigio: `#52525b`, `#71717a`, `#a1a1aa`, `#d4d4d8`
 
 ---
 
@@ -345,6 +405,42 @@ const chartColors = {
 
 ---
 
+### 🎯 Regola #9: Widget Titles - Sempre con Icona
+
+**TUTTI i titoli dei widget devono avere un'icona rappresentativa.**
+
+```html
+<!-- ✅ CORRETTO - Titolo con icona -->
+<div class="widget-card widget-purple p-6">
+  <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
+    <div class="flex items-center gap-2">
+      <i class="fa-solid fa-heart-pulse text-purple text-sm"></i>
+      <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Salute Portafoglio</span>
+      <div class="tooltip-container">
+        <i class="fa-solid fa-circle-info text-gray-400 text-[9px] cursor-help"></i>
+        <div class="tooltip-content">Descrizione</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ❌ SBAGLIATO - Titolo senza icona -->
+<div class="widget-card widget-purple p-6">
+  <div class="flex items-center gap-2">
+    <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Salute Portafoglio</span>
+  </div>
+</div>
+```
+
+**Regole icone widget:**
+- Colore: `text-purple` (viola primario)
+- Dimensione: `text-sm` per titoli grandi, proporzionale al testo per titoli piccoli
+- Posizione: Prima del testo del titolo
+- Gap: `gap-2` tra icona e testo
+- Font Awesome Solid: `fa-solid fa-icon-name`
+
+---
+
 ### ✅ Checklist Rapida
 
 Prima di scrivere qualsiasi codice UI, verifica:
@@ -353,11 +449,15 @@ Prima di scrivere qualsiasi codice UI, verifica:
 - [ ] Widget alert ha gradiente rosso + bordo rosso?
 - [ ] Testi sono neri/grigi neutri?
 - [ ] Colori sui testi solo per semantica dati?
+- [ ] **Tutti i titoli widget hanno icone?**
+- [ ] **AI Insight ha bordi e titoli viola (non grigi)?**
 - [ ] Tabella è sortable con classe `sortable-table`?
 - [ ] Grafico usa SOLO viola/grigio (+ variazioni)?
 - [ ] Istogrammi hanno pattern a righe diagonali?
-- [ ] Line chart ha `tension: 0`?
+- [ ] Line chart ha `tension: 0` + `pointStyle: 'rect'`?
+- [ ] Donut ha `cutout: '75%'` + `spacing: 6` + `borderWidth: 0`?
 - [ ] TUTTO ha `border-radius: 0`?
+- [ ] **Tooltip usa struttura tooltip-container/tooltip-content?**
 
 **Se anche solo UNA risposta è NO → Codice va rifiutato.**
 
@@ -696,9 +796,13 @@ width: 242px (fixed)
 #### AI Insight Widget
 ```html
 <div class="widget-ai-insight px-6 py-4">
-  <div class="flex items-center gap-2.5 mb-3 pb-2.5 border-b border-blue-200/40">
+  <div class="flex items-center gap-2.5 mb-3 pb-2.5 border-b border-purple/20">
     <span class="badge-ai bg-purple text-white text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-wide">AI Insight</span>
-    <span class="text-xs font-semibold text-primary uppercase tracking-wide">Titolo</span>
+    <span class="text-[11px] font-medium text-purple uppercase tracking-wider">Titolo</span>
+    <div class="tooltip-container ml-1">
+      <i class="fa-solid fa-circle-info text-purple/60 text-[9px] cursor-help"></i>
+      <div class="tooltip-content">Descrizione tooltip</div>
+    </div>
   </div>
   <div class="text-[13px] leading-relaxed text-gray-700">
     <div class="pl-4 relative py-2 border-b border-dashed border-gray-300">
@@ -720,6 +824,12 @@ width: 242px (fixed)
   box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
 }
 ```
+
+**Regole AI Insight Widget:**
+- Bordo separatore interno: `border-purple/20` (viola, non grigio)
+- Titolo: `text-purple` (viola, non nero)
+- Icona tooltip: `text-purple/60`
+- Testo corpo: `text-gray-700` (grigio standard)
 
 ### Buttons
 
@@ -781,9 +891,12 @@ width: 242px (fixed)
 ```
 
 ### Tooltips
+
+**Sistema tooltip strutturale (NON usare data-attribute)**
+
 ```html
 <div class="tooltip-container">
-  <i class="fa-solid fa-circle-info text-gray-400 text-xs"></i>
+  <i class="fa-solid fa-circle-info text-gray-400 text-[9px] cursor-help"></i>
   <div class="tooltip-content">
     Tooltip text here
   </div>
@@ -791,12 +904,19 @@ width: 242px (fixed)
 ```
 
 ```css
+.tooltip-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
 .tooltip-content {
   visibility: hidden;
   position: absolute;
   bottom: 125%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(4px);
   background: #18181b;
   color: white;
   padding: 10px 14px;
@@ -806,13 +926,42 @@ width: 242px (fixed)
   text-align: left;
   z-index: 100;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.tooltip-content::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #18181b transparent transparent transparent;
 }
 
 .tooltip-container:hover .tooltip-content {
   visibility: visible;
   opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 ```
+
+**❌ NON usare:**
+```html
+<!-- SBAGLIATO - data-tooltip non supportato -->
+<i class="fa-solid fa-circle-info" data-tooltip="Testo"></i>
+```
+
+**Regole tooltip:**
+- Usa SEMPRE struttura `tooltip-container` + `tooltip-content`
+- Icona: `fa-circle-info`, `text-[9px]` o `text-xs`, `cursor-help`
+- Freccia triangolare con `::after`
+- Transizione smooth di 0.2s
+- Background nero (#18181b), testo bianco
+- Larghezza fissa 220px
+- Nessun uppercase nel testo
 
 ---
 
@@ -1478,6 +1627,14 @@ Prima di committare codice, verifica:
 ---
 
 ## 🔄 Versioning
+
+### Versione 1.2 - 25 Novembre 2025
+- **AGGIUNTA REGOLA #9:** Tutti i titoli widget devono avere icone
+- **AGGIORNAMENTO:** AI Insight widget con styling viola (bordi e titoli)
+- **AGGIORNAMENTO:** Sistema tooltip strutturale (tooltip-container/tooltip-content)
+- **AGGIORNAMENTO:** Donut spacing confermato a 6
+- Aggiornata checklist con nuove verifiche (icone, tooltip, AI Insight)
+- Documentato posizionamento e stile icone widget
 
 ### Versione 1.1 - 25 Novembre 2025
 - **AGGIUNTA SEZIONE CRITICA:** REGOLE FERREE

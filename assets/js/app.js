@@ -288,11 +288,14 @@ const animationConfig = {
 };
 
 // Intersection Observer for chart animations
+// Canvas da escludere dall'inizializzazione automatica (hanno script inline)
+const excludedCharts = new Set(['performanceChart', 'allocationChart']);
+
 const chartObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
             const chartId = entry.target.id;
-            if (chartId && !initializedCharts.has(chartId)) {
+            if (chartId && !initializedCharts.has(chartId) && !excludedCharts.has(chartId)) {
                 initChart(chartId);
                 initializedCharts.add(chartId);
             }
@@ -477,7 +480,9 @@ function getChartConfigs() {
                         borderWidth: 3,
                         fill: true,
                         tension: 0,
-                        pointRadius: 5,
+                        pointStyle: 'rect',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
                         order: 2
                     },
                     {
@@ -488,7 +493,9 @@ function getChartConfigs() {
                         borderWidth: 3,
                         fill: true,
                         tension: 0,
-                        pointRadius: 5,
+                        pointStyle: 'rect',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
                         order: 1
                     }
                 ]
@@ -617,7 +624,9 @@ function getChartConfigs() {
                         borderWidth: 3,
                         fill: true,
                         tension: 0,
-                        pointRadius: 5,
+                        pointStyle: 'rect',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
                         order: 2
                     },
                     {
@@ -628,7 +637,9 @@ function getChartConfigs() {
                         borderWidth: 3,
                         fill: true,
                         tension: 0,
-                        pointRadius: 5,
+                        pointStyle: 'rect',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
                         order: 1
                     }
                 ]
@@ -768,7 +779,9 @@ function getChartConfigs() {
                         borderWidth: 3,
                         fill: false,
                         tension: 0,
-                        pointRadius: 5
+                        pointStyle: 'rect',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
                     },
                     {
                         label: 'VA/Personale (€10k)',
@@ -777,7 +790,9 @@ function getChartConfigs() {
                         borderWidth: 3,
                         fill: false,
                         tension: 0,
-                        pointRadius: 5
+                        pointStyle: 'rect',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
                     }
                 ]
             },
@@ -821,7 +836,9 @@ function getChartConfigs() {
                         borderWidth: 3,
                         fill: false,
                         tension: 0,
-                        pointRadius: 5
+                        pointStyle: 'rect',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
                     },
                     {
                         label: 'Costi Totali',
@@ -830,7 +847,9 @@ function getChartConfigs() {
                         borderWidth: 3,
                         fill: false,
                         tension: 0,
-                        pointRadius: 5
+                        pointStyle: 'rect',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
                     }
                 ]
             },
@@ -859,7 +878,9 @@ function getChartConfigs() {
                         borderWidth: 3,
                         fill: true,
                         tension: 0,
-                        pointRadius: 5,
+                        pointStyle: 'rect',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
                         order: 1
                     },
                     {
@@ -870,7 +891,9 @@ function getChartConfigs() {
                         borderWidth: 3,
                         fill: true,
                         tension: 0,
-                        pointRadius: 5,
+                        pointStyle: 'rect',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
                         order: 2
                     }
                 ]
@@ -897,7 +920,9 @@ function getChartConfigs() {
                         borderWidth: 3,
                         fill: true,
                         tension: 0,
-                        pointRadius: 5,
+                        pointStyle: 'rect',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
                         order: 2
                     },
                     {
@@ -908,7 +933,9 @@ function getChartConfigs() {
                         borderWidth: 3,
                         fill: true,
                         tension: 0,
-                        pointRadius: 5,
+                        pointStyle: 'rect',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
                         order: 1
                     }
                 ]
@@ -949,8 +976,8 @@ function getChartConfigs() {
                     data: [471, 355, 43, 17, 5, 4, 1],
                     backgroundColor: ['#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe', '#52525b', '#71717a', '#a1a1aa'],
                     borderColor: '#ffffff',
-                    borderWidth: 3,
-                    offset: 8
+                    borderWidth: 0,
+                    spacing: 6
                 }]
             },
             options: {
@@ -978,8 +1005,8 @@ function getChartConfigs() {
                     data: [272, 234, 151, 100, 61, 54, 17, 5, 3],
                     backgroundColor: ['#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe', '#52525b', '#71717a', '#a1a1aa', '#d4d4d8', '#e4e4e7'],
                     borderColor: '#ffffff',
-                    borderWidth: 3,
-                    offset: 8
+                    borderWidth: 0,
+                    spacing: 6
                 }]
             },
             options: {
@@ -1007,8 +1034,8 @@ function getChartConfigs() {
                     data: [314, 282, 26, 13, 10, 7],
                     backgroundColor: ['#8b5cf6', '#a78bfa', '#c4b5fd', '#52525b', '#71717a', '#a1a1aa'],
                     borderColor: '#ffffff',
-                    borderWidth: 3,
-                    offset: 8
+                    borderWidth: 0,
+                    spacing: 6
                 }]
             },
             options: {
@@ -1041,7 +1068,9 @@ function getChartConfigs() {
                         borderWidth: 3,
                         fill: true,
                         tension: 0,
-                        pointRadius: 5,
+                        pointStyle: 'rect',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
                         order: 7
                     },
                     {
@@ -1052,7 +1081,9 @@ function getChartConfigs() {
                         borderWidth: 3,
                         fill: true,
                         tension: 0,
-                        pointRadius: 5,
+                        pointStyle: 'rect',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
                         order: 6
                     },
                     {
@@ -1063,7 +1094,9 @@ function getChartConfigs() {
                         borderWidth: 3,
                         fill: true,
                         tension: 0,
-                        pointRadius: 5,
+                        pointStyle: 'rect',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
                         order: 5
                     },
                     {
@@ -1074,7 +1107,9 @@ function getChartConfigs() {
                         borderWidth: 3,
                         fill: true,
                         tension: 0,
-                        pointRadius: 5,
+                        pointStyle: 'rect',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
                         order: 4
                     },
                     {
@@ -1085,7 +1120,9 @@ function getChartConfigs() {
                         borderWidth: 3,
                         fill: true,
                         tension: 0,
-                        pointRadius: 5,
+                        pointStyle: 'rect',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
                         order: 3
                     },
                     {
@@ -1096,7 +1133,9 @@ function getChartConfigs() {
                         borderWidth: 3,
                         fill: true,
                         tension: 0,
-                        pointRadius: 5,
+                        pointStyle: 'rect',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
                         order: 2
                     },
                     {
@@ -1107,7 +1146,9 @@ function getChartConfigs() {
                         borderWidth: 3,
                         fill: true,
                         tension: 0,
-                        pointRadius: 5,
+                        pointStyle: 'rect',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
                         order: 1
                     }
                 ]
@@ -1155,10 +1196,10 @@ function getChartConfigs() {
             data: {
                 labels: ['14/11', '17/11', '20/11', '23/11', '24/11'],
                 datasets: [{
-                    label: 'Valore Portfolio',
+                    label: 'Valore Portafoglio',
                     data: [100000, 102500, 110000, 118500, 125750.50],
-                    borderColor: '#52525b',
-                    backgroundColor: 'rgba(82, 82, 91, 0.05)',
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.05)',
                     borderWidth: 3,
                     fill: true,
                     tension: 0,
@@ -1239,14 +1280,16 @@ function getChartConfigs() {
             data: {
                 labels: ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'],
                 datasets: [{
-                    label: 'Valore Portfolio',
+                    label: 'Valore Portafoglio',
                     data: [100000, 102000, 105000, 107500, 110000, 112000, 115000, 118000, 120000, 123000, 125000, 125750.50],
                     borderColor: '#8b5cf6',
                     backgroundColor: pattern.draw('diagonal', 'rgba(139, 92, 246, 0.05)'),
                     borderWidth: 3,
                     fill: true,
                     tension: 0,
-                    pointRadius: 5
+                    pointStyle: 'rect',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
                 }]
             },
             options: {
@@ -1258,6 +1301,80 @@ function getChartConfigs() {
                     y: {
                         beginAtZero: false,
                         ticks: { callback: v => '€' + v.toLocaleString('it-IT') }
+                    }
+                }
+            }
+        },
+
+        'performanceChart': {
+            type: 'line',
+            data: {
+                labels: ['14/11', '17/11', '20/11', '23/11', '24/11'],
+                datasets: [{
+                    label: 'Valore Portafoglio',
+                    data: [100000, 102500, 110000, 118500, 125750.50],
+                    borderColor: '#8b5cf6',
+                    backgroundColor: pattern.draw('diagonal', 'rgba(139, 92, 246, 0.05)'),
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0,
+                    pointStyle: 'rect',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: animationConfig,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: { callback: v => '€' + v.toLocaleString('it-IT') }
+                    }
+                }
+            }
+        },
+
+        'allocationChart': {
+            type: 'doughnut',
+            data: {
+                labels: ['Azionario Globale', 'Azionario USA', 'Azionario Emergenti', 'Obbligazionario', 'Liquidità'],
+                datasets: [{
+                    data: [45, 30, 15, 8, 2],
+                    backgroundColor: [
+                        '#8b5cf6',  // Viola primario
+                        '#a78bfa',  // Viola chiaro
+                        '#c4b5fd',  // Viola più chiaro
+                        '#52525b',  // Grigio scuro
+                        '#71717a'   // Grigio medio
+                    ],
+                    borderColor: '#ffffff',
+                    borderWidth: 0,
+                    spacing: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: animationConfig,
+                cutout: '75%',
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: { size: 11 },
+                            usePointStyle: true,
+                            pointStyle: 'rect'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => `${ctx.label}: ${ctx.raw}%`
+                        }
                     }
                 }
             }

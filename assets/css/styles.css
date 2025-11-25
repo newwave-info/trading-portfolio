@@ -4,6 +4,51 @@
     font-family: 'Roboto Mono', monospace;
 }
 
+/* Tooltip Styles */
+.tooltip-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+}
+
+.tooltip-content {
+    visibility: hidden;
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #18181b;
+    color: white;
+    padding: 10px 14px;
+    border-radius: 0;
+    font-size: 11px;
+    width: 220px;
+    text-align: left;
+    z-index: 100;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+    transition: all 0.2s ease;
+}
+
+.tooltip-content::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #18181b transparent transparent transparent;
+}
+
+.tooltip-container:hover .tooltip-content {
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
 /* REGOLA FERREA: NO Border Radius su NULLA */
 .rounded,
 .rounded-sm,
