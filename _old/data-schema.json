@@ -1,0 +1,255 @@
+{
+  "metadata": {
+    "company_name": "Azienda Demo",
+    "fiscal_years": ["2023", "2024", "2025"],
+    "currency": "EUR",
+    "last_update": "2025-01-15"
+  },
+  "income_statement": {
+    "ricavi": [526000, 553000, 825000],
+    "costi_servizi": [241000, 254000, 314000],
+    "costi_personale": [198000, 202000, 282000],
+    "altri_costi_operativi": [54000, 32000, 30000],
+    "ebitda": [40000, 65000, 205000],
+    "ammortamenti": [19000, 29000, 26000],
+    "ebit": [16000, 33000, 180000],
+    "oneri_finanziari": [8000, 21000, 19000],
+    "imposte": [6000, 8000, 10000],
+    "utile_netto": [3000, 4000, 151000]
+  },
+  "balance_sheet": {
+    "attivo": {
+      "immobilizzazioni_immateriali": [0, 0, 1000],
+      "immobilizzazioni_materiali": [400000, 436000, 471000],
+      "immobilizzazioni_finanziarie": [0, 0, 5000],
+      "crediti_commerciali": [150000, 323000, 355000],
+      "attivita_finanziarie": [30000, 32000, 43000],
+      "disponibilita_liquide": [20000, 7000, 17000],
+      "ratei_risconti_attivi": [15000, 5000, 4000],
+      "totale_attivo": [615000, 803000, 896000]
+    },
+    "passivo": {
+      "capitale_sociale": [100000, 100000, 100000],
+      "riserva_legale": [3000, 4000, 5000],
+      "altre_riserve": [10000, 15000, 17000],
+      "utili_esercizi_precedenti": [50000, 53000, 61000],
+      "utile_esercizio": [3000, 4000, 151000],
+      "totale_patrimonio_netto": [166000, 182000, 334000],
+      "tfr": [30000, 42000, 54000],
+      "debiti_breve_termine": [229000, 393000, 272000],
+      "debiti_lungo_termine": [200000, 182000, 234000],
+      "ratei_risconti_passivi": [0, 10000, 3000],
+      "totale_passivo": [615000, 803000, 896000]
+    }
+  },
+  "cash_flow": {
+    "utile_netto": [0, 0, 151000],
+    "ammortamenti": [0, 0, 26000],
+    "variazione_tfr": [0, 0, 13000],
+    "variazione_crediti": [0, 0, 31000],
+    "variazione_debiti": [0, 0, -69000],
+    "investimenti": [0, 0, -66000],
+    "variazione_cassa": [0, 0, 10000],
+    "cash_flow_operativo": [62000, 97000, 189000]
+  },
+  "kpi": {
+    "redditivita": {
+      "roe": [1.6, 2.0, 45.3],
+      "roa": [0.43, 0.45, 16.8],
+      "ros": [0.5, 0.7, 18.3],
+      "ebitda_margin": [7.6, 11.7, 24.9]
+    },
+    "liquidita": {
+      "current_ratio": [1.92, 0.92, 1.52],
+      "quick_ratio": [0.87, 0.84, 1.53],
+      "cash_ratio": [0.20, 0.02, 0.06],
+      "margine_tesoreria": [-43000, -63000, 100000]
+    },
+    "solidita": {
+      "debt_equity": [2.66, 3.16, 1.52],
+      "leverage": [3.80, 4.41, 2.69],
+      "icr": [2.2, 1.5, 8.2],
+      "dscr": [0, 0, 9.06]
+    },
+    "efficienza": {
+      "dso": [254, 214, 157],
+      "dpo": [56, 56, 56],
+      "ciclo_finanziario": [142, 142, 101],
+      "asset_turnover": [0.86, 0.69, 0.92]
+    },
+    "rischio": {
+      "z_score": [1.85, 1.42, 3.18],
+      "z_score_zone": ["grey", "grey", "safe"]
+    }
+  },
+  "dupont_analysis": {
+    "margine_netto": [0.5, 0.7, 18.3],
+    "rotazione_attivo": [0.86, 0.69, 0.92],
+    "leva_finanziaria": [3.80, 4.41, 2.69],
+    "roa": [0.43, 0.45, 16.8]
+  },
+  "break_even": {
+    "costi_fissi": 350000,
+    "margine_contribuzione": 0.635,
+    "punto_pareggio": 552000,
+    "margine_sicurezza_pct": 33,
+    "margine_sicurezza_eur": 273000
+  },
+  "debt_structure": {
+    "breve_termine": [229000, 393000, 272000],
+    "lungo_termine": [200000, 182000, 234000],
+    "totale": [429000, 575000, 506000],
+    "breve_pct": [53, 68, 54],
+    "lungo_pct": [47, 32, 46]
+  },
+  "produttivita": {
+    "dipendenti": [198, 203, 283],
+    "ricavi_per_dipendente": [2.66, 2.73, 2.92],
+    "valore_aggiunto_per_dipendente": [4.8, 6.1, 10.0],
+    "ebitda_per_dipendente": [20, 32, 73]
+  },
+  "capex": {
+    "periodi": ["2023-2024", "2024-2025"],
+    "valori": [319000, 66000]
+  },
+  "composizione_attivo": {
+    "labels": ["Immob. Materiali", "Crediti", "Attività Fin.", "Liquidità", "Immob. Fin.", "Ratei", "Immob. Immat."],
+    "valori_2025": [471000, 355000, 43000, 17000, 5000, 4000, 1000]
+  },
+  "composizione_passivo": {
+    "labels": ["Debiti Breve", "Debiti Lungo", "Utile Esercizio", "Capitale", "Utili a Nuovo", "TFR", "Altre Riserve", "Riserva Legale", "Ratei"],
+    "valori_2025": [272000, 234000, 151000, 100000, 61000, 54000, 17000, 5000, 3000]
+  },
+  "composizione_costi": {
+    "labels": ["Servizi", "Personale", "Ammortamenti", "Oneri Diversi", "Godim. Beni", "Materie Prime"],
+    "valori_2025": [314000, 282000, 26000, 13000, 10000, 7000]
+  },
+  "executive_summary": {
+    "salute_generale": "Buona",
+    "aree": {
+      "redditivita": {"stato": "Ottima", "valore": "ROE 45.3%"},
+      "crescita": {"stato": "Forte", "valore": "+49% Ricavi"},
+      "solidita": {"stato": "Buona", "valore": "D/E 1.52x"},
+      "liquidita": {"stato": "Attenzione", "valore": "Cash 0.06x"},
+      "efficienza": {"stato": "Migliorabile", "valore": "DSO 157gg"},
+      "rischio": {"stato": "Basso", "valore": "Z-Score 3.18"}
+    }
+  },
+  "risk_priorities": [
+    {
+      "priority": "P1",
+      "criticita": "alta",
+      "titolo": "Migliorare Cash Ratio",
+      "target": ">0.2x (attuale 0.06x)",
+      "azioni": "Accelerare incassi, factoring, linea RBF"
+    },
+    {
+      "priority": "P2",
+      "criticita": "alta",
+      "titolo": "Ridurre DSO a 120 giorni",
+      "target": "120gg (attuale 157gg)",
+      "azioni": "Sconti pagamento anticipato, credit management"
+    },
+    {
+      "priority": "P3",
+      "criticita": "media",
+      "titolo": "Consolidare margini EBITDA",
+      "target": "22-25%",
+      "azioni": "Diversificazione clienti, controllo costi"
+    }
+  ],
+  "risk_matrix": [
+    {
+      "categoria": "Rischio Operativo",
+      "livello": "Basso",
+      "indicatori": ["EBITDA 24.9%", "Break-even +33%", "Leva operativa controllata"]
+    },
+    {
+      "categoria": "Rischio Finanziario",
+      "livello": "Basso",
+      "indicatori": ["D/E 1.52x", "ICR 8.2x", "Struttura debiti equilibrata"]
+    },
+    {
+      "categoria": "Rischio Liquidità",
+      "livello": "Medio",
+      "indicatori": ["Cash Ratio 0.06x critico", "DSO 157gg sopra target", "Current Ratio 1.52x ok"]
+    },
+    {
+      "categoria": "Rischio Concentrazione",
+      "livello": "Info",
+      "indicatori": ["Dipendenza top client da verificare", "Mix settoriale da analizzare"]
+    }
+  ],
+  "ai_insights": {
+    "executive_summary": {
+      "negativi": [
+        "Cash Ratio 0.06x critico: liquidità immediata insufficiente",
+        "DSO 157 giorni sopra target: €75k bloccata nei crediti",
+        "Dipendenza debiti breve: €272k in scadenza 12 mesi"
+      ],
+      "positivi": [
+        "Ricavi +49%: crescita organica trainata da nuovi clienti",
+        "EBITDA +217%: margine operativo esploso al 24.9%",
+        "Quick Ratio +82%: migliorata capacità di pagamento",
+        "DSO -27%: recupero crediti più efficiente",
+        "D/E -52%: struttura finanziaria riequilibrata",
+        "Z-Score 3.18: azienda in zona sicura"
+      ]
+    },
+    "conto_economico": "I ricavi 2025 sono cresciuti del 49% (€825k). L'utile netto è esploso del +4039% (€151k), evidenziando un'efficienza operativa eccezionale.",
+    "stato_patrimoniale": "Il patrimonio netto è cresciuto dell'83% (€333k), rafforzando la base finanziaria. Le immobilizzazioni (€477k) sono coperte al 70% dal PN.",
+    "liquidita": "Il Current Ratio è migliorato al 1.52x, ma il Cash Ratio rimane critico a 0.06x. Priorità: accelerare incassi.",
+    "cash_flow": "Il CFO è triplicato (€62k → €189k, +205%). La liquidità 2024 è scesa per investimenti, ma nel 2025 si è ripresa.",
+    "debiti": "Mix migliorato di 14pp (da 68% a 54% breve termine). Il riequilibrio riduce la pressione sulla liquidità.",
+    "dupont": "Il ROE 2025 è trainato dal margine netto (+17.6pp), non dalla leva (in calo). Crescita sana e sostenibile."
+  },
+  "ui_config": {
+    "colors": {
+      "light": {
+        "primary": "#18181b",
+        "accent": "#8b5cf6",
+        "positive": "#22c55e",
+        "negative": "#ef4444",
+        "warning": "#f59e0b",
+        "background": "#ffffff",
+        "card": "#ffffff",
+        "text_primary": "#18181b",
+        "text_secondary": "#64748b",
+        "border": "#e2e8f0",
+        "chart_grid": "rgba(0, 0, 0, 0.1)"
+      },
+      "dark": {
+        "primary": "#f1f5f9",
+        "accent": "#a78bfa",
+        "positive": "#4ade80",
+        "negative": "#f87171",
+        "warning": "#fbbf24",
+        "background": "#0f172a",
+        "card": "#1e293b",
+        "text_primary": "#f1f5f9",
+        "text_secondary": "#94a3b8",
+        "border": "#334155",
+        "chart_grid": "rgba(71, 85, 105, 0.4)"
+      }
+    },
+    "theme": {
+      "default": "light",
+      "storage_key": "theme",
+      "toggle_enabled": true
+    },
+    "responsive": {
+      "breakpoints": {
+        "sm": "640px",
+        "md": "768px",
+        "lg": "1024px"
+      },
+      "mobile_chart_height": "220px",
+      "desktop_chart_height": "280px"
+    },
+    "chart_patterns": true,
+    "animations": {
+      "duration": 800,
+      "easing": "easeOutQuart"
+    }
+  }
+}

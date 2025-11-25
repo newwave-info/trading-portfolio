@@ -268,6 +268,7 @@ La documentazione tecnica è organizzata in `docs/`. **IMPORTANTE**: Prima di pr
 | [`docs/03-DATABASE.md`](docs/03-DATABASE.md) | Schema fisico MariaDB, indici, viste, prepared statements |
 | [`docs/04-API-REST.md`](docs/04-API-REST.md) | Endpoint, autenticazione, payload, errori, rate limiting |
 | [`docs/05-FRONTEND.md`](docs/05-FRONTEND.md) | Layout dashboard, componenti, template PHP, responsive |
+| [`STYLE_GUIDE.md`](STYLE_GUIDE.md) | **REGOLE FERREE** di design: widget, colori, tipografia, grafici |
 | [`docs/06-N8N-WORKFLOWS.md`](docs/06-N8N-WORKFLOWS.md) | Workflow A/B/C/D, trigger, logica, nodi, error handling |
 
 ### ⚠️ Linee guida per sviluppatori e manutentori
@@ -279,6 +280,7 @@ La documentazione tecnica è organizzata in `docs/`. **IMPORTANTE**: Prima di pr
    - Integrare nuove funzionalità o servizi esterni
    - Effettuare operazioni di deployment o configurazione
    - Apportare modifiche all'architettura del sistema
+   - **Modificare UI/UX o elementi visivi** → consulta [`STYLE_GUIDE.md`](STYLE_GUIDE.md) per le REGOLE FERREE di stile
 
 2. **Mantenere la documentazione AGGIORNATA**:
    - Ogni modifica al codice deve riflettersi nella documentazione
@@ -310,7 +312,8 @@ La documentazione tecnica è organizzata in `docs/`. **IMPORTANTE**: Prima di pr
    3. `docs/03-DATABASE.md` - schema dati
    4. `docs/04-API-REST.md` - integrazioni
    5. `docs/02-GESTIONE-UTENTI.md` - sicurezza
-   6. `docs/05-FRONTEND.md` + `docs/06-N8N-WORKFLOWS.md` - specifiche
+   6. `docs/05-FRONTEND.md` + `STYLE_GUIDE.md` - UI/UX e design system
+   7. `docs/06-N8N-WORKFLOWS.md` - workflow automation
 
 ---
 
