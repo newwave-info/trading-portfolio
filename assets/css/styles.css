@@ -821,6 +821,16 @@ tbody tr:hover {
     border: none;
 }
 
+/* View Navigation */
+.view {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.view.hidden {
+    display: none !important;
+}
+
 /* Disabled Items */
 .item-disabled {
     color: #cbd5e1;
@@ -830,4 +840,34 @@ tbody tr:hover {
 
 .item-disabled i {
     color: #cbd5e1;
+}
+
+/* Fix scrollbar orizzontale tabelle */
+.overflow-x-auto {
+    overflow-x: auto;
+    overflow-y: visible;
+}
+
+/* Nasconde scrollbar se non necessaria */
+@media (min-width: 768px) {
+    .overflow-x-auto {
+        overflow-x: visible;
+    }
+}
+
+/* Su mobile mostra scrollbar solo se necessaria */
+@media (max-width: 767px) {
+    .overflow-x-auto::-webkit-scrollbar {
+        height: 6px;
+    }
+    .overflow-x-auto::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    .overflow-x-auto::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 3px;
+    }
+    .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
 }

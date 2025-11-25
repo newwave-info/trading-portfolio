@@ -1,4 +1,16 @@
 // Perspect Dashboard - Main JavaScript
+console.log('app.js loaded');
+
+// Toggle Recommendation Accordion
+function toggleRecommendationAccordion(sectionId) {
+    const section = document.getElementById(sectionId);
+    const icon = document.getElementById(sectionId + '-icon');
+
+    if (section && icon) {
+        section.classList.toggle('hidden');
+        icon.classList.toggle('rotate-180');
+    }
+}
 
 // Theme Toggle
 function toggleTheme() {
@@ -248,12 +260,15 @@ function showView(viewId) {
         item.classList.add('text-gray-600');
     });
 
-    const evt = typeof event !== 'undefined' ? event : window.event;
-    const activeItem = evt?.target?.closest('.nav-item');
-    if (activeItem) {
-        activeItem.classList.remove('text-gray-600');
-        activeItem.classList.add('active', 'text-purple-600', 'font-semibold');
-    }
+    // Find and activate current nav item by onclick attribute
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        const onclickAttr = item.getAttribute('onclick');
+        if (onclickAttr && onclickAttr.includes(`showView('${viewId}')`)) {
+            item.classList.remove('text-gray-600');
+            item.classList.add('active', 'text-purple-600', 'font-semibold');
+        }
+    });
 
     // Scroll to top on view change
     document.querySelector('.flex-1.overflow-y-auto')?.scrollTo(0, 0);
@@ -321,30 +336,30 @@ document.addEventListener('DOMContentLoaded', function() {
         animationObserver.observe(el);
     });
 
-    // Initialize sidebar state - Controllo di Gestione open, Dashboard active
-    const cgMenu = document.getElementById('cgMenu');
-    const cgButton = document.querySelector('[data-accordion-toggle="cgMenu"]');
-    if (cgMenu && cgButton) {
+    // Initialize sidebar state - Portfolio Manager open, Dashboard active
+    const portfolioMenu = document.getElementById('portfolioMenu');
+    const portfolioButton = document.querySelector('[data-accordion-toggle="portfolioMenu"]');
+    if (portfolioMenu && portfolioButton) {
         // Ensure accordion is open
-        cgMenu.classList.remove('hidden');
+        portfolioMenu.classList.remove('hidden');
 
         // Ensure button state is active (purple)
-        cgButton.classList.add('text-purple-600');
-        cgButton.classList.remove('text-gray-600', 'text-gray-800');
+        portfolioButton.classList.add('text-purple-600');
+        portfolioButton.classList.remove('text-gray-600', 'text-gray-800');
 
-        const cgIcons = cgButton.querySelectorAll('i');
-        cgIcons.forEach(i => {
+        const portfolioIcons = portfolioButton.querySelectorAll('i');
+        portfolioIcons.forEach(i => {
             i.classList.add('text-purple-600');
             i.classList.remove('text-gray-400', 'text-gray-600');
         });
 
-        const cgLabel = cgButton.querySelector('span');
-        if (cgLabel) {
-            cgLabel.classList.add('text-purple-600');
+        const portfolioLabel = portfolioButton.querySelector('span');
+        if (portfolioLabel) {
+            portfolioLabel.classList.add('text-purple-600');
         }
 
         // Ensure chevron is rotated (open state)
-        const chevron = cgButton.querySelector('.accordion-icon');
+        const chevron = portfolioButton.querySelector('.accordion-icon');
         if (chevron) {
             chevron.classList.add('rotate-180');
         }
@@ -1054,6 +1069,147 @@ function getChartConfigs() {
                 animation: animationConfig,
                 plugins: { legend: { display: false }, htmlLegend: { containerID: 'patrimonioLineChart-legend' } },
                 scales: { y: { beginAtZero: true, ticks: { callback: v => v + ' €k' } } }
+            }
+        },
+
+        'cumulativeGainChart': {
+            type: 'line',
+            data: {
+                labels: ['14/11', '17/11', '20/11', '23/11', '24/11'],
+                datasets: [{
+                    label: 'Guadagno Cumulativo',
+                    data: [0, 2500, 10000, 18500, 25750.50],
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: animationConfig,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: v => '€' + v.toLocaleString('it-IT') }
+                    }
+                }
+            }
+        },
+
+        'valueOverTimeChart': {
+            type: 'line',
+            data: {
+                labels: ['14/11', '17/11', '20/11', '23/11', '24/11'],
+                datasets: [{
+                    label: 'Valore Portfolio',
+                    data: [100000, 102500, 110000, 118500, 125750.50],
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: animationConfig,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: { callback: v => '€' + v.toLocaleString('it-IT') }
+                    }
+                }
+            }
+        },
+
+        'dividendsMonthlyChart': {
+            type: 'bar',
+            data: {
+                labels: ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'],
+                datasets: [{
+                    label: 'Dividendi Mensili',
+                    data: [0, 0, 42.04, 0, 0, 48.50, 0, 0, 90.54, 0, 0, 90.54],
+                    backgroundColor: '#8b5cf6',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: animationConfig,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: v => '€' + v.toFixed(2) }
+                    }
+                }
+            }
+        },
+
+        'dividendsCumulativeChart': {
+            type: 'line',
+            data: {
+                labels: ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'],
+                datasets: [{
+                    label: 'Rendita Cumulativa',
+                    data: [0, 0, 42.04, 42.04, 42.04, 90.54, 90.54, 90.54, 181.08, 181.08, 181.08, 271.62],
+                    borderColor: '#22c55e',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: animationConfig,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: v => '€' + v.toFixed(2) }
+                    }
+                }
+            }
+        },
+
+        'performanceDetailChart': {
+            type: 'line',
+            data: {
+                labels: ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'],
+                datasets: [{
+                    label: 'Valore Portfolio',
+                    data: [100000, 102000, 105000, 107500, 110000, 112000, 115000, 118000, 120000, 123000, 125000, 125750.50],
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: animationConfig,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: { callback: v => '€' + v.toLocaleString('it-IT') }
+                    }
+                }
             }
         }
     };
