@@ -315,16 +315,57 @@ const animationObserver = new IntersectionObserver((entries) => {
     rootMargin: '0px 0px -50px 0px'
 });
 
+// Filter technical analysis table
+function filterTechnicalTable(signal) {
+    const table = document.getElementById('technicalTable');
+    if (!table) return;
+
+    const rows = table.querySelectorAll('tbody tr');
+    const buttons = document.querySelectorAll('[data-filter]');
+
+    // Update button styles
+    buttons.forEach(btn => {
+        const filterValue = btn.getAttribute('data-filter');
+        if (filterValue === signal) {
+            btn.classList.remove('bg-gray-200', 'text-gray-700');
+            btn.classList.add('bg-purple', 'text-white');
+        } else {
+            btn.classList.remove('bg-purple', 'text-white');
+            btn.classList.add('bg-gray-200', 'text-gray-700');
+        }
+    });
+
+    // Filter rows
+    rows.forEach(row => {
+        const rowSignal = row.getAttribute('data-signal');
+        if (signal === 'all' || rowSignal === signal) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
 // Initialize sortable tables
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize theme
     initTheme();
 
-    if (typeof Tablesort !== 'undefined') {
-        document.querySelectorAll('.sortable-table').forEach(table => {
-            new Tablesort(table);
-        });
-    }
+    // Initialize Tablesort with a delay to ensure tables are rendered
+    setTimeout(() => {
+        if (typeof Tablesort !== 'undefined') {
+            document.querySelectorAll('.sortable-table').forEach(table => {
+                try {
+                    new Tablesort(table);
+                    console.log('Tablesort initialized for:', table.id || 'unnamed table');
+                } catch (e) {
+                    console.error('Error initializing Tablesort:', e);
+                }
+            });
+        } else {
+            console.error('Tablesort library not loaded');
+        }
+    }, 100);
 
     // Observe all chart canvases
     document.querySelectorAll('canvas').forEach(canvas => {
@@ -364,6 +405,14 @@ document.addEventListener('DOMContentLoaded', function() {
             chevron.classList.add('rotate-180');
         }
     }
+
+    // Setup filter buttons for technical analysis
+    document.querySelectorAll('[data-filter]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const filter = this.getAttribute('data-filter');
+            filterTechnicalTable(filter);
+        });
+    });
 });
 
 // Initialize individual chart by ID
@@ -1080,10 +1129,10 @@ function getChartConfigs() {
                     label: 'Guadagno Cumulativo',
                     data: [0, 2500, 10000, 18500, 25750.50],
                     borderColor: '#8b5cf6',
-                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    backgroundColor: pattern.draw('diagonal', 'rgba(139, 92, 246, 0.05)'),
                     borderWidth: 3,
                     fill: true,
-                    tension: 0.4,
+                    tension: 0,
                     pointRadius: 5
                 }]
             },
@@ -1108,11 +1157,11 @@ function getChartConfigs() {
                 datasets: [{
                     label: 'Valore Portfolio',
                     data: [100000, 102500, 110000, 118500, 125750.50],
-                    borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderColor: '#52525b',
+                    backgroundColor: 'rgba(82, 82, 91, 0.05)',
                     borderWidth: 3,
                     fill: true,
-                    tension: 0.4,
+                    tension: 0,
                     pointRadius: 5
                 }]
             },
@@ -1137,8 +1186,9 @@ function getChartConfigs() {
                 datasets: [{
                     label: 'Dividendi Mensili',
                     data: [0, 0, 42.04, 0, 0, 48.50, 0, 0, 90.54, 0, 0, 90.54],
-                    backgroundColor: '#8b5cf6',
-                    borderRadius: 4
+                    backgroundColor: pattern.draw('diagonal', '#8b5cf6'),
+                    borderColor: '#8b5cf6',
+                    borderRadius: 0
                 }]
             },
             options: {
@@ -1162,11 +1212,11 @@ function getChartConfigs() {
                 datasets: [{
                     label: 'Rendita Cumulativa',
                     data: [0, 0, 42.04, 42.04, 42.04, 90.54, 90.54, 90.54, 181.08, 181.08, 181.08, 271.62],
-                    borderColor: '#22c55e',
-                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    borderColor: '#8b5cf6',
+                    backgroundColor: pattern.draw('diagonal', 'rgba(139, 92, 246, 0.05)'),
                     borderWidth: 3,
                     fill: true,
-                    tension: 0.4,
+                    tension: 0,
                     pointRadius: 5
                 }]
             },
@@ -1192,10 +1242,10 @@ function getChartConfigs() {
                     label: 'Valore Portfolio',
                     data: [100000, 102000, 105000, 107500, 110000, 112000, 115000, 118000, 120000, 123000, 125000, 125750.50],
                     borderColor: '#8b5cf6',
-                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    backgroundColor: pattern.draw('diagonal', 'rgba(139, 92, 246, 0.05)'),
                     borderWidth: 3,
                     fill: true,
-                    tension: 0.4,
+                    tension: 0,
                     pointRadius: 5
                 }]
             },

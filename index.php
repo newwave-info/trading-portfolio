@@ -11,6 +11,8 @@
     <script src="https://cdn.jsdelivr.net/npm/patternomaly@1.3.2/dist/patternomaly.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/tablesort@5.3.0/dist/tablesort.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tablesort@5.3.0/dist/sorts/tablesort.number.min.js"></script>
     <link rel="stylesheet" href="/assets/css/styles.css">
     <script>
         tailwind.config = {
@@ -215,7 +217,8 @@
             'sma_50' => 87.20,
             'sma_200' => 82.15,
             'rsi' => 62.30,
-            'updated_at' => '2025-11-24 18:00'
+            'updated_at' => '2025-11-24 18:00',
+            'reasoning' => 'Prezzo sopra tutte le medie mobili con RSI in zona neutrale (62). Trend rialzista confermato ma momentum in raffreddamento. Consigliato mantenere posizione e attendere consolidamento.'
         ],
         [
             'isin' => 'IE00B1FZC250',
@@ -231,7 +234,8 @@
             'sma_50' => 435.20,
             'sma_200' => 418.75,
             'rsi' => 68.50,
-            'updated_at' => '2025-11-24 18:00'
+            'updated_at' => '2025-11-24 18:00',
+            'reasoning' => 'Forte momentum rialzista con RSI 68.5 e prezzo sopra SMA50/200. Volumi in crescita confermano interesse. Golden cross recente tra EMA50 e EMA200. Opportunità di accumulo su debolezza.'
         ],
         [
             'isin' => 'IE00BF5JHG71',
@@ -247,7 +251,8 @@
             'sma_50' => 31.85,
             'sma_200' => 30.20,
             'rsi' => 55.20,
-            'updated_at' => '2025-11-24 18:00'
+            'updated_at' => '2025-11-24 18:00',
+            'reasoning' => 'Segnali contrastanti: prezzo sopra medie ma volumi deboli. RSI neutrale a 55. Alta volatilità (18.75%) richiede cautela. Attendere breakout confermato sopra 32.50 o supporto a 31.20.'
         ]
     ];
 
@@ -392,7 +397,7 @@
                     </div>
                     <div class="nav-item flex items-center gap-2.5 pl-4 py-1.5 cursor-pointer text-[13px] text-gray-600 transition-colors duration-200 hover:text-purple-600" onclick="showView('performance'); toggleSidebar()">
                         <i class="fa-solid fa-chart-area text-[11px] text-current"></i>
-                        <span>Performance</span>
+                        <span>Performance & Flussi</span>
                     </div>
                     <div class="nav-item flex items-center gap-2.5 pl-4 py-1.5 cursor-pointer text-[13px] text-gray-600 transition-colors duration-200 hover:text-purple-600" onclick="showView('technical'); toggleSidebar()">
                         <i class="fa-solid fa-magnifying-glass-chart text-[11px] text-current"></i>
@@ -405,10 +410,6 @@
                     <div class="nav-item flex items-center gap-2.5 pl-4 py-1.5 cursor-pointer text-[13px] text-gray-600 transition-colors duration-200 hover:text-purple-600" onclick="showView('recommendations'); toggleSidebar()">
                         <i class="fa-solid fa-lightbulb text-[11px] text-current"></i>
                         <span>Raccomandazioni</span>
-                    </div>
-                    <div class="nav-item flex items-center gap-2.5 pl-4 py-1.5 cursor-pointer text-[13px] text-gray-600 transition-colors duration-200 hover:text-purple-600" onclick="showView('flows'); toggleSidebar()">
-                        <i class="fa-solid fa-chart-simple text-[11px] text-current"></i>
-                        <span>Flussi & Guadagni</span>
                     </div>
                 </div>
             </div>
@@ -567,12 +568,12 @@
                         <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Top 5 Performer</span>
                     </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
+                        <table class="w-full text-sm sortable-table">
                             <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Ticker</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Gain %</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Gain €</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Ticker</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Gain %</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Gain €</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -601,12 +602,12 @@
                         <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Bottom 5 Performer</span>
                     </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
+                        <table class="w-full text-sm sortable-table">
                             <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Ticker</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Gain %</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Gain €</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Ticker</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Gain %</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Gain €</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -635,12 +636,12 @@
                     <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Breakdown per Tipo</span>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
+                    <table class="w-full text-sm sortable-table">
                         <thead class="bg-gray-50 border-b border-gray-200">
                             <tr>
-                                <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Tipo</th>
-                                <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Valore €</th>
-                                <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Percentuale</th>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Tipo</th>
+                                <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Valore €</th>
+                                <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Percentuale</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -684,17 +685,17 @@
                     <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Top Holdings</span>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
+                    <table class="w-full text-sm sortable-table">
                         <thead class="bg-gray-50 border-b border-gray-200">
                             <tr>
-                                <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Ticker</th>
-                                <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Nome</th>
-                                <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Quantità</th>
-                                <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Prezzo Medio</th>
-                                <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Prezzo Attuale</th>
-                                <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Valore</th>
-                                <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">P&L</th>
-                                <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Drift</th>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Ticker</th>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Nome</th>
+                                <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Quantità</th>
+                                <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Prezzo Medio</th>
+                                <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Prezzo Attuale</th>
+                                <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Valore</th>
+                                <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">P&L</th>
+                                <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Drift</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -842,18 +843,18 @@
                         <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Tutte le Posizioni</span>
                     </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
+                        <table class="w-full text-sm sortable-table">
                             <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Ticker</th>
-                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Nome</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Quantità</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Prezzo Medio</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Prezzo Attuale</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Valore</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">P&L €</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">P&L %</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Allocation</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Ticker</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Nome</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Quantità</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Prezzo Medio</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Prezzo Attuale</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Valore</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">P&L €</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">P&L %</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Allocation</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -887,24 +888,10 @@
                 </div>
             </div>
 
-            <!-- View: Performance -->
+            <!-- View: Performance & Flussi -->
             <div id="performance" class="view hidden">
                 <div class="mb-6 sm:mb-10">
-                    <h1 class="text-[18px] sm:text-[20px] font-medium text-primary tracking-tight">Performance Storica</h1>
-                </div>
-
-                <!-- Performance Chart -->
-                <div class="mb-8">
-                    <div class="widget-card widget-purple p-6">
-                        <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
-                            <div class="flex items-center gap-2">
-                                <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Andamento Portafoglio</span>
-                            </div>
-                        </div>
-                        <div class="relative h-[300px]">
-                            <canvas id="performanceDetailChart"></canvas>
-                        </div>
-                    </div>
+                    <h1 class="text-[18px] sm:text-[20px] font-medium text-primary tracking-tight">Performance & Flussi Progressivi</h1>
                 </div>
 
                 <!-- Performance Metrics -->
@@ -943,6 +930,88 @@
                         </div>
                         <div class="text-xl font-bold text-primary mb-1"><?php echo htmlspecialchars($best_performer['ticker']); ?></div>
                         <div class="text-[11px] text-positive">+<?php echo number_format($best_performer['pnl_percentage'], 2, ',', '.'); ?>%</div>
+                    </div>
+                </div>
+
+                <!-- Grafici Performance & Flussi -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="widget-card widget-purple p-6">
+                        <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
+                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Andamento Portafoglio</span>
+                        </div>
+                        <div class="relative h-[250px]">
+                            <canvas id="performanceDetailChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="widget-card widget-purple p-6">
+                        <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
+                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Guadagno Cumulativo</span>
+                        </div>
+                        <div class="relative h-[250px]">
+                            <canvas id="cumulativeGainChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="widget-card widget-purple p-6">
+                        <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
+                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Valore Portfolio</span>
+                        </div>
+                        <div class="relative h-[250px]">
+                            <canvas id="valueOverTimeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabella Storica Progressiva -->
+                <div class="mb-8 widget-card p-6">
+                    <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
+                        <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Storico Performance Giornaliero</span>
+                        <button class="px-3 py-1 bg-purple text-white text-[11px] font-semibold rounded hover:bg-purple-dark transition-colors">
+                            <i class="fa-solid fa-download mr-1"></i> Export CSV
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm sortable-table">
+                            <thead class="bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Data</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Valore Portfolio</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Guadagno Cumulativo</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Guadagno %</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Posizioni Aperte</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Day Change</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Day Change %</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                $history_data = [
+                                    ['date' => '14/11/2025', 'value' => 100000, 'cumul_gain' => 0, 'gain_pct' => 0, 'open_pos' => 5, 'day_change' => 0, 'day_pct' => 0],
+                                    ['date' => '17/11/2025', 'value' => 102500, 'cumul_gain' => 2500, 'gain_pct' => 2.5, 'open_pos' => 5, 'day_change' => 2500, 'day_pct' => 2.5],
+                                    ['date' => '20/11/2025', 'value' => 110000, 'cumul_gain' => 10000, 'gain_pct' => 10.0, 'open_pos' => 5, 'day_change' => 7500, 'day_pct' => 7.32],
+                                    ['date' => '23/11/2025', 'value' => 118500, 'cumul_gain' => 18500, 'gain_pct' => 18.5, 'open_pos' => 5, 'day_change' => 8500, 'day_pct' => 7.73],
+                                    ['date' => '24/11/2025', 'value' => 125750.50, 'cumul_gain' => 25750.50, 'gain_pct' => 25.75, 'open_pos' => 5, 'day_change' => 7250.50, 'day_pct' => 6.12],
+                                ];
+                                foreach ($history_data as $row):
+                                    $day_is_positive = $row['day_change'] >= 0;
+                                ?>
+                                <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                    <td class="px-4 py-3 font-medium"><?php echo $row['date']; ?></td>
+                                    <td class="px-4 py-3 text-right font-semibold">€<?php echo number_format($row['value'], 2, ',', '.'); ?></td>
+                                    <td class="px-4 py-3 text-right text-positive font-semibold">€<?php echo number_format($row['cumul_gain'], 2, ',', '.'); ?></td>
+                                    <td class="px-4 py-3 text-right text-positive font-semibold">+<?php echo number_format($row['gain_pct'], 2, ',', '.'); ?>%</td>
+                                    <td class="px-4 py-3 text-right"><?php echo $row['open_pos']; ?></td>
+                                    <td class="px-4 py-3 text-right <?php echo $day_is_positive ? 'text-positive' : 'text-negative'; ?> font-semibold">
+                                        <?php echo $day_is_positive ? '+' : ''; ?>€<?php echo number_format($row['day_change'], 2, ',', '.'); ?>
+                                    </td>
+                                    <td class="px-4 py-3 text-right <?php echo $day_is_positive ? 'text-positive' : 'text-negative'; ?> font-semibold">
+                                        <?php echo $day_is_positive ? '+' : ''; ?><?php echo number_format($row['day_pct'], 2, ',', '.'); ?>%
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -989,20 +1058,21 @@
                 <!-- Technical Table -->
                 <div class="widget-card p-6">
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
+                        <table id="technicalTable" class="w-full text-sm sortable-table">
                             <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Ticker</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Prezzo</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">EMA9</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">EMA21</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">EMA50</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">EMA200</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">RSI</th>
-                                    <th class="px-4 py-3 text-center font-semibold text-gray-700 text-[11px] uppercase">MACD</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Score</th>
-                                    <th class="px-4 py-3 text-center font-semibold text-gray-700 text-[11px] uppercase">Decisione</th>
-                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Azione</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase" role="button">Ticker</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase" role="button">Prezzo</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase" role="button">EMA9</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase" role="button">EMA21</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase" role="button">EMA50</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase" role="button">EMA200</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase" role="button">RSI</th>
+                                    <th class="px-4 py-3 text-center font-semibold text-gray-700 text-[11px] uppercase" role="button">MACD</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase" role="button">Score</th>
+                                    <th class="px-4 py-3 text-center font-semibold text-gray-700 text-[11px] uppercase" role="button">Decisione</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase" role="button">Azione</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase" role="button">Motivazione</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1033,6 +1103,9 @@
                                         </span>
                                     </td>
                                     <td class="px-4 py-3 text-xs text-gray-600"><?php echo $action; ?></td>
+                                    <td class="px-4 py-3 text-xs text-gray-600 max-w-md">
+                                        <span class="italic"><?php echo htmlspecialchars($analysis['reasoning']); ?></span>
+                                    </td>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -1135,16 +1208,16 @@
                             </button>
                         </div>
                         <div class="overflow-x-auto">
-                            <table class="w-full text-sm">
+                            <table class="w-full text-sm sortable-table">
                                 <thead class="bg-gray-50 border-b border-gray-200">
                                     <tr>
-                                        <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Ticker</th>
-                                        <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Nome</th>
-                                        <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Yield %</th>
-                                        <th class="px-4 py-3 text-center font-semibold text-gray-700 text-[11px] uppercase">Frequenza</th>
-                                        <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Ultimo Pag.</th>
-                                        <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Prossimo Stacco</th>
-                                        <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Importo Atteso</th>
+                                        <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Ticker</th>
+                                        <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Nome</th>
+                                        <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Yield %</th>
+                                        <th class="px-4 py-3 text-center font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Frequenza</th>
+                                        <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Ultimo Pag.</th>
+                                        <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Prossimo Stacco</th>
+                                        <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Importo Atteso</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1262,16 +1335,16 @@
                         </button>
                         <div class="p-6 hidden" id="actionsSection">
                             <div class="overflow-x-auto">
-                                <table class="w-full text-sm">
+                                <table class="w-full text-sm sortable-table">
                                     <thead class="bg-gray-50 border-b border-gray-200">
                                         <tr>
-                                            <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Priorità</th>
-                                            <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Ticker</th>
-                                            <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Azione</th>
-                                            <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Motivazione</th>
-                                            <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Target</th>
-                                            <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Qty</th>
-                                            <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Importo</th>
+                                            <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Priorità</th>
+                                            <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Ticker</th>
+                                            <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Azione</th>
+                                            <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Motivazione</th>
+                                            <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Target</th>
+                                            <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Qty</th>
+                                            <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Importo</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -1468,16 +1541,16 @@
                         </button>
                     </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
+                        <table class="w-full text-sm sortable-table">
                             <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Data</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Valore Portfolio</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Guadagno Cumulativo</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Guadagno %</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Posizioni Aperte</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Day Change</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Day Change %</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Data</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Valore Portfolio</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Guadagno Cumulativo</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Guadagno %</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Posizioni Aperte</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Day Change</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Day Change %</th>
                                 </tr>
                             </thead>
                             <tbody>
