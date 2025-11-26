@@ -185,6 +185,10 @@ Funzionalità per gestire i dati del portafoglio:
 
 L'applicazione espone API REST per l'interazione con i dati del portafoglio:
 
+**Base URL:**
+- Sviluppo: `http://localhost:8000`
+- Produzione: `https://portfolio.newwave-media.it`
+
 ### Holdings API
 
 **Endpoint:** `/api/holdings.php`
@@ -286,8 +290,15 @@ php -S localhost:8000
 - Assicurati che `.htaccess` sia processato (Apache) o configura rewrite rules (Nginx)
 
 **4. Accedi all'applicazione**
+
+**Sviluppo locale:**
 ```
 http://localhost:8000
+```
+
+**Produzione:**
+```
+https://portfolio.newwave-media.it/
 ```
 
 ### Inizializzazione dati

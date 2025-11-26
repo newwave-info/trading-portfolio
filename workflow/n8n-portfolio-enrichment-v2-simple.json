@@ -1,0 +1,279 @@
+{
+  "name": "Portfolio Enrichment v2 – Multi-Provider",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "cronExpression", "expression": "0 22 * * *" }
+          ]
+        }
+      },
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate HMAC signature for GET request\nconst crypto = require('crypto');\nconst secret = $env.N8N_WEBHOOK_SECRET;\nconst payload = '{\"action\":\"get_portfolio\"}';\nconst hmac = crypto.createHmac('sha256', secret).update(payload).digest('hex');\nreturn { signature: `sha256=${hmac}` };"
+      },
+      "name": "Generate HMAC",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [350, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.APP_BASE_URL}}/api/n8n/portfolio.php",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-Webhook-Signature", "value": "={{$json.signature}}" }
+          ]
+        }
+      },
+      "name": "Get Portfolio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Split holdings array\nconst holdings = $json.holdings || [];\nreturn holdings.map(h => ({json: h}));"
+      },
+      "name": "Split Holdings",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pre-process: normalize tickers for various providers\nconst h = $json;\nreturn {\n  isin: h.isin,\n  ticker: h.ticker,\n  name: h.name,\n  avg_price: h.avg_price,\n  instrument_type: h.instrument_type,\n  twd_symbol: (h.ticker||'').replace('.FRA', '.MI'),\n  fmp_symbol: (h.ticker||'').replace('.MI', '.DE'),\n  yahoo_symbol: h.ticker,\n  justetf_isin: h.isin,\n  fallback_info: h\n};"
+      },
+      "name": "Preprocess Symbols",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.twelvedata.com/price?symbol={{$json.twd_symbol}}&apikey={{$env.TWELVE_DATA_KEY}}"
+      },
+      "name": "Twelve Data Price",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [860, 170],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// If price success TwelveData\nif ($json.price && parseFloat($json.price) > 0) {\n  return [{price: parseFloat($json.price), price_source: 'TwelveData'}];\n}\nreturn [];"
+      },
+      "name": "TWD Success?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [980, 170]
+    },
+    {
+      "parameters": {
+        "url": "=https://financialmodelingprep.com/api/v3/quote/{{$json.fmp_symbol}}?apikey={{$env.FMP_KEY}}"
+      },
+      "name": "FMP Price",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [860, 320],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// If price success FMP\nif (Array.isArray($json) && $json.length>0 && $json[0].price && parseFloat($json[0].price) > 0) {\n  return [{price: parseFloat($json[0].price), price_source: 'FMP'}];\n}\nreturn [];"
+      },
+      "name": "FMP Success?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [980, 320]
+    },
+    {
+      "parameters": {
+        "url": "=https://query1.finance.yahoo.com/v8/finance/chart/{{$json.yahoo_symbol}}?range=1d"
+      },
+      "name": "Yahoo Finance Price",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [860, 480],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// If price success Yahoo\nlet price=0;\ntry {\n  price = $json.chart.result[0].meta.regularMarketPrice;\n} catch {}\nif (price>0) {\n  return [{price, price_source: 'YahooFinance'}];\n}\nreturn [];"
+      },
+      "name": "Yahoo Success?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [980, 480]
+    },
+    {
+      "parameters": {
+        "url": "=https://www.justetf.com/api/etfs/{{$json.justetf_isin}}/quote?locale=en&currency=EUR"
+      },
+      "name": "JustETF Price",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [860, 620],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// If price success JustETF\nlet price=0;\ntry {\n  price = JSON.parse($json).latestQuote.raw;\n} catch{}\nif (price>0){return [{price, price_source:'JustETF'}];}\nreturn [];"
+      },
+      "name": "JustETF Success?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [980, 620]
+    },
+    {
+      "parameters": {
+        "jsCode": "// If all failed, fallback on avg_price and LLM\nreturn [{\n  price: $json.avg_price,\n  price_source: 'Fallback',\n  need_llm: true,\n  ticker: $json.yahoo_symbol,\n  isin: $json.justetf_isin,\n  name: $json.name,\n  instrument_type: $json.instrument_type\n}];"
+      },
+      "name": "Fallback & LLM Prep",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [1100, 750]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a finance domain assistant. ONLY output valid JSON."
+          },
+          {
+            "role": "user",
+            "content": "Classify this instrument:\nName: {{$json.name}}\nISIN: {{$json.isin}}\nType: {{$json.instrument_type}}\n\nReturn this structure:\n{\"asset_class\":\"Equity|Bond|Commodity|Mixed\",\"sector\":\"<sector>\",\"expense_ratio_estimate\":0.25}"
+          }
+        ]
+      },
+      "name": "LLM Metadata Enrich",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [1230, 750],
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENROUTER_KEY",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge LLM result with fallback\nlet llm={};\ntry{llm=JSON.parse($json.choices[0].message.content);}catch{}\nreturn [{\n  price:$item(0).$node['Fallback & LLM Prep'].json.price,\n  price_source:'LLM-Fallback',\n  asset_class:llm.asset_class||'Unknown',\n  sector:llm.sector||'Unknown',\n  expense_ratio:llm.expense_ratio_estimate || null\n}];"
+      },
+      "name": "Merge LLM Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [1350, 750]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build payload for enrich endpoint\nconst items = $input.all();\nconst holdings = items.map(i => i.json);\nconst payload = {\n  workflow_id: 'portfolio_enrichment_v2',\n  timestamp: new Date().toISOString(),\n  holdings\n};\nconst crypto = require('crypto');\nconst secret = $env.N8N_WEBHOOK_SECRET;\nconst payloadStr = JSON.stringify(payload);\nconst hmac = crypto.createHmac('sha256', secret).update(payloadStr).digest('hex');\nreturn [{payload, signature:`sha256=${hmac}`, payloadStr}];"
+      },
+      "name": "Aggregate & Sign",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [1600, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.APP_BASE_URL}}/api/n8n/enrich.php",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-Webhook-Signature", "value": "={{$json.signature}}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json.payloadStr}}"
+      },
+      "name": "Post Enriched Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1800, 300]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [[{ "node": "Generate HMAC", "type": "main", "index": 0 }]]
+    },
+    "Generate HMAC": {
+      "main": [[{ "node": "Get Portfolio", "type": "main", "index": 0 }]]
+    },
+    "Get Portfolio": {
+      "main": [[{ "node": "Split Holdings", "type": "main", "index": 0 }]]
+    },
+    "Split Holdings": {
+      "main": [[{ "node": "Preprocess Symbols", "type": "main", "index": 0 }]]
+    },
+    "Preprocess Symbols": {
+      "main": [
+        [
+          { "node": "Twelve Data Price", "type": "main", "index": 0 },
+          { "node": "FMP Price", "type": "main", "index": 0 },
+          { "node": "Yahoo Finance Price", "type": "main", "index": 0 },
+          { "node": "JustETF Price", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Twelve Data Price": {
+      "main": [[{ "node": "TWD Success?", "type": "main", "index": 0 }]]
+    },
+    "TWD Success?": {
+      "main": [[{ "node": "Aggregate & Sign", "type": "main", "index": 0 }]],
+      "noItems": [[{ "node": "FMP Price", "type": "main", "index": 0 }]]
+    },
+    "FMP Price": {
+      "main": [[{ "node": "FMP Success?", "type": "main", "index": 0 }]]
+    },
+    "FMP Success?": {
+      "main": [[{ "node": "Aggregate & Sign", "type": "main", "index": 0 }]],
+      "noItems": [
+        [{ "node": "Yahoo Finance Price", "type": "main", "index": 0 }]
+      ]
+    },
+    "Yahoo Finance Price": {
+      "main": [[{ "node": "Yahoo Success?", "type": "main", "index": 0 }]]
+    },
+    "Yahoo Success?": {
+      "main": [[{ "node": "Aggregate & Sign", "type": "main", "index": 0 }]],
+      "noItems": [[{ "node": "JustETF Price", "type": "main", "index": 0 }]]
+    },
+    "JustETF Price": {
+      "main": [[{ "node": "JustETF Success?", "type": "main", "index": 0 }]]
+    },
+    "JustETF Success?": {
+      "main": [[{ "node": "Aggregate & Sign", "type": "main", "index": 0 }]],
+      "noItems": [
+        [{ "node": "Fallback & LLM Prep", "type": "main", "index": 0 }]
+      ]
+    },
+    "Fallback & LLM Prep": {
+      "main": [[{ "node": "LLM Metadata Enrich", "type": "main", "index": 0 }]]
+    },
+    "LLM Metadata Enrich": {
+      "main": [[{ "node": "Merge LLM Data", "type": "main", "index": 0 }]]
+    },
+    "Merge LLM Data": {
+      "main": [[{ "node": "Aggregate & Sign", "type": "main", "index": 0 }]]
+    },
+    "Aggregate & Sign": {
+      "main": [[{ "node": "Post Enriched Data", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
