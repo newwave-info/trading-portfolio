@@ -6,8 +6,8 @@
 
 > 📋 **Documentazione:**
 > - [README.md](README.md) - Panoramica generale e setup (aggiornato 26 Nov 2025)
-> - [DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md) - Dettagli sviluppo futuro e STEP operativi
 > - [STYLE_GUIDE.md](STYLE_GUIDE.md) - Linee guida UI/UX (REGOLE FERREE)
+> - Questo documento - Stato tecnico dettagliato e prossimi step operativi
 
 ---
 
@@ -425,7 +425,7 @@ trading-portfolio/
 
 ---
 
-**Prossima sessione:** Iniziare con **STEP 1: Sistema Quotazioni** (vedi [DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md))
+**Prossima sessione:** Iniziare con **STEP 1: Completare Backend Dati** (vedi sezione "PROSSIMI STEP CONSIGLIATI" in questo documento)
 
 ---
 
