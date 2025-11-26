@@ -16,10 +16,11 @@
                     $snapshots = $snapshotsData['snapshots'] ?? [];
 
                     if (!empty($snapshots)) {
+                        $first = $snapshots[0];
                         $current = end($snapshots);
                         $currentValue = $current['metadata']['total_value'];
 
-                        // 1 Mese (30 giorni fa)
+                        // 1 Mese (30 giorni fa o primo snapshot disponibile)
                         $oneMonthAgo = date('Y-m-d', strtotime('-30 days'));
                         $snap1m = null;
                         foreach ($snapshots as $s) {
@@ -27,6 +28,10 @@
                                 $snap1m = $s;
                                 break;
                             }
+                        }
+                        // Fallback al primo snapshot se non ci sono dati storici
+                        if (!$snap1m) {
+                            $snap1m = $first;
                         }
                         if ($snap1m) {
                             $value1m = $snap1m['metadata']['total_value'];
@@ -38,7 +43,7 @@
                             ];
                         }
 
-                        // 3 Mesi (90 giorni fa)
+                        // 3 Mesi (90 giorni fa o primo snapshot disponibile)
                         $threeMonthsAgo = date('Y-m-d', strtotime('-90 days'));
                         $snap3m = null;
                         foreach ($snapshots as $s) {
@@ -46,6 +51,10 @@
                                 $snap3m = $s;
                                 break;
                             }
+                        }
+                        // Fallback al primo snapshot
+                        if (!$snap3m) {
+                            $snap3m = $first;
                         }
                         if ($snap3m) {
                             $value3m = $snap3m['metadata']['total_value'];
@@ -57,7 +66,7 @@
                             ];
                         }
 
-                        // YTD (inizio anno)
+                        // YTD (inizio anno o primo snapshot disponibile)
                         $ytdStart = date('Y') . '-01-01';
                         $snapYtd = null;
                         foreach ($snapshots as $s) {
@@ -65,6 +74,10 @@
                                 $snapYtd = $s;
                                 break;
                             }
+                        }
+                        // Fallback al primo snapshot
+                        if (!$snapYtd) {
+                            $snapYtd = $first;
                         }
                         if ($snapYtd) {
                             $valueYtd = $snapYtd['metadata']['total_value'];
@@ -296,6 +309,18 @@
                 }
                 ?>
 
+                // Wrap chart initialization in a function to be called when view becomes visible
+                function initializePerformanceCharts() {
+                    console.log('🎯 initializePerformanceCharts() called');
+
+                    // Check if already initialized
+                    if (window.performanceChartsInitialized) {
+                        console.log('⚠️ Performance charts already initialized, skipping');
+                        return;
+                    }
+
+                    console.log('📊 Starting chart initialization...');
+
                 // Performance Detail Chart (Andamento Annuale) - Dynamic from snapshots
                 const performanceDetailCtxEl = document.getElementById('performanceDetailChart');
                 if (performanceDetailCtxEl && !initializedCharts.has('performanceDetailChart')) {
@@ -353,15 +378,28 @@
                                     backgroundColor: typeof pattern !== 'undefined' ? pattern.draw('diagonal', 'rgba(139, 92, 246, 0.05)') : 'rgba(139, 92, 246, 0.05)',
                                     borderWidth: 3,
                                     fill: true,
-                                    tension: 0,
-                                    pointRadius: 5
+                                    tension: 0.4,
+                                    pointRadius: 8,
+                                    pointHoverRadius: 10,
+                                    pointBackgroundColor: '#8b5cf6',
+                                    pointBorderColor: '#fff',
+                                    pointBorderWidth: 2
                                 }]
                             },
                             options: {
                                 responsive: true,
                                 maintainAspectRatio: false,
                                 animation: { duration: 800, easing: 'easeOutQuart' },
-                                plugins: { legend: { display: false } },
+                                plugins: {
+                                    legend: { display: false },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                return 'Guadagno: €' + context.parsed.y.toLocaleString('it-IT', { minimumFractionDigits: 2 });
+                                            }
+                                        }
+                                    }
+                                },
                                 scales: {
                                     y: {
                                         beginAtZero: true,
@@ -392,15 +430,28 @@
                                     backgroundColor: 'rgba(139, 92, 246, 0.05)',
                                     borderWidth: 3,
                                     fill: true,
-                                    tension: 0,
-                                    pointRadius: 5
+                                    tension: 0.4,
+                                    pointRadius: 8,
+                                    pointHoverRadius: 10,
+                                    pointBackgroundColor: '#8b5cf6',
+                                    pointBorderColor: '#fff',
+                                    pointBorderWidth: 2
                                 }]
                             },
                             options: {
                                 responsive: true,
                                 maintainAspectRatio: false,
                                 animation: { duration: 800, easing: 'easeOutQuart' },
-                                plugins: { legend: { display: false } },
+                                plugins: {
+                                    legend: { display: false },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                return 'Valore: €' + context.parsed.y.toLocaleString('it-IT', { minimumFractionDigits: 2 });
+                                            }
+                                        }
+                                    }
+                                },
                                 scales: {
                                     y: {
                                         beginAtZero: false,
@@ -412,6 +463,44 @@
                         initializedCharts.add('valueOverTimeChart');
                     } catch (error) {
                         console.error('Errore inizializzazione Value Over Time Chart:', error);
+                    }
+                }
+
+                    // Mark charts as initialized
+                    window.performanceChartsInitialized = true;
+                    console.log('✅ Performance charts initialized successfully');
+                }
+
+                // Initialize charts when performance view becomes visible
+                // Observer to detect when #performance div becomes visible
+                const performanceView = document.getElementById('performance');
+                if (performanceView) {
+                    const observer = new MutationObserver((mutations) => {
+                        mutations.forEach((mutation) => {
+                            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                                const isVisible = !performanceView.classList.contains('hidden');
+                                if (isVisible && !window.performanceChartsInitialized) {
+                                    console.log('👁️ Performance view is now visible, initializing charts...');
+                                    // Small delay to ensure DOM is fully rendered
+                                    setTimeout(() => {
+                                        initializePerformanceCharts();
+                                    }, 100);
+                                }
+                            }
+                        });
+                    });
+
+                    observer.observe(performanceView, {
+                        attributes: true,
+                        attributeFilter: ['class']
+                    });
+
+                    // Also try immediate initialization if view is already visible
+                    if (!performanceView.classList.contains('hidden')) {
+                        console.log('👁️ Performance view already visible, initializing charts immediately...');
+                        setTimeout(() => {
+                            initializePerformanceCharts();
+                        }, 100);
                     }
                 }
                 </script>

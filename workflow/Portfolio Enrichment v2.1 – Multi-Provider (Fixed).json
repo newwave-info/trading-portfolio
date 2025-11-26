@@ -3,45 +3,21 @@
   "nodes": [
     {
       "parameters": {
-        "rule": {
-          "interval": [
-            { "field": "cronExpression", "expression": "0 22 * * *" }
-          ]
-        }
-      },
-      "name": "Schedule Trigger",
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.1,
-      "position": [250, 300],
-      "notes": "Esegue ogni notte alle 22:00 CET"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
+        "fields": {
+          "values": [
             {
-              "id": "1",
               "name": "APP_BASE_URL",
-              "value": "https://portfolio.newwave-media.it",
-              "type": "string"
+              "stringValue": "https://portfolio.newwave-media.it"
             },
             {
-              "id": "2",
               "name": "WEBHOOK_SECRET",
-              "value": "YOUR_SECRET_HERE_CHANGE_ME",
-              "type": "string"
+              "stringValue": "a1b2c3d4e5f7349012345678901234567890abcdef1234567890abcdef123456"
             },
             {
-              "id": "3",
-              "name": "TWELVE_DATA_KEY",
-              "value": "",
-              "type": "string"
+              "name": "TWELVE_DATA_KEY"
             },
             {
-              "id": "4",
-              "name": "FMP_KEY",
-              "value": "",
-              "type": "string"
+              "name": "FMP_KEY"
             }
           ]
         },
@@ -50,18 +26,35 @@
       "name": "Config Variables",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.2,
-      "position": [450, 300],
+      "position": [
+        -1888,
+        1568
+      ],
+      "id": "27b54cb6-7d0b-43a0-a99e-c61f4ca44f6a",
       "notes": "IMPORTANTE: Configura WEBHOOK_SECRET (obbligatorio). API keys opzionali (lascia vuoto se non hai)"
     },
     {
       "parameters": {
         "url": "={{$json.APP_BASE_URL}}/api/n8n/portfolio.php",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; ETF-Portfolio-Manager/2.1; +https://portfolio.newwave-media.it"
+            }
+          ]
+        },
         "options": {}
       },
       "name": "Get Portfolio",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [650, 300],
+      "position": [
+        -1664,
+        1568
+      ],
+      "id": "ac7b0aa3-accf-4616-b0e5-733db81f40bb",
       "notes": "Recupera holdings da PHP (HMAC opzionale)"
     },
     {
@@ -71,17 +64,24 @@
       "name": "Extract Holdings",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [850, 300]
+      "position": [
+        -1440,
+        1568
+      ],
+      "id": "018477c2-eac2-4bb2-8657-fdb7016a9246"
     },
     {
       "parameters": {
-        "batchSize": 3,
         "options": {}
       },
       "name": "Split In Batches",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
-      "position": [1050, 300],
+      "position": [
+        -1216,
+        1568
+      ],
+      "id": "7b386863-1967-4c06-b247-bebd62606b97",
       "notes": "Processa 3 holdings per volta per evitare rate limiting"
     },
     {
@@ -91,7 +91,11 @@
       "name": "Preprocess Symbols",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1250, 300]
+      "position": [
+        -992,
+        1040
+      ],
+      "id": "934f4d26-ffb4-4bc7-9daa-1ac946c838bc"
     },
     {
       "parameters": {
@@ -103,7 +107,11 @@
       "name": "TwelveData Price",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [1450, 150],
+      "position": [
+        -544,
+        752
+      ],
+      "id": "5b7867ae-d79d-49de-89ef-903e69a9d6af",
       "continueOnFail": true,
       "notes": "Provider 1: TwelveData (se hai API key)"
     },
@@ -114,7 +122,11 @@
       "name": "TWD Success?",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1650, 150]
+      "position": [
+        -320,
+        752
+      ],
+      "id": "9c57f2ad-b90f-441b-89c1-499d1389baa2"
     },
     {
       "parameters": {
@@ -126,7 +138,11 @@
       "name": "FMP Price",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [1450, 300],
+      "position": [
+        -544,
+        944
+      ],
+      "id": "a90a3023-bf06-4c4b-a69f-4f4d820226d5",
       "continueOnFail": true,
       "notes": "Provider 2: Financial Modeling Prep (se hai API key)"
     },
@@ -137,7 +153,11 @@
       "name": "FMP Success?",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1650, 300]
+      "position": [
+        -320,
+        944
+      ],
+      "id": "91074507-5a2a-4559-ab72-822877b982de"
     },
     {
       "parameters": {
@@ -149,7 +169,11 @@
       "name": "Yahoo Finance Price",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [1450, 450],
+      "position": [
+        -544,
+        1136
+      ],
+      "id": "208bc905-3992-47ec-89c6-af19d85a30d1",
       "continueOnFail": true,
       "notes": "Provider 3: Yahoo Finance (gratuito, sempre attivo)"
     },
@@ -160,7 +184,11 @@
       "name": "Yahoo Success?",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1650, 450]
+      "position": [
+        -320,
+        1136
+      ],
+      "id": "29085d12-aca0-4648-85e6-abb8aaad6607"
     },
     {
       "parameters": {
@@ -172,7 +200,11 @@
       "name": "JustETF Price",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [1450, 600],
+      "position": [
+        -544,
+        1344
+      ],
+      "id": "01a6dd29-3014-4138-b74e-190531b24cc3",
       "continueOnFail": true,
       "notes": "Provider 4: JustETF (gratuito, per ETF europei)"
     },
@@ -183,7 +215,11 @@
       "name": "JustETF Success?",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1650, 600]
+      "position": [
+        -320,
+        1344
+      ],
+      "id": "a09d448d-f0b3-4093-bb34-e1e882296a73"
     },
     {
       "parameters": {
@@ -192,42 +228,56 @@
       "name": "Fallback - Keep Existing",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1650, 750],
+      "position": [
+        -48,
+        1408
+      ],
+      "id": "9eb02480-90b1-4a82-b712-f30cd65e5377",
       "notes": "Se tutti i provider falliscono, mantiene prezzo esistente + classificazione locale"
     },
     {
       "parameters": {
-        "amount": 200,
-        "unit": "milliseconds"
+        "amount": 0.5
       },
       "name": "Wait",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
-      "position": [1850, 300],
+      "position": [
+        352,
+        1056
+      ],
+      "id": "554084ff-b1a4-42e6-b791-e8afefcb249f",
+      "webhookId": "cc8e4552-2a30-45e3-9a66-10228e2ad5d5",
       "notes": "Delay tra batch per evitare rate limiting"
     },
     {
-      "parameters": {
-        "options": {}
-      },
+      "parameters": {},
       "name": "Loop Back",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [2050, 300]
+      "position": [
+        288,
+        1824
+      ],
+      "id": "8402cb68-850f-4690-959f-2c8f8ed92cb0"
     },
     {
       "parameters": {
-        "jsCode": "// Aggregate all enriched holdings\nconst items = $input.all();\n\n// Get config from first item\nconst firstItem = items[0].json;\nconst appBaseUrl = firstItem.APP_BASE_URL;\nconst webhookSecret = firstItem.WEBHOOK_SECRET;\n\n// Extract enrichment data (remove config fields)\nconst holdings = items.map(item => {\n  const { APP_BASE_URL, WEBHOOK_SECRET, TWELVE_DATA_KEY, FMP_KEY, ...enrichment } = item.json;\n  return enrichment;\n});\n\nconst payload = {\n  workflow_id: 'portfolio_enrichment_v2.1',\n  timestamp: new Date().toISOString(),\n  holdings: holdings\n};\n\nconst crypto = require('crypto');\nconst payloadStr = JSON.stringify(payload);\nconst hmac = crypto.createHmac('sha256', webhookSecret).update(payloadStr).digest('hex');\n\nreturn [{\n  json: {\n    APP_BASE_URL: appBaseUrl,\n    payload: payload,\n    signature: `sha256=${hmac}`,\n    payloadStr: payloadStr\n  }\n}];"
+        "jsCode": "// Aggregate all enriched holdings (NO HMAC)\nconst items = $input.all();\n\n// Get config from first item\nconst firstItem = items[0].json;\nconst appBaseUrl = firstItem.APP_BASE_URL;\n\n// Extract enrichment data (remove config fields)\nconst holdings = items.map(item => {\n  const { APP_BASE_URL, WEBHOOK_SECRET, TWELVE_DATA_KEY, FMP_KEY, ...enrichment } = item.json;\n  return enrichment;\n});\n\nconst payload = {\n  workflow_id: 'portfolio_enrichment_v2.1',\n  timestamp: new Date().toISOString(),\n  holdings: holdings\n};\n\nconst payloadStr = JSON.stringify(payload);\n\nreturn [{\n  json: {\n    APP_BASE_URL: appBaseUrl,\n    payload: payload,\n    signature: 'HMAC_DISABLED',\n    payloadStr: payloadStr\n  }\n}];\n"
       },
       "name": "Aggregate & Sign",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2250, 300]
+      "position": [
+        -992,
+        1568
+      ],
+      "id": "0b270add-2023-4a5c-8c68-c5552a4fccc5"
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "={{$json.APP_BASE_URL}}/api/n8n/enrich.php",
+        "url": "https://portfolio.newwave-media.it/api/n8n/enrich.php",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -238,6 +288,10 @@
             {
               "name": "Content-Type",
               "value": "application/json"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; ETF-Portfolio-Manager/2.1; +https://portfolio.newwave-media.it)"
             }
           ]
         },
@@ -249,82 +303,250 @@
       "name": "Post Enriched Data",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [2450, 300]
+      "position": [
+        -768,
+        1568
+      ],
+      "id": "abb9bbb7-8c57-4dfa-ab18-3ba3862a8f7a"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2112,
+        1568
+      ],
+      "id": "dcc2af3f-2bab-4bca-8745-5badcaac2ff4",
+      "name": "When clicking ‘Execute workflow’"
     }
   ],
+  "pinData": {},
   "connections": {
-    "Schedule Trigger": {
-      "main": [[{ "node": "Config Variables", "type": "main", "index": 0 }]]
-    },
     "Config Variables": {
-      "main": [[{ "node": "Get Portfolio", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Get Portfolio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Get Portfolio": {
-      "main": [[{ "node": "Extract Holdings", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Extract Holdings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Extract Holdings": {
-      "main": [[{ "node": "Split In Batches", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Split In Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Split In Batches": {
       "main": [
-        [{ "node": "Preprocess Symbols", "type": "main", "index": 0 }],
-        [{ "node": "Aggregate & Sign", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Aggregate & Sign",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Preprocess Symbols",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Preprocess Symbols": {
       "main": [
         [
-          { "node": "TwelveData Price", "type": "main", "index": 0 },
-          { "node": "FMP Price", "type": "main", "index": 0 },
-          { "node": "Yahoo Finance Price", "type": "main", "index": 0 },
-          { "node": "JustETF Price", "type": "main", "index": 0 }
+          {
+            "node": "Yahoo Finance Price",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "JustETF Price",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "TwelveData Price": {
-      "main": [[{ "node": "TWD Success?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "TWD Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "TWD Success?": {
-      "main": [[{ "node": "Wait", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "FMP Price": {
-      "main": [[{ "node": "FMP Success?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "FMP Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "FMP Success?": {
-      "main": [[{ "node": "Wait", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Yahoo Finance Price": {
-      "main": [[{ "node": "Yahoo Success?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Yahoo Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Yahoo Success?": {
-      "main": [[{ "node": "Wait", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "JustETF Price": {
-      "main": [[{ "node": "JustETF Success?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "JustETF Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "JustETF Success?": {
-      "main": [[{ "node": "Wait", "type": "main", "index": 0 }]],
-      "fallback": [[{ "node": "Fallback - Keep Existing", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fallback - Keep Existing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Fallback - Keep Existing": {
-      "main": [[{ "node": "Wait", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Wait": {
-      "main": [[{ "node": "Loop Back", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Loop Back",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Loop Back": {
-      "main": [[{ "node": "Split In Batches", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Split In Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Aggregate & Sign": {
-      "main": [[{ "node": "Post Enriched Data", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Post Enriched Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Config Variables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
+  "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "staticData": null,
-  "tags": [],
-  "triggerCount": 0,
-  "updatedAt": "2025-11-26T16:00:00.000Z",
-  "versionId": "2.1"
+  "versionId": "7cb1f56b-d731-4138-b578-bbfe7c616c1c",
+  "meta": {
+    "instanceId": "fe117d56aad4346ee596609bb8c3079d6edd34e383a675201472f524674346cc"
+  },
+  "id": "aZL4j7jRZ2NYxVoe",
+  "tags": []
 }

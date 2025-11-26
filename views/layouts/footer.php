@@ -50,7 +50,7 @@
             new Chart(allocationCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: <?php echo json_encode(array_column($allocation_by_asset_class, 'class')); ?>,
+                    labels: <?php echo json_encode(array_column($allocation_by_asset_class, 'asset_class')); ?>,
                     datasets: [{
                         data: <?php echo json_encode(array_column($allocation_by_asset_class, 'percentage')); ?>,
                         backgroundColor: ['#8b5cf6', '#a78bfa', '#c4b5fd', '#52525b', '#71717a'],
@@ -66,7 +66,22 @@
                     plugins: {
                         legend: {
                             position: 'bottom',
-                            labels: { padding: 15, font: { size: 11 }, usePointStyle: true, pointStyle: 'rect' }
+                            labels: {
+                                padding: 15,
+                                font: { size: 11 },
+                                usePointStyle: true,
+                                pointStyle: 'rect',
+                                color: '#374151'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    return label + ': ' + value.toFixed(2) + '%';
+                                }
+                            }
                         }
                     }
                 }

@@ -131,6 +131,65 @@ try {
     // Save portfolio
     $portfolioManager->save();
 
+    // Create daily snapshot (for performance charts)
+    $snapshotsFile = __DIR__ . '/../../data/snapshots.json';
+    $snapshots = file_exists($snapshotsFile)
+        ? json_decode(file_get_contents($snapshotsFile), true)
+        : ['snapshots' => []];
+
+    $today = date('Y-m-d');
+    $snapshotExists = false;
+
+    foreach ($snapshots['snapshots'] as $snap) {
+        if ($snap['date'] === $today) {
+            $snapshotExists = true;
+            break;
+        }
+    }
+
+    if (!$snapshotExists) {
+        $currentData = $portfolioManager->getData();
+        $snapshots['snapshots'][] = [
+            'date' => $today,
+            'metadata' => $currentData['metadata'],
+            'holdings' => $currentData['holdings']
+        ];
+
+        // Sort by date
+        usort($snapshots['snapshots'], fn($a, $b) => $a['date'] <=> $b['date']);
+
+        file_put_contents($snapshotsFile, json_encode($snapshots, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        error_log("[n8n/enrich] Created daily snapshot for $today");
+
+        // Update monthly_performance in portfolio.json
+        $byMonth = [];
+        foreach ($snapshots['snapshots'] as $snap) {
+            $month = date('M', strtotime($snap['date']));
+            $year = date('Y', strtotime($snap['date']));
+            $key = $year . '-' . $month;
+
+            if (!isset($byMonth[$key]) || $snap['date'] > $byMonth[$key]['date']) {
+                $byMonth[$key] = [
+                    'month' => $month,
+                    'value' => $snap['metadata']['total_value'],
+                    'date' => $snap['date']
+                ];
+            }
+        }
+
+        usort($byMonth, fn($a, $b) => $a['date'] <=> $b['date']);
+        $monthlyPerformance = array_slice(array_map(fn($item) => [
+            'month' => $item['month'],
+            'value' => $item['value']
+        ], $byMonth), -12);
+
+        $currentData['monthly_performance'] = $monthlyPerformance;
+        $portfolioManager->setData($currentData);
+        $portfolioManager->save();
+
+        error_log("[n8n/enrich] Updated monthly_performance with " . count($monthlyPerformance) . " months");
+    }
+
     // Get updated metadata
     $updatedData = $portfolioManager->getData();
     $metadata = $updatedData['metadata'];

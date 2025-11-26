@@ -278,6 +278,36 @@ class PortfolioManager {
             : 0;
         $this->data['metadata']['holdings_count'] = count($this->data['holdings']);
         $this->data['metadata']['last_update'] = date('Y-m-d\TH:i:s\Z');
+
+        // Calcola allocation_by_asset_class per grafici
+        $allocationByAssetClass = [];
+        foreach ($this->data['holdings'] as $holding) {
+            $assetClass = $holding['asset_class'] ?? 'Unknown';
+
+            if (!isset($allocationByAssetClass[$assetClass])) {
+                $allocationByAssetClass[$assetClass] = [
+                    'asset_class' => $assetClass,
+                    'total_value' => 0,
+                    'percentage' => 0,
+                    'holdings_count' => 0
+                ];
+            }
+
+            $allocationByAssetClass[$assetClass]['total_value'] += $holding['market_value'];
+            $allocationByAssetClass[$assetClass]['holdings_count']++;
+        }
+
+        // Calcola percentuali
+        foreach ($allocationByAssetClass as &$allocation) {
+            $allocation['total_value'] = round($allocation['total_value'], 2);
+            $allocation['percentage'] = $totalValue > 0
+                ? round(($allocation['total_value'] / $totalValue) * 100, 2)
+                : 0;
+        }
+
+        // Converti a array indicizzato e ordina per valore decrescente
+        $this->data['allocation_by_asset_class'] = array_values($allocationByAssetClass);
+        usort($this->data['allocation_by_asset_class'], fn($a, $b) => $b['total_value'] <=> $a['total_value']);
     }
 
     /**
@@ -345,5 +375,12 @@ class PortfolioManager {
         // o in file separati (technical_analysis.json, opportunities.json, ecc.)
 
         return true;
+    }
+
+    /**
+     * Set complete portfolio data (useful for snapshot initialization)
+     */
+    public function setData(array $data): void {
+        $this->data = $data;
     }
 }
