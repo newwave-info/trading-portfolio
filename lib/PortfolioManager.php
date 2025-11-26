@@ -39,7 +39,7 @@ class PortfolioManager {
     /**
      * Salva portfolio su JSON
      */
-    private function save(): bool {
+    public function save(): bool {
         // Backup prima di salvare
         if (file_exists($this->jsonPath)) {
             copy($this->jsonPath, $this->jsonPath . '.backup');
@@ -160,6 +160,30 @@ class PortfolioManager {
     }
 
     /**
+     * Aggiorna solo campi specifici di un holding esistente
+     * (Usato da n8n enrichment per aggiornare prezzi e metadata)
+     */
+    public function updateHolding(string $isin, array $updates): bool {
+        $found = false;
+
+        foreach ($this->data['holdings'] as &$holding) {
+            if ($holding['isin'] === $isin) {
+                // Merge updates con holding esistente
+                $holding = array_merge($holding, $updates);
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
+            throw new Exception("Holding with ISIN {$isin} not found");
+        }
+
+        // NON ricalcolare metriche qui - sarà fatto da enrich.php dopo tutti gli update
+        return true;
+    }
+
+    /**
      * Import CSV Fineco
      *
      * Formato CSV:
@@ -217,7 +241,7 @@ class PortfolioManager {
     /**
      * Ricalcola metriche aggregate portfolio
      */
-    private function recalculateMetrics(): void {
+    public function recalculateMetrics(): void {
         $totalValue = 0;
         $totalInvested = 0;
 
