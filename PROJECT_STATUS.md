@@ -1,8 +1,8 @@
 # 📊 ETF Portfolio Manager - Stato Avanzamento Lavori
 
 **Ultimo aggiornamento:** 26 Novembre 2025
-**Versione:** 0.1.0-MVP (JSON Based)
-**Stato:** MVP Completato ✅ - Fase 1 (JSON Storage) operativa, Fase 2 (Database Migration) in roadmap
+**Versione:** 0.2.0-MVP (JSON Based + n8n Integration)
+**Stato:** MVP Avanzato ✅ - Fase 1 (JSON Storage) completa, n8n integration attiva, Fase 2 (Database Migration) in roadmap
 
 > 📋 **Documentazione:**
 > - [README.md](README.md) - Panoramica generale e setup (aggiornato 26 Nov 2025)
@@ -37,6 +37,14 @@
   - Grafico donut spacing: 6
   - 32+ icone Font Awesome su titoli widget
   - Nomenclatura unificata: "Portafoglio" (non "portfolio")
+- [x] **Grafici Performance** (Chart.js):
+  - Grafico "Andamento Annuale (2025)" con dati mensili
+  - Grafico "Guadagno Cumulativo (YTD)" con storico snapshot
+  - Grafico "Ultimi 5 Giorni" con valori portafoglio
+  - Widget performance: 1M, 3M, YTD con percentuali e valori
+  - Fix lazy-loading: inizializzazione chart solo quando tab visibile (MutationObserver)
+  - Configurazione punti evidenziati (radius: 8) per singoli data point
+  - Pie chart allocazioni con labels corrette
 
 ### **2. Refactoring Architettura (100%)**
 - [x] **Struttura modulare MVC-like:**
@@ -48,19 +56,20 @@
   ```
 - [x] **Backup** creato: `index.php.backup` (119KB originale)
 
-### **3. Sistema Dati Dinamici (80%)**
+### **3. Sistema Dati Dinamici (95%)**
 - [x] **Storage JSON** (`data/portfolio.json`) con struttura completa:
   - `metadata` - Metriche aggregate portfolio
-  - `holdings` - Posizioni correnti (5 ETF mockati)
+  - `holdings` - Posizioni correnti
   - `transactions` - Storico operazioni
   - `dividends` - Dividendi ricevuti
-  - `monthly_performance` - Performance mensile
-  - `allocation_by_asset_class` - Allocazioni per classe
+  - `monthly_performance` - Performance mensile (auto-aggiornato da snapshots)
+  - `allocation_by_asset_class` - Allocazioni per classe (auto-calcolato)
   - `n8n_config` - Config integrazione n8n
 - [x] **PortfolioManager class** (`lib/PortfolioManager.php`):
   - CRUD holdings completo
   - Import CSV Fineco (parser con separatore `;`)
-  - Ricalcolo metriche automatico
+  - Ricalcolo metriche automatico con `allocation_by_asset_class`
+  - Metodo `setData()` per inizializzazione snapshot
   - Preparazione payload per n8n
   - Backup automatico prima del save
 - [x] **API REST Endpoints** (`api/holdings.php`):
@@ -86,14 +95,18 @@
 
 ## 🚧 **IN CORSO / PARZIALE**
 
-### **1. Gestione Dati (40%)**
+### **1. Gestione Dati (70%)**
 - [x] Storage JSON funzionante
+- [x] **Snapshot giornalieri** implementati con auto-creazione giornaliera
+  - Sistema snapshot completo (`data/snapshots.json`)
+  - Auto-creazione via n8n enrichment (daily @ 22:00)
+  - Script manuali: `initialize-snapshots.php`, `add-snapshot.php`
+  - Grafici performance popolati da snapshots
 - [ ] **Migrazione a Database MariaDB** (schema definito, non implementato)
   - Schema `market_data` (etf_info, prices, fineco_commissions)
   - Schema `utente` (users, portfolios, holdings, transactions, dividends, snapshots)
   - Script SQL da creare in `db/init.sql`
 - [ ] **Storico transazioni** (struttura presente, non usata nel frontend)
-- [ ] **Snapshot giornalieri** per grafici storici performance
 
 ### **2. Integrazione Quotazioni (0%)**
 - [ ] API esterna per prezzi (Alpha Vantage / Yahoo Finance)
@@ -108,18 +121,33 @@
 
 ---
 
+### **5. Integrazione n8n (100%)**
+- [x] **Setup n8n** operativo (self-hosted)
+- [x] **Webhook sicuro con HMAC-SHA256:**
+  - Endpoint `POST /api/n8n/enrich.php` con autenticazione HMAC
+  - Verifica signature per prevenire chiamate non autorizzate
+  - Webhook URL e HMAC secret configurabili in `portfolio.json`
+- [x] **Workflow Portfolio Enrichment v2.2** (giornaliero @ 22:00):
+  - Fetch prezzi da 4 provider con fallback chain:
+    1. TwelveData API (primario)
+    2. Financial Modeling Prep (secondario)
+    3. Yahoo Finance (terziario)
+    4. JustETF web scraping (ultimo tentativo)
+  - Classificazione automatica settore/asset_class da nome ETF
+  - Aggiornamento holdings in `portfolio.json` con prezzi attuali
+  - Creazione snapshot giornaliero in `data/snapshots.json`
+  - Aggiornamento `monthly_performance` da snapshots
+  - Gestione rate limits e batch processing (5 holdings/batch)
+- [x] **Script di gestione:**
+  - `initialize-snapshots.php` - Crea primo snapshot
+  - `add-snapshot.php` - Aggiunge snapshot manualmente
+  - `recalculate-metrics.php` - Ricalcola allocation_by_asset_class
+  - `debug-charts.php` / `debug-charts-web.php` - Debug dati grafici
+  - `debug-performance-widgets-web.php` - Debug widget performance
+
 ## ❌ **NON INIZIATO**
 
-### **1. Integrazione n8n (Priorità ALTA)**
-- [ ] **Setup n8n container** (Docker Compose)
-- [ ] **Webhook bidirezionale:**
-  - `POST /api/n8n/send-portfolio` → Invia portfolio.json a n8n
-  - `POST /api/n8n/receive-results` → Riceve analisi/quotazioni da n8n
-  - HMAC-SHA256 authentication
-- [ ] **Workflow A - Analisi Tecnica** (giornaliero):
-  - Input: ISIN list da holdings
-  - Output: Segnali BUY/SELL/HOLD/WATCH con indicatori (EMA, MACD, RSI, Bollinger)
-  - Storage: `data/technical_analysis.json` o tabella DB
+### **1. Workflow n8n Aggiuntivi**
 - [ ] **Workflow B - Opportunità ETF** (settimanale):
   - Fetch ETF Fineco zero commissioni (scraping/API)
   - Filtra: non già in portafoglio

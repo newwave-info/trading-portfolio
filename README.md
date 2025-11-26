@@ -31,6 +31,7 @@ Questo è un progetto in **fase di sviluppo attivo**. La versione attuale è una
 │   - Gestione Holdings (API REST)     │
 │   - Visualizzazioni performance      │
 │   - Analisi tecnica e dividendi      │
+│   - API n8n webhook (/api/n8n/)      │
 └─────────┬────────────────────────────┘
           │
           │ Read/Write
@@ -38,11 +39,31 @@ Questo è un progetto in **fase di sviluppo attivo**. La versione attuale è una
 ┌─────────────────────────────────────┐
 │   File System JSON                  │
 │   - portfolio.json                  │
+│   - snapshots.json                  │
 │   - technical_analysis.json         │
 │   - opportunities.json              │
 │   - recommendations.json            │
 │   - dividends_calendar.json         │
-│   - snapshots.json                  │
+└──────────┬──────────────────────────┘
+           │
+           │ HMAC-authenticated Webhook
+           ▼
+┌─────────────────────────────────────┐
+│   n8n Workflow Automation           │
+│   - Portfolio Enrichment (daily)    │
+│   - Price fetching (4 providers)    │
+│   - Auto-classification ETF         │
+│   - Snapshot creation               │
+└─────────┬───────────────────────────┘
+          │
+          │ REST API
+          ▼
+┌─────────────────────────────────────┐
+│   External Services                 │
+│   - TwelveData API                  │
+│   - Financial Modeling Prep         │
+│   - Yahoo Finance                   │
+│   - JustETF (scraping)              │
 └─────────────────────────────────────┘
 ```
 
@@ -73,12 +94,20 @@ ETF Portfolio Manager è una **web application PHP** che funziona come centro di
 - ✅ Interfaccia responsive e moderna
 - ✅ Sistema di tabs per navigazione tra sezioni
 
+**Recentemente completato:**
+
+- ✅ Integrazione n8n per enrichment automatico (v2.2 attiva)
+- ✅ Storico snapshots temporali per performance tracking
+- ✅ Aggiornamento prezzi automatico giornaliero (4 provider API)
+- ✅ Grafici performance dinamici da snapshots
+- ✅ Sistema classificazione automatica ETF (settore/asset_class)
+
 **In roadmap (prossime iterazioni):**
 
 - 🔄 Autenticazione multi-utente con sessioni sicure
 - 🔄 Database relazionale (MariaDB/PostgreSQL)
-- 🔄 Integrazione n8n per analisi automatizzate
-- 🔄 Storico transazioni e snapshots temporali
+- 🔄 Workflow n8n addizionali (analisi tecnica, opportunità, sentiment)
+- 🔄 Storico transazioni completo
 - 🔄 Multi-portafoglio per utente
 - 🔄 Tracciamento commissioni Fineco
 
@@ -130,12 +159,48 @@ Sistema completo per la gestione delle posizioni in portafoglio:
 
 ### 📈 Analisi Performance
 
-Visualizzazione dell'andamento storico del portafoglio:
+Visualizzazione dell'andamento storico del portafoglio con dati dinamici da snapshots:
 
-- **Grafici temporali**: Evoluzione del valore nel tempo
-- **Performance metrics**: Rendimenti giornalieri, settimanali, mensili, annuali
-- **Benchmark comparison**: Confronto con indici di riferimento (quando disponibile)
-- **Contributo per holding**: Analisi di quali posizioni hanno contribuito maggiormente alla performance
+- **Grafici temporali**: Evoluzione del valore nel tempo (ultimi 30 giorni)
+- **Performance widgets**: Rendimenti a 1 mese, 3 mesi, YTD
+- **Grafici dinamici**:
+  - Andamento annuale (performance mensile)
+  - Guadagno cumulativo YTD
+  - Ultimi 5 giorni (valori giornalieri)
+- **Snapshot giornalieri**: Storico automatico creato daily via n8n (22:00)
+- **Tabella storica**: Performance progressiva giornaliera con day change
+
+### 🤖 Automazione n8n
+
+Sistema di enrichment automatico del portafoglio con workflow n8n:
+
+**Workflow "Portfolio Enrichment v2.2"** (daily @ 22:00):
+- **Aggiornamento prezzi** da 4 provider API con fallback chain:
+  1. TwelveData (primario)
+  2. Financial Modeling Prep (secondario)
+  3. Yahoo Finance (terziario)
+  4. JustETF web scraping (ultimo tentativo)
+- **Classificazione automatica** settore e asset_class da nome ETF
+- **Creazione snapshot giornaliero** per tracking performance storica
+- **Aggiornamento monthly_performance** da snapshots aggregati
+- **Autenticazione HMAC-SHA256** per webhook sicuro
+- **Gestione rate limits** con batch processing (5 holdings/batch, 10s delay)
+
+**Configurazione** in `portfolio.json`:
+```json
+{
+  "n8n_config": {
+    "webhook_url": "https://n8n.domain.com/webhook/...",
+    "hmac_secret": "your-secret-key",
+    "sync_frequency": "daily"
+  }
+}
+```
+
+**Script di gestione**:
+- `initialize-snapshots.php` - Inizializza primo snapshot
+- `add-snapshot.php` - Crea snapshot manuale
+- `recalculate-metrics.php` - Ricalcola allocation_by_asset_class
 
 ### 🔍 Analisi Tecnica
 
@@ -239,12 +304,12 @@ fetch('/api/holdings.php', {
 
 | File | Contenuto | Aggiornamento |
 |------|-----------|---------------|
-| `portfolio.json` | Holdings, metadata, transazioni | Automatico (CRUD operations) |
-| `technical_analysis.json` | Indicatori tecnici, segnali | Manuale/Schedulato |
-| `opportunities.json` | ETF opportunità, nuove idee | Manuale/Schedulato |
+| `portfolio.json` | Holdings, metadata, transazioni, n8n_config | Automatico (CRUD + n8n enrichment) |
+| `snapshots.json` | Storico giornaliero performance | Automatico (n8n daily @ 22:00) |
+| `technical_analysis.json` | Indicatori tecnici, segnali | Pianificato (workflow futuro) |
+| `opportunities.json` | ETF opportunità, nuove idee | Pianificato (workflow futuro) |
 | `recommendations.json` | Suggerimenti operativi | Manuale/Schedulato |
 | `dividends_calendar.json` | Calendario dividendi attesi/percepiti | Manuale |
-| `snapshots.json` | Storico giornaliero performance | Schedulato |
 | `dashboard_insights.json` | Metriche dashboard | Automatico |
 
 ---
@@ -572,6 +637,76 @@ cp -r data/ backup/data_$(date +%Y%m%d)/
 - [ ] **API pubblica**: Endpoint per integrazioni esterne
 - [ ] **RBAC**: Ruoli e permessi per condivisione portfolio
 - [ ] **OAuth Fineco**: Integrazione diretta (se API diventa pubblica)
+
+---
+
+## Troubleshooting
+
+### Grafici Performance non si popolano
+
+**Sintomo**: I grafici nella sezione "Performance & Flussi" non mostrano dati.
+
+**Cause possibili**:
+1. **Snapshots mancanti**: `data/snapshots.json` vuoto o non esistente
+2. **Charts non inizializzati**: Script JavaScript non eseguito su tab nascosto
+
+**Soluzioni**:
+
+**1. Crea primo snapshot**:
+```bash
+php initialize-snapshots.php
+```
+
+**2. Verifica dati con debug**:
+Apri nel browser: `debug-charts-web.php` o `debug-performance-widgets-web.php`
+
+**3. Verifica inizializzazione charts**:
+- Apri console browser (F12)
+- Vai su tab "Performance & Flussi"
+- Dovresti vedere: `🎯 initializePerformanceCharts() called`
+- Se non vedi il messaggio: hard refresh (Ctrl+Shift+R / Cmd+Shift+R)
+
+**Nota tecnica**: I grafici usano MutationObserver per inizializzarsi solo quando il tab diventa visibile, evitando problemi di rendering con Chart.js in container nascosti.
+
+### Widget performance mostrano "-"
+
+**Sintomo**: I widget 1M, 3M, YTD mostrano "-" invece delle percentuali.
+
+**Causa**: Con un solo snapshot, non ci sono dati storici per calcolare variazioni.
+
+**Soluzione**:
+- Con 1 snapshot: i widget mostreranno `+0,00%` (nessuna variazione)
+- Attendi il prossimo enrichment n8n (daily @ 22:00) per creare nuovi snapshot
+- Oppure crea snapshot manuale: `php add-snapshot.php`
+
+### Import CSV Fineco fallisce
+
+**Sintomo**: Errore durante import CSV esportato da Fineco.
+
+**Verifiche**:
+1. **Formato file**: CSV con separatore `;` (punto e virgola)
+2. **Encoding**: UTF-8 con BOM
+3. **Colonne richieste**: Titolo, ISIN, Simbolo, Quantità, Prezzo medio
+4. **Righe header**: Le prime 3 righe vengono automaticamente saltate
+
+### n8n enrichment non aggiorna prezzi
+
+**Sintomo**: Workflow n8n eseguito ma prezzi non aggiornati.
+
+**Verifiche**:
+1. **HMAC signature**: Controlla che `hmac_secret` in `portfolio.json` corrisponda a quello configurato in n8n
+2. **Webhook URL**: Verifica URL corretto in `n8n_config.webhook_url`
+3. **Logs n8n**: Controlla esecuzione workflow in n8n UI
+4. **API rate limits**: TwelveData ha limiti giornalieri (8 calls/min, 800/day su free tier)
+
+**Debug manuale**:
+```bash
+# Verifica ultimo aggiornamento
+cat data/portfolio.json | grep last_update
+
+# Controlla ultimo snapshot
+cat data/snapshots.json | tail -n 50
+```
 
 ---
 
