@@ -1,10 +1,13 @@
 # 📊 ETF Portfolio Manager - Stato Avanzamento Lavori
 
 **Ultimo aggiornamento:** 26 Novembre 2025
-**Versione:** 0.6-alpha
-**Stato:** In sviluppo attivo - Frontend completato ✅, Backend parziale ⚠️, Gestione dati in corso 🚧
+**Versione:** 0.1.0-MVP (JSON Based)
+**Stato:** MVP Completato ✅ - Fase 1 (JSON Storage) operativa, Fase 2 (Database Migration) in roadmap
 
-> 📋 **Per dettagli sviluppo futuro:** Vedi [DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md)
+> 📋 **Documentazione:**
+> - [README.md](README.md) - Panoramica generale e setup (aggiornato 26 Nov 2025)
+> - [DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md) - Dettagli sviluppo futuro e STEP operativi
+> - [STYLE_GUIDE.md](STYLE_GUIDE.md) - Linee guida UI/UX (REGOLE FERREE)
 
 ---
 
@@ -186,6 +189,14 @@
 
 ## 📋 **PROSSIMI STEP CONSIGLIATI**
 
+> 💡 **Nota strategica:** Il progetto segue una roadmap a 4 fasi (vedi [README.md](README.md#roadmap)):
+> - ✅ **Fase 1 (MVP JSON)** - Completata
+> - 🔄 **Fase 2 (Database Migration)** - Prossima priorità
+> - 🚀 **Fase 3 (Automation n8n)** - Dopo Fase 2
+> - 💎 **Fase 4 (Advanced Features)** - Long-term
+>
+> Gli step qui sotto sono **operativi/tattici** per completare le funzionalità intermedie prima della Fase 2.
+
 ### **STEP 1: Completare Backend Dati (Priorità ALTA)**
 **Obiettivo:** Rendere il sistema completamente funzionale con dati reali
 
@@ -353,11 +364,14 @@ trading-portfolio/
 ## 📞 **NOTE TECNICHE IMPORTANTI**
 
 ### **Decisioni Architetturali:**
-1. **Storage JSON temporaneo** → Migrazione DB pianificata ma non prioritaria
+1. **Storage JSON per MVP** → Scelta deliberata per prototipazione rapida e semplicità
+   - ✅ Vantaggi: Setup immediato, portabilità, debugging facilitato, backup semplice
+   - 🔄 Migrazione DB pianificata in Fase 2 (roadmap)
 2. **Import CSV sovrascrittivo** → Una tantum, non ripetibile (per design)
-3. **Quotazioni da n8n** → Non API diretta in PHP (delegato a workflow)
+3. **Quotazioni da n8n** (Fase 3) → Non API diretta in PHP (delegato a workflow)
 4. **Calcoli lato server** → Tutti i P&L, allocation, drift calcolati in PHP
 5. **AI solo per analisi** → Non per dati finanziari (quotazioni, dividendi)
+6. **Nessuna autenticazione in MVP** → Uso locale/personale, multi-utente in Fase 2
 
 ### **Convenzioni Codice:**
 - **PHP:** PSR-12, classi in `lib/`, snake_case per variabili
@@ -376,16 +390,38 @@ trading-portfolio/
 ## 🎯 **OBIETTIVO FINALE**
 
 **Sistema self-hosted completo per gestione portafoglio ETF su Fineco con:**
-- ✅ Frontend responsive professionale
-- ⏳ Backend robusto con DB/JSON
-- ⏳ Automazione n8n per analisi e quotazioni
-- ⏳ Dashboard real-time con metriche accurate
-- ⏳ Storico operazioni e performance
-- ⏳ Consigli operativi AI-driven
-- ⏳ Multi-utente e multi-portafoglio
 
-**Stima completamento MVP:** ~40 ore sviluppo rimanenti
-**Priorità attuale:** Integrazione n8n + Quotazioni API
+### **Fase 1: MVP - JSON Based** ✅ COMPLETATO
+- ✅ Frontend responsive professionale con design system
+- ✅ CRUD Holdings completo con API REST
+- ✅ Import CSV da Fineco
+- ✅ Dashboard interattiva con metriche
+- ✅ Storage JSON per dati portfolio
+- ✅ Sistema modulare e manutenibile
+
+### **Fase 2: Database Migration** 🔄 PROSSIMA (Stima: ~30-40 ore)
+- [ ] Backend robusto con MariaDB/PostgreSQL
+- [ ] Autenticazione multi-utente
+- [ ] Multi-portafoglio per utente
+- [ ] Storico transazioni completo
+- [ ] Snapshots temporali performance
+- [ ] Containerizzazione Docker
+
+### **Fase 3: Automation & Intelligence** 🚀 FUTURA (Stima: ~40-60 ore)
+- [ ] Integrazione n8n per workflow automation
+- [ ] Aggiornamento prezzi automatico
+- [ ] Analisi tecnica giornaliera
+- [ ] Scouting opportunità ETF
+- [ ] Alert intelligenti
+
+### **Fase 4: Advanced Features** 💎 LONG-TERM
+- [ ] Multi-valuta con conversioni FX
+- [ ] Analisi rischio avanzata
+- [ ] Ottimizzazione fiscale italiana
+- [ ] PWA e notifiche push
+- [ ] API pubblica per integrazioni
+
+**Priorità attuale:** Consolidamento MVP e preparazione Fase 2 (Database Migration)
 
 ---
 
@@ -395,16 +431,27 @@ trading-portfolio/
 
 ## 📅 **CHANGELOG**
 
-### [0.6-alpha] - 26 Novembre 2025
-**Completato:**
+### [0.1.0-MVP] - 26 Novembre 2025
+**Documentazione Completa:**
+- ✅ **README.md aggiornato completamente** - riflette stato MVP con storage JSON
+  - Architettura attuale vs futura
+  - API REST implementate documentate
+  - Setup semplificato senza Docker
+  - Roadmap a 4 fasi dettagliata
+  - Utilizzo quotidiano e best practices
+- ✅ **PROJECT_STATUS.md aggiornato** - allineato con README e roadmap
+  - Versioning uniformato (0.1.0-MVP)
+  - Obiettivi suddivisi per fase
+  - Decisioni architetturali documentate
 - ✅ Rinominati widget con indicazioni temporali (YTD, 2025, Ultimi 5 Giorni)
 - ✅ Fix larghezze colonne tabella Holdings (whitespace-nowrap)
 - ✅ Aggiunta colonne Target % e Note nella tabella Holdings
 - ✅ Sistema di reload che mantiene vista attiva (localStorage)
-- ✅ Creato documento [DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md) con 6 STEP dettagliati
 
-**In Corso:**
-- 🚧 Preparazione STEP 1: Sistema Quotazioni Real-time
+**In Roadmap:**
+- 🔄 Fase 2: Database Migration (prossima priorità)
+- 🚀 Fase 3: Automation & Intelligence (n8n workflows)
+- 💎 Fase 4: Advanced Features
 
 ### [0.5-alpha] - 25 Novembre 2025
 **Completato:**
