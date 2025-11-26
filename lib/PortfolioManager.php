@@ -252,6 +252,7 @@ class PortfolioManager {
         $this->data['metadata']['unrealized_pnl_pct'] = $totalInvested > 0
             ? round((($totalValue - $totalInvested) / $totalInvested) * 100, 2)
             : 0;
+        $this->data['metadata']['holdings_count'] = count($this->data['holdings']);
         $this->data['metadata']['last_update'] = date('Y-m-d\TH:i:s\Z');
     }
 
