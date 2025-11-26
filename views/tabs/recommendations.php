@@ -4,6 +4,7 @@
                 </div>
 
                 <!-- AI Insights per Recommendations -->
+                <?php if (!empty($recommendations['immediate_actions']) || !empty($recommendations['operational_plan']) || !empty($recommendations['warnings_risks'])): ?>
                 <div class="mb-8">
                     <div class="widget-ai-insight px-6 py-4 transition-all duration-300">
                         <div class="flex items-center gap-2.5 mb-3 pb-2.5 border-b border-purple/20">
@@ -14,18 +15,15 @@
                                 <div class="tooltip-content">Analisi automatica delle opportunità operative basata su segnali tecnici e allocazione target</div>
                             </div>
                         </div>
-                        <div class="text-[13px] leading-relaxed text-gray-700">
-                            <div class="pl-4 relative py-2 border-b border-dashed border-gray-300">
-                                <span class="absolute left-0 text-purple font-bold">→</span>
-                                Focus su accumulo ETF core (VWCE, VUSA) approfittando dei ribassi. Diversificare su emerging con EIMI.
-                            </div>
+                        <div class="text-[13px] leading-relaxed text-gray-700 text-gray-500 italic">
                             <div class="pl-4 relative py-2">
-                                <span class="absolute left-0 text-danger font-bold">→</span>
-                                Evitare movimenti impulsivi. Mantenere DCA settimanale e attendere conferme tecniche per incrementi straordinari.
+                                <span class="absolute left-0 text-gray-400 font-bold">→</span>
+                                L'analisi strategica verrà generata automaticamente dal workflow AI una volta disponibili i dati.
                             </div>
                         </div>
                     </div>
                 </div>
+                <?php endif; ?>
 
                 <!-- Widget: Azioni Immediate -->
                 <div class="mb-8">
@@ -54,24 +52,29 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                        <td class="px-4 py-3"><span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold">ALTA</span></td>
-                                        <td class="px-4 py-3 font-semibold text-purple">VWCE</td>
-                                        <td class="px-4 py-3"><span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold">ACCUMULA</span></td>
-                                        <td class="px-4 py-3 text-xs">Momentum positivo, RSI 68, EMA rialzista</td>
-                                        <td class="px-4 py-3 text-right">€115.80</td>
-                                        <td class="px-4 py-3 text-right">2</td>
-                                        <td class="px-4 py-3 text-right font-semibold">€231.60</td>
-                                    </tr>
-                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                        <td class="px-4 py-3"><span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold">MEDIA</span></td>
-                                        <td class="px-4 py-3 font-semibold text-purple">EIMI</td>
-                                        <td class="px-4 py-3"><span class="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-semibold">HOLD</span></td>
-                                        <td class="px-4 py-3 text-xs">Consolidamento, attendere breakout €30</td>
-                                        <td class="px-4 py-3 text-right">€30.00</td>
-                                        <td class="px-4 py-3 text-right">-</td>
-                                        <td class="px-4 py-3 text-right font-semibold">-</td>
-                                    </tr>
+                                    <?php if (empty($recommendations['immediate_actions'])): ?>
+                                        <tr>
+                                            <td colspan="7" class="px-4 py-8 text-center text-gray-500 italic">
+                                                Nessuna azione immediata suggerita. Le raccomandazioni verranno generate dal workflow AI.
+                                            </td>
+                                        </tr>
+                                    <?php else: ?>
+                                        <?php foreach ($recommendations['immediate_actions'] as $action): ?>
+                                            <?php
+                                            $priorityClass = $action['priority'] === 'ALTA' ? 'bg-red-100 text-red-700' : ($action['priority'] === 'MEDIA' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700');
+                                            $actionClass = $action['action'] === 'ACCUMULA' || $action['action'] === 'BUY' ? 'bg-green-100 text-green-700' : ($action['action'] === 'SELL' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700');
+                                            ?>
+                                            <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                                <td class="px-4 py-3"><span class="px-2 py-1 <?php echo $priorityClass; ?> text-xs font-bold"><?php echo htmlspecialchars($action['priority']); ?></span></td>
+                                                <td class="px-4 py-3 font-semibold text-purple"><?php echo htmlspecialchars($action['ticker']); ?></td>
+                                                <td class="px-4 py-3"><span class="px-2 py-1 <?php echo $actionClass; ?> text-xs font-semibold"><?php echo htmlspecialchars($action['action']); ?></span></td>
+                                                <td class="px-4 py-3 text-xs"><?php echo htmlspecialchars($action['reason']); ?></td>
+                                                <td class="px-4 py-3 text-right"><?php echo isset($action['target_price']) ? '€' . number_format($action['target_price'], 2, ',', '.') : '-'; ?></td>
+                                                <td class="px-4 py-3 text-right"><?php echo isset($action['quantity']) ? $action['quantity'] : '-'; ?></td>
+                                                <td class="px-4 py-3 text-right font-semibold"><?php echo isset($action['amount']) ? '€' . number_format($action['amount'], 2, ',', '.') : '-'; ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
                         </div>
@@ -139,22 +142,26 @@
                             </div>
                         </div>
                         <div class="space-y-4">
-                            <div class="p-4 border-l-4 border-purple bg-purple-50">
-                                <div class="font-semibold text-primary mb-2">Settimana 1-2: Fase Accumulo</div>
-                                <ul class="text-xs text-gray-700 space-y-1 ml-4">
-                                    <li>• VWCE: incremento 2 quote se price ≤ €115.80</li>
-                                    <li>• VUSA: monitorare per entry point sotto €110</li>
-                                    <li>• Mantenere liquidità 15% per opportunità</li>
-                                </ul>
-                            </div>
-                            <div class="p-4 border-l-4 border-gray-400 bg-gray-50">
-                                <div class="font-semibold text-primary mb-2">Settimana 3-4: Fase Consolidamento</div>
-                                <ul class="text-xs text-gray-700 space-y-1 ml-4">
-                                    <li>• EIMI: attendere breakout €30 per accumulo</li>
-                                    <li>• Verificare stacco dividendi VWCE (15 Dic)</li>
-                                    <li>• Valutare ribilanciamento se drift >5%</li>
-                                </ul>
-                            </div>
+                            <?php if (empty($recommendations['operational_plan'])): ?>
+                                <div class="p-4 bg-gray-50 border border-gray-200 text-center text-gray-500 italic">
+                                    Nessun piano operativo disponibile. La roadmap verrà generata dal workflow AI.
+                                </div>
+                            <?php else: ?>
+                                <?php foreach ($recommendations['operational_plan'] as $plan): ?>
+                                    <?php
+                                    $borderColor = $plan['priority'] === 'high' ? 'border-purple' : 'border-gray-400';
+                                    $bgColor = $plan['priority'] === 'high' ? 'bg-purple-50' : 'bg-gray-50';
+                                    ?>
+                                    <div class="p-4 border-l-4 <?php echo $borderColor . ' ' . $bgColor; ?>">
+                                        <div class="font-semibold text-primary mb-2"><?php echo htmlspecialchars($plan['period']); ?></div>
+                                        <ul class="text-xs text-gray-700 space-y-1 ml-4">
+                                            <?php foreach ($plan['tasks'] as $task): ?>
+                                                <li>• <?php echo htmlspecialchars($task); ?></li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -173,18 +180,33 @@
                             </div>
                         </div>
                         <div class="space-y-4">
-                            <div class="p-4 bg-red-50 border border-red-200">
-                                <div class="font-semibold text-danger mb-2">Rischi Macro</div>
-                                <p class="text-xs text-gray-700">Volatilità attesa per dicembre legata a decisioni Fed e BCE. Possibili correzioni 3-5% su equity globale.</p>
-                            </div>
-                            <div class="p-4 bg-yellow-50 border border-yellow-200">
-                                <div class="font-semibold text-warning mb-2">Rischi Portafoglio</div>
-                                <p class="text-xs text-gray-700">Concentrazione su equity globale (87%). Considerare diversificazione su bond o commodities se risk appetite diminuisce.</p>
-                            </div>
-                            <div class="p-4 bg-gray-50 border border-gray-200">
-                                <div class="font-semibold text-primary mb-2">Note Operative</div>
-                                <p class="text-xs text-gray-700">DCA settimanale consigliato. Evitare lump sum oltre €500. Mantenere sempre 10-15% liquidità per opportunità.</p>
-                            </div>
+                            <?php if (empty($recommendations['warnings_risks'])): ?>
+                                <div class="p-4 bg-gray-50 border border-gray-200 text-center text-gray-500 italic">
+                                    Nessun avviso di rischio disponibile. L'analisi dei rischi verrà generata dal workflow AI.
+                                </div>
+                            <?php else: ?>
+                                <?php foreach ($recommendations['warnings_risks'] as $risk): ?>
+                                    <?php
+                                    $bgColor = 'bg-gray-50';
+                                    $borderColor = 'border-gray-200';
+                                    $titleColor = 'text-primary';
+
+                                    if ($risk['severity'] === 'high') {
+                                        $bgColor = 'bg-red-50';
+                                        $borderColor = 'border-red-200';
+                                        $titleColor = 'text-danger';
+                                    } elseif ($risk['severity'] === 'medium') {
+                                        $bgColor = 'bg-yellow-50';
+                                        $borderColor = 'border-yellow-200';
+                                        $titleColor = 'text-warning';
+                                    }
+                                    ?>
+                                    <div class="p-4 <?php echo $bgColor . ' border ' . $borderColor; ?>">
+                                        <div class="font-semibold <?php echo $titleColor; ?> mb-2"><?php echo htmlspecialchars($risk['title']); ?></div>
+                                        <p class="text-xs text-gray-700"><?php echo htmlspecialchars($risk['description']); ?></p>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>

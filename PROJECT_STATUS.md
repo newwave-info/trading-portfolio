@@ -1,8 +1,10 @@
 # 📊 ETF Portfolio Manager - Stato Avanzamento Lavori
 
-**Ultimo aggiornamento:** 25 Novembre 2025
-**Versione:** 0.5-alpha
-**Stato:** In sviluppo attivo - Frontend completato, Backend parziale
+**Ultimo aggiornamento:** 26 Novembre 2025
+**Versione:** 0.6-alpha
+**Stato:** In sviluppo attivo - Frontend completato ✅, Backend parziale ⚠️, Gestione dati in corso 🚧
+
+> 📋 **Per dettagli sviluppo futuro:** Vedi [DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md)
 
 ---
 
@@ -387,4 +389,29 @@ trading-portfolio/
 
 ---
 
-**Prossima sessione: Iniziare con STEP 1 (Test CRUD) o STEP 2 (Setup n8n)?**
+**Prossima sessione:** Iniziare con **STEP 1: Sistema Quotazioni** (vedi [DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md))
+
+---
+
+## 📅 **CHANGELOG**
+
+### [0.6-alpha] - 26 Novembre 2025
+**Completato:**
+- ✅ Rinominati widget con indicazioni temporali (YTD, 2025, Ultimi 5 Giorni)
+- ✅ Fix larghezze colonne tabella Holdings (whitespace-nowrap)
+- ✅ Aggiunta colonne Target % e Note nella tabella Holdings
+- ✅ Sistema di reload che mantiene vista attiva (localStorage)
+- ✅ Creato documento [DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md) con 6 STEP dettagliati
+
+**In Corso:**
+- 🚧 Preparazione STEP 1: Sistema Quotazioni Real-time
+
+### [0.5-alpha] - 25 Novembre 2025
+**Completato:**
+- ✅ Refactoring completo architettura (modularizzazione viste)
+- ✅ CRUD Holdings completo (API + frontend)
+- ✅ Import CSV Fineco
+- ✅ Sistema permissions fix
+- ✅ PortfolioManager class con calcolo metriche
+
+---

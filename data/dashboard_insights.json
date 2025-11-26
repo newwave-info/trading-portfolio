@@ -1,0 +1,23 @@
+{
+  "last_update": null,
+  "portfolio_health": {
+    "score": null,
+    "score_label": "-",
+    "diversification": {
+      "label": "-",
+      "status": "neutral"
+    },
+    "performance": {
+      "label": "-",
+      "status": "neutral"
+    },
+    "risk": {
+      "label": "-",
+      "status": "neutral"
+    }
+  },
+  "ai_insights": {
+    "summary_title": "Riepilogo Portafoglio",
+    "insights": []
+  }
+}

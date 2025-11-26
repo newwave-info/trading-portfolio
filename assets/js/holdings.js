@@ -68,20 +68,26 @@ function closeImportModal() {
     modal.classList.add('hidden');
 }
 
-// Chiudi modal con ESC
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeHoldingModal();
-        closeImportModal();
-    }
-});
-
 // ============================================
 // CRUD OPERATIONS
 // ============================================
 
-// Save Holding (Create/Update)
-document.getElementById('holdingForm').addEventListener('submit', async function(e) {
+// Inizializzazione Event Listeners quando DOM è pronto
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Holdings.js: DOM ready, inizializzazione event listeners...');
+
+    // Chiudi modal con ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeHoldingModal();
+            closeImportModal();
+        }
+    });
+
+    // Save Holding (Create/Update)
+    const holdingForm = document.getElementById('holdingForm');
+    if (holdingForm) {
+        holdingForm.addEventListener('submit', async function(e) {
     e.preventDefault();
 
     const formData = {
@@ -110,6 +116,9 @@ document.getElementById('holdingForm').addEventListener('submit', async function
             showNotification('success', result.message);
             closeHoldingModal();
 
+            // Salva vista corrente prima del reload
+            localStorage.setItem('activeView', 'holdings');
+
             // Reload page per aggiornare dati
             setTimeout(() => {
                 window.location.reload();
@@ -120,6 +129,106 @@ document.getElementById('holdingForm').addEventListener('submit', async function
     } catch (error) {
         console.error('Error saving holding:', error);
         showNotification('error', 'Errore di connessione');
+    }
+    });
+    } else {
+        console.warn('holdingForm non trovato');
+    }
+
+    // Import CSV Form
+    const importForm = document.getElementById('importForm');
+    if (importForm) {
+        importForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const overwriteConfirm = document.getElementById('overwriteConfirm');
+            if (!overwriteConfirm.checked) {
+                showNotification('warning', 'Devi confermare la sovrascrittura delle posizioni esistenti');
+                return;
+            }
+
+            const fileInput = document.getElementById('csvFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showNotification('error', 'Seleziona un file CSV');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('csv_file', file);
+
+            try {
+                // Mostra loading
+                const importResult = document.getElementById('importResult');
+                importResult.classList.remove('hidden');
+                importResult.innerHTML = `
+                    <div class="p-4 bg-blue-50 border border-blue-200 text-sm text-blue-800">
+                        <i class="fa-solid fa-spinner fa-spin mr-2"></i>
+                        Importazione in corso...
+                    </div>
+                `;
+
+                const response = await fetch('/api/holdings.php?action=import', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    importResult.innerHTML = `
+                        <div class="p-4 bg-green-50 border border-green-200 text-sm text-green-800">
+                            <i class="fa-solid fa-check-circle mr-2"></i>
+                            <strong>Importazione completata!</strong>
+                            <br>
+                            ${result.imported} posizioni importate con successo.
+                            ${result.errors && result.errors.length > 0 ? `<br><br><strong>Errori:</strong><ul class="list-disc ml-6 mt-2">${result.errors.map(err => '<li>' + err + '</li>').join('')}</ul>` : ''}
+                        </div>
+                    `;
+
+                    // Salva vista corrente prima del reload
+                    localStorage.setItem('activeView', 'holdings');
+
+                    // Reload dopo 2 secondi
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+
+                } else {
+                    importResult.innerHTML = `
+                        <div class="p-4 bg-red-50 border border-red-200 text-sm text-red-800">
+                            <i class="fa-solid fa-exclamation-circle mr-2"></i>
+                            <strong>Errore importazione:</strong> ${result.error || 'Errore sconosciuto'}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error importing CSV:', error);
+                const importResult = document.getElementById('importResult');
+                importResult.innerHTML = `
+                    <div class="p-4 bg-red-50 border border-red-200 text-sm text-red-800">
+                        <i class="fa-solid fa-exclamation-circle mr-2"></i>
+                        <strong>Errore di connessione</strong>
+                    </div>
+                `;
+            }
+        });
+    } else {
+        console.warn('importForm non trovato');
+    }
+
+    // Ripristina vista corrente dopo reload
+    const activeView = localStorage.getItem('activeView');
+    if (activeView && activeView !== 'dashboard') {
+        console.log('Ripristino vista:', activeView);
+        // Simula click sul link della sidebar
+        const viewLink = document.querySelector(`[data-view="${activeView}"]`);
+        if (viewLink) {
+            viewLink.click();
+            // Pulisci localStorage
+            localStorage.removeItem('activeView');
+        }
     }
 });
 
@@ -167,84 +276,6 @@ async function deleteHolding(isin, ticker) {
         showNotification('error', 'Errore di connessione');
     }
 }
-
-// ============================================
-// IMPORT CSV
-// ============================================
-
-document.getElementById('importForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-
-    const overwriteConfirm = document.getElementById('overwriteConfirm');
-    if (!overwriteConfirm.checked) {
-        showNotification('warning', 'Devi confermare la sovrascrittura delle posizioni esistenti');
-        return;
-    }
-
-    const fileInput = document.getElementById('csvFile');
-    const file = fileInput.files[0];
-
-    if (!file) {
-        showNotification('error', 'Seleziona un file CSV');
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append('csv_file', file);
-
-    try {
-        // Mostra loading
-        const importResult = document.getElementById('importResult');
-        importResult.classList.remove('hidden');
-        importResult.innerHTML = `
-            <div class="p-4 bg-blue-50 border border-blue-200 text-sm text-blue-800">
-                <i class="fa-solid fa-spinner fa-spin mr-2"></i>
-                Importazione in corso...
-            </div>
-        `;
-
-        const response = await fetch('/api/holdings.php?action=import', {
-            method: 'POST',
-            body: formData
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            importResult.innerHTML = `
-                <div class="p-4 bg-green-50 border border-green-200 text-sm text-green-800">
-                    <i class="fa-solid fa-check-circle mr-2"></i>
-                    <strong>Importazione completata!</strong>
-                    <br>
-                    ${result.imported} posizioni importate con successo.
-                    ${result.errors && result.errors.length > 0 ? `<br><br><strong>Errori:</strong><ul class="list-disc ml-6 mt-2">${result.errors.map(err => '<li>' + err + '</li>').join('')}</ul>` : ''}
-                </div>
-            `;
-
-            // Reload dopo 2 secondi
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
-
-        } else {
-            importResult.innerHTML = `
-                <div class="p-4 bg-red-50 border border-red-200 text-sm text-red-800">
-                    <i class="fa-solid fa-exclamation-circle mr-2"></i>
-                    <strong>Errore importazione:</strong> ${result.error || 'Errore sconosciuto'}
-                </div>
-            `;
-        }
-    } catch (error) {
-        console.error('Error importing CSV:', error);
-        const importResult = document.getElementById('importResult');
-        importResult.innerHTML = `
-            <div class="p-4 bg-red-50 border border-red-200 text-sm text-red-800">
-                <i class="fa-solid fa-exclamation-circle mr-2"></i>
-                <strong>Errore di connessione</strong>
-            </div>
-        `;
-    }
-});
 
 // ============================================
 // UTILITY

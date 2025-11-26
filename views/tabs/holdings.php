@@ -29,46 +29,56 @@
                         <table id="holdingsTable" class="w-full text-sm sortable-table">
                             <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Ticker</th>
-                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Nome</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Quantità</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Prezzo Medio</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Prezzo Attuale</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Valore</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">P&L €</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">P&L %</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Allocation</th>
-                                    <th class="px-4 py-3 text-center font-semibold text-gray-700 text-[11px] uppercase">Azioni</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer whitespace-nowrap" role="button">Ticker</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer min-w-[200px]" role="button">Nome</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer whitespace-nowrap" role="button">Quantità</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer whitespace-nowrap" role="button">Prezzo Medio</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer whitespace-nowrap" role="button">Prezzo Attuale</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer whitespace-nowrap" role="button">Valore</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer whitespace-nowrap" role="button">P&L €</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer whitespace-nowrap" role="button">P&L %</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer whitespace-nowrap" role="button">Allocation</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer whitespace-nowrap" role="button">Target %</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase min-w-[150px]">Note</th>
+                                    <th class="px-4 py-3 text-center font-semibold text-gray-700 text-[11px] uppercase whitespace-nowrap">Azioni</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($top_holdings as $holding): ?>
                                 <tr class="border-b border-gray-200 hover:bg-gray-50" data-isin="<?php echo htmlspecialchars($holding['isin']); ?>">
-                                    <td class="px-4 py-3 font-semibold text-purple"><?php echo htmlspecialchars($holding['ticker']); ?></td>
+                                    <td class="px-4 py-3 font-semibold text-purple whitespace-nowrap"><?php echo htmlspecialchars($holding['ticker']); ?></td>
                                     <td class="px-4 py-3">
                                         <div class="font-medium text-gray-800"><?php echo htmlspecialchars($holding['name']); ?></div>
-                                        <div class="text-[11px] text-gray-500"><?php echo htmlspecialchars($holding['asset_class']); ?></div>
+                                        <div class="text-[11px] text-gray-500 whitespace-nowrap"><?php echo htmlspecialchars($holding['asset_class']); ?></div>
                                     </td>
-                                    <td class="px-4 py-3 text-right"><?php echo number_format($holding['quantity'], 2, ',', '.'); ?></td>
-                                    <td class="px-4 py-3 text-right">€<?php echo number_format($holding['avg_price'], 2, ',', '.'); ?></td>
-                                    <td class="px-4 py-3 text-right">€<?php echo number_format($holding['current_price'], 2, ',', '.'); ?></td>
-                                    <td class="px-4 py-3 text-right font-semibold">€<?php echo number_format($holding['market_value'], 2, ',', '.'); ?></td>
-                                    <td class="px-4 py-3 text-right">
+                                    <td class="px-4 py-3 text-right whitespace-nowrap"><?php echo number_format($holding['quantity'], 2, ',', '.'); ?></td>
+                                    <td class="px-4 py-3 text-right whitespace-nowrap">€<?php echo number_format($holding['avg_price'], 2, ',', '.'); ?></td>
+                                    <td class="px-4 py-3 text-right whitespace-nowrap">€<?php echo number_format($holding['current_price'], 2, ',', '.'); ?></td>
+                                    <td class="px-4 py-3 text-right font-semibold whitespace-nowrap">€<?php echo number_format($holding['market_value'], 2, ',', '.'); ?></td>
+                                    <td class="px-4 py-3 text-right whitespace-nowrap">
                                         <div class="font-semibold <?php echo $holding['unrealized_pnl'] >= 0 ? 'text-positive' : 'text-negative'; ?>">
                                             <?php echo $holding['unrealized_pnl'] >= 0 ? '+' : ''; ?>€<?php echo number_format($holding['unrealized_pnl'], 2, ',', '.'); ?>
                                         </div>
                                     </td>
-                                    <td class="px-4 py-3 text-right">
+                                    <td class="px-4 py-3 text-right whitespace-nowrap">
                                         <div class="font-semibold <?php echo $holding['pnl_percentage'] >= 0 ? 'text-positive' : 'text-negative'; ?>">
                                             <?php echo $holding['pnl_percentage'] >= 0 ? '+' : ''; ?><?php echo number_format($holding['pnl_percentage'], 2, ',', '.'); ?>%
                                         </div>
                                     </td>
-                                    <td class="px-4 py-3 text-right">
+                                    <td class="px-4 py-3 text-right whitespace-nowrap">
                                         <span class="px-2 py-1 text-[11px] <?php echo $holding['drift'] < 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'; ?>">
                                             <?php echo number_format($holding['current_allocation'], 2, ',', '.'); ?>%
                                         </span>
                                     </td>
-                                    <td class="px-4 py-3 text-center">
+                                    <td class="px-4 py-3 text-right text-gray-600 whitespace-nowrap">
+                                        <?php echo isset($holding['target_allocation']) && $holding['target_allocation'] > 0 ? number_format($holding['target_allocation'], 2, ',', '.') . '%' : '-'; ?>
+                                    </td>
+                                    <td class="px-4 py-3 text-left">
+                                        <div class="text-[11px] text-gray-600 max-w-xs truncate" title="<?php echo htmlspecialchars($holding['notes'] ?? ''); ?>">
+                                            <?php echo !empty($holding['notes']) ? htmlspecialchars($holding['notes']) : '-'; ?>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 text-center whitespace-nowrap">
                                         <div class="flex gap-2 justify-center">
                                             <button onclick='editHolding(<?php echo json_encode($holding); ?>)' class="text-purple hover:text-purple-dark text-sm" title="Modifica">
                                                 <i class="fa-solid fa-pen-to-square"></i>

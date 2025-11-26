@@ -4,16 +4,38 @@
                 </div>
 
                 <!-- Info Metrics -->
+                <?php
+                // Carica snapshots data per calcolare metriche
+                $snapshotsPath = __DIR__ . '/../../data/snapshots.json';
+                $snapshots = [];
+                $flows_start_date = '-';
+                $flows_days_tracked = 0;
+                $flows_snapshot_count = 0;
+
+                if (file_exists($snapshotsPath)) {
+                    $snapshotsData = json_decode(file_get_contents($snapshotsPath), true);
+                    $snapshots = $snapshotsData['snapshots'] ?? [];
+                    $flows_snapshot_count = count($snapshots);
+                    if (!empty($snapshots)) {
+                        $first_snap = $snapshots[0];
+                        $last_snap = end($snapshots);
+                        $flows_start_date = date('d M Y', strtotime($first_snap['date']));
+                        $date1 = new DateTime($first_snap['date']);
+                        $date2 = new DateTime($last_snap['date']);
+                        $flows_days_tracked = $date1->diff($date2)->days;
+                    }
+                }
+                ?>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
                     <div class="widget-card widget-purple p-6">
                         <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Timeline Start</div>
-                        <div class="text-xl font-bold text-primary">14 Nov 2025</div>
-                        <div class="text-[11px] text-gray-500 mt-1">Primo utilizzo</div>
+                        <div class="text-xl font-bold text-primary"><?php echo $flows_start_date; ?></div>
+                        <div class="text-[11px] text-gray-500 mt-1">Primo snapshot</div>
                     </div>
                     <div class="widget-card widget-purple p-6">
                         <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Days Tracked</div>
-                        <div class="text-xl font-bold text-primary">5 giorni</div>
-                        <div class="text-[11px] text-gray-500 mt-1">5 snapshot</div>
+                        <div class="text-xl font-bold text-primary"><?php echo $flows_days_tracked > 0 ? $flows_days_tracked . ' giorni' : '-'; ?></div>
+                        <div class="text-[11px] text-gray-500 mt-1"><?php echo $flows_snapshot_count; ?> snapshot</div>
                     </div>
                     <div class="widget-card widget-purple p-6">
                         <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Last Update</div>
@@ -22,12 +44,13 @@
                     </div>
                     <div class="widget-card widget-purple p-6">
                         <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Update Frequency</div>
-                        <div class="text-xl font-bold text-primary">Settimanale</div>
-                        <div class="text-[11px] text-gray-500 mt-1">Giovedi o manuale</div>
+                        <div class="text-xl font-bold text-primary">Manuale</div>
+                        <div class="text-[11px] text-gray-500 mt-1">Aggiorna quando serve</div>
                     </div>
                 </div>
 
                 <!-- AI Insights per Flows -->
+                <?php if (!empty($snapshots)): ?>
                 <div class="mb-8">
                     <div class="widget-ai-insight px-6 py-4 transition-all duration-300">
                         <div class="flex items-center gap-2.5 mb-3 pb-2.5 border-b border-purple/20">
@@ -46,6 +69,7 @@
                         </div>
                     </div>
                 </div>
+                <?php endif; ?>
 
                 <!-- Tabella Storica -->
                 <div class="mb-8 widget-card p-6">
@@ -73,31 +97,64 @@
                             </thead>
                             <tbody>
                                 <?php
-                                // Dati storici simulati - sostituire con dati reali dal database
-                                $history_data = [
-                                    ['date' => '14/11/2025', 'value' => 100000, 'cumul_gain' => 0, 'gain_pct' => 0, 'open_pos' => 5, 'day_change' => 0, 'day_pct' => 0],
-                                    ['date' => '17/11/2025', 'value' => 102500, 'cumul_gain' => 2500, 'gain_pct' => 2.5, 'open_pos' => 5, 'day_change' => 2500, 'day_pct' => 2.5],
-                                    ['date' => '20/11/2025', 'value' => 110000, 'cumul_gain' => 10000, 'gain_pct' => 10.0, 'open_pos' => 5, 'day_change' => 7500, 'day_pct' => 7.32],
-                                    ['date' => '23/11/2025', 'value' => 118500, 'cumul_gain' => 18500, 'gain_pct' => 18.5, 'open_pos' => 5, 'day_change' => 8500, 'day_pct' => 7.73],
-                                    ['date' => '24/11/2025', 'value' => 125750.50, 'cumul_gain' => 25750.50, 'gain_pct' => 25.75, 'open_pos' => 5, 'day_change' => 7250.50, 'day_pct' => 6.12],
-                                ];
-                                foreach ($history_data as $row):
-                                    $day_is_positive = $row['day_change'] >= 0;
+                                // Genera history_data da snapshots
+                                $history_data = [];
+                                if (!empty($snapshots)) {
+                                    $initial_invested = !empty($snapshots) ? $snapshots[0]['metadata']['total_invested'] : 0;
+                                    $prevValue = null;
+
+                                    foreach ($snapshots as $snap) {
+                                        $value = $snap['metadata']['total_value'];
+                                        $invested = $snap['metadata']['total_invested'];
+                                        $cumul_gain = $value - $invested;
+                                        $gain_pct = $invested > 0 ? ($cumul_gain / $invested) * 100 : 0;
+                                        $day_change = $prevValue !== null ? $value - $prevValue : 0;
+                                        $day_pct = $prevValue !== null && $prevValue > 0 ? ($day_change / $prevValue) * 100 : 0;
+
+                                        $history_data[] = [
+                                            'date' => date('d/m/Y', strtotime($snap['date'])),
+                                            'value' => $value,
+                                            'cumul_gain' => $cumul_gain,
+                                            'gain_pct' => $gain_pct,
+                                            'open_pos' => $snap['metadata']['holdings_count'],
+                                            'day_change' => $day_change,
+                                            'day_pct' => $day_pct
+                                        ];
+                                        $prevValue = $value;
+                                    }
+                                }
+
+                                if (empty($history_data)):
                                 ?>
-                                <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                    <td class="px-4 py-3 font-medium"><?php echo $row['date']; ?></td>
-                                    <td class="px-4 py-3 text-right font-semibold">€<?php echo number_format($row['value'], 2, ',', '.'); ?></td>
-                                    <td class="px-4 py-3 text-right text-positive font-semibold">€<?php echo number_format($row['cumul_gain'], 2, ',', '.'); ?></td>
-                                    <td class="px-4 py-3 text-right text-positive font-semibold">+<?php echo number_format($row['gain_pct'], 2, ',', '.'); ?>%</td>
-                                    <td class="px-4 py-3 text-right"><?php echo $row['open_pos']; ?></td>
-                                    <td class="px-4 py-3 text-right <?php echo $day_is_positive ? 'text-positive' : 'text-negative'; ?> font-semibold">
-                                        <?php echo $day_is_positive ? '+' : ''; ?>€<?php echo number_format($row['day_change'], 2, ',', '.'); ?>
-                                    </td>
-                                    <td class="px-4 py-3 text-right <?php echo $day_is_positive ? 'text-positive' : 'text-negative'; ?> font-semibold">
-                                        <?php echo $day_is_positive ? '+' : ''; ?><?php echo number_format($row['day_pct'], 2, ',', '.'); ?>%
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
+                                    <tr>
+                                        <td colspan="7" class="px-4 py-8 text-center text-gray-500 italic">
+                                            Nessuno storico disponibile. Crea snapshot per visualizzare i flussi progressivi.
+                                        </td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach ($history_data as $row):
+                                        $day_is_positive = $row['day_change'] >= 0;
+                                        $gain_is_positive = $row['cumul_gain'] >= 0;
+                                    ?>
+                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                        <td class="px-4 py-3 font-medium"><?php echo $row['date']; ?></td>
+                                        <td class="px-4 py-3 text-right font-semibold">€<?php echo number_format($row['value'], 2, ',', '.'); ?></td>
+                                        <td class="px-4 py-3 text-right <?php echo $gain_is_positive ? 'text-positive' : 'text-negative'; ?> font-semibold">
+                                            <?php echo $gain_is_positive ? '+' : ''; ?>€<?php echo number_format($row['cumul_gain'], 2, ',', '.'); ?>
+                                        </td>
+                                        <td class="px-4 py-3 text-right <?php echo $gain_is_positive ? 'text-positive' : 'text-negative'; ?> font-semibold">
+                                            <?php echo $gain_is_positive ? '+' : ''; ?><?php echo number_format($row['gain_pct'], 2, ',', '.'); ?>%
+                                        </td>
+                                        <td class="px-4 py-3 text-right"><?php echo $row['open_pos']; ?></td>
+                                        <td class="px-4 py-3 text-right <?php echo $day_is_positive ? 'text-positive' : 'text-negative'; ?> font-semibold">
+                                            <?php echo $day_is_positive ? '+' : ''; ?>€<?php echo number_format($row['day_change'], 2, ',', '.'); ?>
+                                        </td>
+                                        <td class="px-4 py-3 text-right <?php echo $day_is_positive ? 'text-positive' : 'text-negative'; ?> font-semibold">
+                                            <?php echo $day_is_positive ? '+' : ''; ?><?php echo number_format($row['day_pct'], 2, ',', '.'); ?>%
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -135,27 +192,162 @@
                         <i class="fa-solid fa-chart-simple text-purple text-sm"></i>
                         <div class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Statistiche Performance</div>
                     </div>
+                    <?php
+                    // Calcola statistiche da history_data
+                    $perf_since_start = '-';
+                    $perf_since_start_pct = '-';
+                    $best_week_amount = '-';
+                    $best_week_date = '-';
+                    $worst_week_amount = '-';
+                    $worst_week_date = '-';
+                    $avg_weekly_change = '-';
+
+                    if (!empty($history_data)) {
+                        $last_row = end($history_data);
+                        $perf_since_start = '€' . number_format($last_row['cumul_gain'], 2, ',', '.');
+                        $perf_since_start_pct = number_format($last_row['gain_pct'], 2, ',', '.') . '%';
+
+                        // Trova best e worst week
+                        $max_change = null;
+                        $min_change = null;
+                        $total_change = 0;
+                        $count_changes = 0;
+
+                        foreach ($history_data as $row) {
+                            if ($row['day_change'] != 0) { // Ignora il primo giorno con 0
+                                if ($max_change === null || $row['day_change'] > $max_change['amount']) {
+                                    $max_change = ['amount' => $row['day_change'], 'date' => $row['date']];
+                                }
+                                if ($min_change === null || $row['day_change'] < $min_change['amount']) {
+                                    $min_change = ['amount' => $row['day_change'], 'date' => $row['date']];
+                                }
+                                $total_change += abs($row['day_change']);
+                                $count_changes++;
+                            }
+                        }
+
+                        if ($max_change) {
+                            $best_week_amount = '€' . number_format($max_change['amount'], 2, ',', '.');
+                            $best_week_date = $max_change['date'];
+                        }
+                        if ($min_change) {
+                            $worst_week_amount = '€' . number_format($min_change['amount'], 2, ',', '.');
+                            $worst_week_date = $min_change['date'];
+                        }
+                        if ($count_changes > 0) {
+                            $avg_weekly_change = '€' . number_format($total_change / $count_changes, 2, ',', '.');
+                        }
+                    }
+                    ?>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                         <div class="widget-card widget-purple p-6">
                             <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Performance Since Start</div>
-                            <div class="text-2xl font-bold text-positive">€25,750.50</div>
-                            <div class="text-[11px] text-positive mt-1">+25.75%</div>
+                            <div class="text-2xl font-bold text-positive"><?php echo $perf_since_start; ?></div>
+                            <div class="text-[11px] text-positive mt-1"><?php echo $perf_since_start_pct; ?></div>
                         </div>
                         <div class="widget-card widget-purple p-6">
-                            <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Best Week</div>
-                            <div class="text-xl font-bold text-primary">€8,500.00</div>
-                            <div class="text-[11px] text-gray-500 mt-1">23 Nov 2025</div>
+                            <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Best Day</div>
+                            <div class="text-xl font-bold text-primary"><?php echo $best_week_amount; ?></div>
+                            <div class="text-[11px] text-gray-500 mt-1"><?php echo $best_week_date; ?></div>
                         </div>
                         <div class="widget-card widget-purple p-6">
-                            <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Worst Week</div>
-                            <div class="text-xl font-bold text-primary">€2,500.00</div>
-                            <div class="text-[11px] text-gray-500 mt-1">17 Nov 2025</div>
+                            <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Worst Day</div>
+                            <div class="text-xl font-bold text-primary"><?php echo $worst_week_amount; ?></div>
+                            <div class="text-[11px] text-gray-500 mt-1"><?php echo $worst_week_date; ?></div>
                         </div>
                         <div class="widget-card widget-purple p-6">
-                            <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Average Weekly Change</div>
-                            <div class="text-xl font-bold text-primary">€6,437.63</div>
-                            <div class="text-[11px] text-gray-500 mt-1">Volatility: 3.12%</div>
+                            <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Average Change</div>
+                            <div class="text-xl font-bold text-primary"><?php echo $avg_weekly_change; ?></div>
+                            <div class="text-[11px] text-gray-500 mt-1">Per snapshot</div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Charts Scripts with Dynamic Data -->
+                <script>
+                // Cumulative Gain Chart - Dynamic from snapshots
+                const cumulativeGainCtxEl = document.getElementById('cumulativeGainChart');
+                if (cumulativeGainCtxEl && !initializedCharts.has('cumulativeGainChart')) {
+                    try {
+                        <?php
+                        $chart_labels = array_column($history_data, 'date');
+                        $chart_cumul_gain = array_column($history_data, 'cumul_gain');
+                        ?>
+                        const cumulativeGainCtx = cumulativeGainCtxEl.getContext('2d');
+                        new Chart(cumulativeGainCtx, {
+                            type: 'line',
+                            data: {
+                                labels: <?php echo json_encode($chart_labels); ?>,
+                                datasets: [{
+                                    label: 'Guadagno Cumulativo',
+                                    data: <?php echo json_encode($chart_cumul_gain); ?>,
+                                    borderColor: '#8b5cf6',
+                                    backgroundColor: typeof pattern !== 'undefined' ? pattern.draw('diagonal', 'rgba(139, 92, 246, 0.05)') : 'rgba(139, 92, 246, 0.05)',
+                                    borderWidth: 3,
+                                    fill: true,
+                                    tension: 0,
+                                    pointRadius: 5
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                animation: { duration: 800, easing: 'easeOutQuart' },
+                                plugins: { legend: { display: false } },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: { callback: v => '€' + v.toLocaleString('it-IT') }
+                                    }
+                                }
+                            }
+                        });
+                        initializedCharts.add('cumulativeGainChart');
+                    } catch (error) {
+                        console.error('Errore inizializzazione Cumulative Gain Chart:', error);
+                    }
+                }
+
+                // Value Over Time Chart - Dynamic from snapshots
+                const valueOverTimeCtxEl = document.getElementById('valueOverTimeChart');
+                if (valueOverTimeCtxEl && !initializedCharts.has('valueOverTimeChart')) {
+                    try {
+                        <?php
+                        $chart_values = array_column($history_data, 'value');
+                        ?>
+                        const valueOverTimeCtx = valueOverTimeCtxEl.getContext('2d');
+                        new Chart(valueOverTimeCtx, {
+                            type: 'line',
+                            data: {
+                                labels: <?php echo json_encode($chart_labels); ?>,
+                                datasets: [{
+                                    label: 'Valore Portafoglio',
+                                    data: <?php echo json_encode($chart_values); ?>,
+                                    borderColor: '#8b5cf6',
+                                    backgroundColor: 'rgba(139, 92, 246, 0.05)',
+                                    borderWidth: 3,
+                                    fill: true,
+                                    tension: 0,
+                                    pointRadius: 5
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                animation: { duration: 800, easing: 'easeOutQuart' },
+                                plugins: { legend: { display: false } },
+                                scales: {
+                                    y: {
+                                        beginAtZero: false,
+                                        ticks: { callback: v => '€' + v.toLocaleString('it-IT') }
+                                    }
+                                }
+                            }
+                        });
+                        initializedCharts.add('valueOverTimeChart');
+                    } catch (error) {
+                        console.error('Errore inizializzazione Value Over Time Chart:', error);
+                    }
+                }
+                </script>
             </div>

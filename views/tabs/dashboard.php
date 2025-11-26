@@ -5,8 +5,10 @@
 
                 <!-- Dashboard Overview - 2 Columns Layout -->
         <?php
-        $portfolio_score = 74; // Calcolo dinamico in seguito
-        $score_label = $portfolio_score >= 75 ? 'Ottimo' : ($portfolio_score >= 60 ? 'Buono' : 'Migliorabile');
+        // Carica dati da dashboard_insights.json
+        $portfolio_health = $dashboardInsights['portfolio_health'];
+        $portfolio_score = $portfolio_health['score'];
+        $score_label = $portfolio_health['score_label'];
         ?>
 
         <!-- First Row: Salute Portafoglio + 4 Metrics -->
@@ -25,7 +27,7 @@
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div class="flex flex-col items-center justify-center">
-                        <div class="text-5xl font-bold text-purple"><?php echo $portfolio_score; ?></div>
+                        <div class="text-5xl font-bold text-purple"><?php echo $portfolio_score ?? '-'; ?></div>
                         <div class="text-2xl font-semibold text-gray-600 mt-1">/100</div>
                         <div class="text-sm text-gray-500 mt-2 px-3 py-1 bg-purple-100 ">
                             <?php echo $score_label; ?>
@@ -34,19 +36,31 @@
                     <div class="flex items-center gap-3">
                         <div>
                             <div class="text-xs text-gray-500 mb-1">Diversificazione:</div>
-                            <span class="px-3 py-1 bg-success-light text-success-dark text-xs font-semibold">Buona</span>
+                            <?php
+                            $div = $portfolio_health['diversification'];
+                            $statusClass = $div['status'] === 'success' ? 'bg-success-light text-success-dark' : ($div['status'] === 'warning' ? 'bg-warning-light text-warning' : 'bg-gray-100 text-gray-600');
+                            ?>
+                            <span class="px-3 py-1 <?php echo $statusClass; ?> text-xs font-semibold"><?php echo $div['label']; ?></span>
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
                         <div>
                             <div class="text-xs text-gray-500 mb-1">Performance:</div>
-                            <span class="px-3 py-1 bg-success-light text-success-dark text-xs font-semibold">Positiva</span>
+                            <?php
+                            $perf = $portfolio_health['performance'];
+                            $statusClass = $perf['status'] === 'success' ? 'bg-success-light text-success-dark' : ($perf['status'] === 'warning' ? 'bg-warning-light text-warning' : 'bg-gray-100 text-gray-600');
+                            ?>
+                            <span class="px-3 py-1 <?php echo $statusClass; ?> text-xs font-semibold"><?php echo $perf['label']; ?></span>
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
                         <div>
                             <div class="text-xs text-gray-500 mb-1">Rischio:</div>
-                            <span class="px-3 py-1 bg-warning-light text-warning text-xs font-semibold">Moderato</span>
+                            <?php
+                            $risk = $portfolio_health['risk'];
+                            $statusClass = $risk['status'] === 'success' ? 'bg-success-light text-success-dark' : ($risk['status'] === 'warning' ? 'bg-warning-light text-warning' : 'bg-gray-100 text-gray-600');
+                            ?>
+                            <span class="px-3 py-1 <?php echo $statusClass; ?> text-xs font-semibold"><?php echo $risk['label']; ?></span>
                         </div>
                     </div>
                 </div>
@@ -86,10 +100,10 @@
                 <div class="widget-card widget-purple p-6 flex flex-col">
                     <div class="flex items-center gap-2 mb-3">
                         <i class="fa-solid fa-coins text-purple"></i>
-                        <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Dividendi Totali</span>
+                        <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Dividendi (YTD)</span>
                         <div class="tooltip-container">
                             <i class="fa-solid fa-circle-info text-gray-400 text-[9px] cursor-help"></i>
-                            <div class="tooltip-content">Totale dividendi lordi ricevuti da tutte le posizioni nel periodo</div>
+                            <div class="tooltip-content">Totale dividendi lordi ricevuti da tutte le posizioni dall'inizio dell'anno</div>
                         </div>
                     </div>
                     <div class="text-2xl font-bold text-primary mb-1">€<?php echo number_format($metadata['total_dividends'], 2, ',', '.'); ?></div>
@@ -117,25 +131,33 @@
             <div class="widget-ai-insight px-6 py-4 transition-all duration-300">
                 <div class="flex items-center gap-2.5 mb-3 pb-2.5 border-b border-purple/20">
                     <span class="badge-ai bg-purple text-white text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-wide">AI Insight</span>
-                    <span class="text-[11px] font-medium text-purple uppercase tracking-wider">Riepilogo Portafoglio <?php echo date('Y', strtotime($metadata['last_update'])); ?></span>
+                    <span class="text-[11px] font-medium text-purple uppercase tracking-wider"><?php echo htmlspecialchars($dashboardInsights['ai_insights']['summary_title']); ?> <?php echo date('Y', strtotime($metadata['last_update'])); ?></span>
                     <div class="tooltip-container ml-1">
                         <i class="fa-solid fa-circle-info text-purple/60 text-[9px] cursor-help"></i>
                         <div class="tooltip-content">Analisi automatica del portafoglio con evidenza dei punti di attenzione e delle opportunità</div>
                     </div>
                 </div>
                 <div class="text-[13px] leading-relaxed text-gray-700">
-                    <div class="pl-4 relative py-2 border-b border-dashed border-gray-300">
-                        <span class="absolute left-0 text-danger font-bold">→</span>
-                        Attenzione a <?php echo htmlspecialchars($worst_performer['ticker']); ?> con performance <?php echo number_format($worst_performer['pnl_percentage'], 2, ',', '.'); ?>%. Monitorare per eventuali azioni correttive.
-                    </div>
-                    <div class="pl-4 relative py-2 border-b border-dashed border-gray-300">
-                        <span class="absolute left-0 text-purple font-bold">→</span>
-                        Performance positiva (+<?php echo number_format($metadata['unrealized_pnl_pct'], 2, ',', '.'); ?>%) grazie alla forte crescita di <?php echo htmlspecialchars($best_performer['ticker']); ?> (+<?php echo number_format($best_performer['pnl_percentage'], 2, ',', '.'); ?>%).
-                    </div>
-                    <div class="pl-4 relative py-2">
-                        <span class="absolute left-0 text-purple font-bold">→</span>
-                        Portafoglio bilanciato con <?php echo $holdings_count; ?> posizioni. Allocazione concentrata su global equity (<?php echo number_format($allocation_by_asset_class[0]['percentage'], 1, ',', '.'); ?>%).
-                    </div>
+                    <?php
+                    $insights = $dashboardInsights['ai_insights']['insights'];
+                    if (empty($insights)):
+                    ?>
+                        <div class="pl-4 relative py-2 text-gray-500 italic">
+                            <span class="absolute left-0 text-gray-400 font-bold">→</span>
+                            Nessuna analisi AI disponibile. I dati verranno popolati dal workflow automatico.
+                        </div>
+                    <?php else: ?>
+                        <?php foreach ($insights as $index => $insight): ?>
+                            <?php
+                            $isLast = ($index === count($insights) - 1);
+                            $colorClass = $insight['type'] === 'warning' ? 'text-danger' : 'text-purple';
+                            ?>
+                            <div class="pl-4 relative py-2 <?php echo !$isLast ? 'border-b border-dashed border-gray-300' : ''; ?>">
+                                <span class="absolute left-0 <?php echo $colorClass; ?> font-bold">→</span>
+                                <?php echo htmlspecialchars($insight['text']); ?>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -147,10 +169,10 @@
                 <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
                     <div class="flex items-center gap-2">
                         <i class="fa-solid fa-chart-area text-purple text-sm"></i>
-                        <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Andamento Portafoglio</span>
+                        <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Andamento Mensile (2025)</span>
                         <div class="tooltip-container">
                             <i class="fa-solid fa-circle-info text-gray-400 text-[9px] cursor-help"></i>
-                            <div class="tooltip-content">Evoluzione temporale del valore complessivo del portafoglio</div>
+                            <div class="tooltip-content">Evoluzione mensile del valore complessivo del portafoglio nell'anno corrente</div>
                         </div>
                     </div>
                 </div>
@@ -168,10 +190,10 @@
                     <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-arrow-trend-up text-purple text-sm"></i>
-                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Top 5 Performer</span>
+                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Top 5 Performer (YTD)</span>
                             <div class="tooltip-container">
                                 <i class="fa-solid fa-circle-info text-gray-400 text-[9px] cursor-help"></i>
-                                <div class="tooltip-content">Migliori 5 asset per performance percentuale nel periodo</div>
+                                <div class="tooltip-content">Migliori 5 asset per performance percentuale dall'inizio dell'anno</div>
                             </div>
                         </div>
                     </div>
@@ -209,10 +231,10 @@
                     <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-arrow-trend-down text-purple text-sm"></i>
-                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Bottom 5 Performer</span>
+                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Bottom 5 Performer (YTD)</span>
                             <div class="tooltip-container">
                                 <i class="fa-solid fa-circle-info text-gray-400 text-[9px] cursor-help"></i>
-                                <div class="tooltip-content">Peggiori 5 asset per performance, richiedono monitoraggio attivo</div>
+                                <div class="tooltip-content">Peggiori 5 asset per performance dall'inizio dell'anno, richiedono monitoraggio attivo</div>
                             </div>
                         </div>
                     </div>

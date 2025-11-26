@@ -19,22 +19,33 @@
                     </div>
                     <div class="widget-card widget-purple p-6">
                         <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Previsto 6 Mesi</div>
-                        <div class="text-xl font-bold text-primary">€542.16</div>
-                        <div class="text-[11px] text-gray-500 mt-1">Gen - Giu 2026</div>
+                        <div class="text-xl font-bold text-primary">
+                            <?php echo $dividends_calendar_data['forecast_6m']['total_amount'] !== null ? '€' . number_format($dividends_calendar_data['forecast_6m']['total_amount'], 2, ',', '.') : '-'; ?>
+                        </div>
+                        <div class="text-[11px] text-gray-500 mt-1"><?php echo htmlspecialchars($dividends_calendar_data['forecast_6m']['period']); ?></div>
                     </div>
                     <div class="widget-card widget-purple p-6">
                         <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Yield Medio Portafoglio</div>
-                        <div class="text-xl font-bold text-primary">2.8%</div>
+                        <div class="text-xl font-bold text-primary">
+                            <?php echo $dividends_calendar_data['portfolio_yield'] !== null ? number_format($dividends_calendar_data['portfolio_yield'], 1, ',', '.') . '%' : '-'; ?>
+                        </div>
                         <div class="text-[11px] text-gray-500 mt-1">Annualizzato</div>
                     </div>
                     <div class="widget-card widget-purple p-6">
                         <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Prossimo Stacco</div>
-                        <div class="text-xl font-bold text-primary">15 Dic</div>
-                        <div class="text-[11px] text-gray-500 mt-1">VWCE €30.18</div>
+                        <div class="text-xl font-bold text-primary"><?php echo htmlspecialchars($dividends_calendar_data['next_dividend']['date']); ?></div>
+                        <div class="text-[11px] text-gray-500 mt-1">
+                            <?php
+                            $nextDiv = $dividends_calendar_data['next_dividend'];
+                            echo htmlspecialchars($nextDiv['ticker']) . ' ';
+                            echo $nextDiv['amount'] !== null ? '€' . number_format($nextDiv['amount'], 2, ',', '.') : '-';
+                            ?>
+                        </div>
                     </div>
                 </div>
 
                 <!-- AI Insights per Dividends -->
+                <?php if ($dividends_calendar_data['ai_insight'] !== '-'): ?>
                 <div class="mb-8">
                     <div class="widget-ai-insight px-6 py-4 transition-all duration-300">
                         <div class="flex items-center gap-2.5 mb-3 pb-2.5 border-b border-purple/20">
@@ -42,17 +53,14 @@
                             <span class="text-[11px] font-medium text-purple uppercase tracking-wider">Analisi Dividendi</span>
                         </div>
                         <div class="text-[13px] leading-relaxed text-gray-700">
-                            <div class="pl-4 relative py-2 border-b border-dashed border-gray-300">
-                                <span class="absolute left-0 text-purple font-bold">→</span>
-                                Portafoglio con yield medio 2.8%, in linea con ETF diversificati. Focus su crescita capitale piuttosto che rendita.
-                            </div>
                             <div class="pl-4 relative py-2">
                                 <span class="absolute left-0 text-purple font-bold">→</span>
-                                Attesi €542 nei prossimi 6 mesi. Concentrazione trimestrale su VWCE e VUSA, annuale su EIMI.
+                                <?php echo htmlspecialchars($dividends_calendar_data['ai_insight']); ?>
                             </div>
                         </div>
                     </div>
                 </div>
+                <?php endif; ?>
 
                 <!-- Calendario Mensile -->
                 <div class="mb-8">
@@ -63,75 +71,34 @@
                                 <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Calendario Prossimi 6 Mesi</span>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                            <?php
-                            $months_forecast = [
-                                [
-                                    "month" => "Dicembre",
-                                    "year" => "2025",
-                                    "events" => 3,
-                                    "amount" => 90.54,
-                                ],
-                                [
-                                    "month" => "Gennaio",
-                                    "year" => "2026",
-                                    "events" => 0,
-                                    "amount" => 0,
-                                ],
-                                [
-                                    "month" => "Febbraio",
-                                    "year" => "2026",
-                                    "events" => 0,
-                                    "amount" => 0,
-                                ],
-                                [
-                                    "month" => "Marzo",
-                                    "year" => "2026",
-                                    "events" => 3,
-                                    "amount" => 90.54,
-                                ],
-                                [
-                                    "month" => "Aprile",
-                                    "year" => "2026",
-                                    "events" => 0,
-                                    "amount" => 0,
-                                ],
-                                [
-                                    "month" => "Maggio",
-                                    "year" => "2026",
-                                    "events" => 0,
-                                    "amount" => 0,
-                                ],
-                            ];
-                            foreach ($months_forecast as $month):
-                                $has_events = $month["events"] > 0; ?>
-                            <div class="p-4 bg-white border border-gray-200">
-                                <div class="font-semibold text-primary text-sm"><?php echo $month[
-                                    "month"
-                                ]; ?></div>
-                                <div class="text-[10px] text-gray-500 mb-2"><?php echo $month[
-                                    "year"
-                                ]; ?></div>
-                                <?php if ($has_events): ?>
-                                    <div class="text-xs text-gray-600 mb-1">
-                                        <span class="px-2 py-0.5 bg-purple-100 text-purple-700 font-semibold"><?php echo $month[
-                                            "events"
-                                        ]; ?> evento/i</span>
-                                    </div>
-                                    <div class="text-sm font-bold text-positive mt-2">€<?php echo number_format(
-                                        $month["amount"],
-                                        2,
-                                        ",",
-                                        "."
-                                    ); ?></div>
-                                <?php else: ?>
-                                    <div class="text-xs text-gray-400">Nessun evento</div>
-                                <?php endif; ?>
+                        <?php if (empty($dividends_calendar_data['monthly_forecast'])): ?>
+                            <div class="p-6 text-center text-gray-500 italic">
+                                Nessun calendario disponibile. I dati verranno popolati dal workflow automatico.
                             </div>
-                            <?php
-                            endforeach;
-                            ?>
-                        </div>
+                        <?php else: ?>
+                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                                <?php foreach ($dividends_calendar_data['monthly_forecast'] as $month):
+                                    $has_events = $month["events"] > 0; ?>
+                                <div class="p-4 bg-white border border-gray-200">
+                                    <div class="font-semibold text-primary text-sm"><?php echo htmlspecialchars($month["month"]); ?></div>
+                                    <div class="text-[10px] text-gray-500 mb-2"><?php echo htmlspecialchars($month["year"]); ?></div>
+                                    <?php if ($has_events): ?>
+                                        <div class="text-xs text-gray-600 mb-1">
+                                            <span class="px-2 py-0.5 bg-purple-100 text-purple-700 font-semibold"><?php echo $month["events"]; ?> evento/i</span>
+                                        </div>
+                                        <div class="text-sm font-bold text-positive mt-2">€<?php echo number_format(
+                                            $month["amount"],
+                                            2,
+                                            ",",
+                                            "."
+                                        ); ?></div>
+                                    <?php else: ?>
+                                        <div class="text-xs text-gray-400">Nessun evento</div>
+                                    <?php endif; ?>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
                 
@@ -152,7 +119,7 @@
                             <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
                                 <div class="flex items-center gap-2">
                                     <i class="fa-solid fa-money-bill-trend-up text-purple text-sm"></i>
-                                    <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Rendita Cumulativa</span>
+                                    <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Rendita Cumulativa (2025)</span>
                                 </div>
                             </div>
                             <div class="relative h-[300px]">
@@ -187,33 +154,25 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                        <td class="px-4 py-3 font-semibold text-purple">VWCE</td>
-                                        <td class="px-4 py-3">Vanguard FTSE All-World</td>
-                                        <td class="px-4 py-3 text-right font-semibold">2.1%</td>
-                                        <td class="px-4 py-3 text-center text-xs">Trimestrale</td>
-                                        <td class="px-4 py-3 text-right">17/09/2025</td>
-                                        <td class="px-4 py-3 text-right font-medium">15/12/2025</td>
-                                        <td class="px-4 py-3 text-right text-positive font-semibold">€30.18</td>
-                                    </tr>
-                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                        <td class="px-4 py-3 font-semibold text-purple">VUSA</td>
-                                        <td class="px-4 py-3">Vanguard S&P 500</td>
-                                        <td class="px-4 py-3 text-right font-semibold">1.3%</td>
-                                        <td class="px-4 py-3 text-center text-xs">Trimestrale</td>
-                                        <td class="px-4 py-3 text-right">28/09/2025</td>
-                                        <td class="px-4 py-3 text-right font-medium">20/12/2025</td>
-                                        <td class="px-4 py-3 text-right text-positive font-semibold">€18.32</td>
-                                    </tr>
-                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                        <td class="px-4 py-3 font-semibold text-purple">EIMI</td>
-                                        <td class="px-4 py-3">iShares EM IMI</td>
-                                        <td class="px-4 py-3 text-right font-semibold">3.9%</td>
-                                        <td class="px-4 py-3 text-center text-xs">Annuale</td>
-                                        <td class="px-4 py-3 text-right">12/03/2025</td>
-                                        <td class="px-4 py-3 text-right font-medium">11/03/2026</td>
-                                        <td class="px-4 py-3 text-right text-positive font-semibold">€42.04</td>
-                                    </tr>
+                                    <?php if (empty($dividends_calendar_data['distributing_assets'])): ?>
+                                        <tr>
+                                            <td colspan="7" class="px-4 py-8 text-center text-gray-500 italic">
+                                                Nessun asset distributivo. I dati verranno popolati dal workflow automatico.
+                                            </td>
+                                        </tr>
+                                    <?php else: ?>
+                                        <?php foreach ($dividends_calendar_data['distributing_assets'] as $asset): ?>
+                                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                            <td class="px-4 py-3 font-semibold text-purple"><?php echo htmlspecialchars($asset['ticker']); ?></td>
+                                            <td class="px-4 py-3"><?php echo htmlspecialchars($asset['name']); ?></td>
+                                            <td class="px-4 py-3 text-right font-semibold"><?php echo number_format($asset['yield'], 1, ',', '.'); ?>%</td>
+                                            <td class="px-4 py-3 text-center text-xs"><?php echo htmlspecialchars($asset['frequency']); ?></td>
+                                            <td class="px-4 py-3 text-right"><?php echo htmlspecialchars($asset['last_payment']); ?></td>
+                                            <td class="px-4 py-3 text-right font-medium"><?php echo htmlspecialchars($asset['next_ex_date']); ?></td>
+                                            <td class="px-4 py-3 text-right text-positive font-semibold">€<?php echo number_format($asset['expected_amount'], 2, ',', '.'); ?></td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
                         </div>
@@ -255,7 +214,105 @@
                     </div>
                 </div>
 
-                
+                <!-- Charts Scripts with Dynamic Data -->
+                <script>
+                // Prepare dividends data for charts
+                <?php
+                // Crea array mensili per i grafici
+                $months_labels = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+                $monthly_dividends = array_fill(0, 12, 0);
+                $cumulative_dividends = array_fill(0, 12, 0);
+
+                // Popola array con dati reali da $dividends
+                foreach ($dividends as $div) {
+                    $month_num = (int)date('n', strtotime($div['pay_date'])) - 1; // 0-11
+                    $monthly_dividends[$month_num] += $div['amount'];
+                }
+
+                // Calcola cumulativo
+                $cumul = 0;
+                for ($i = 0; $i < 12; $i++) {
+                    $cumul += $monthly_dividends[$i];
+                    $cumulative_dividends[$i] = $cumul;
+                }
+                ?>
+
+                // Dividends Monthly Chart - Dynamic from dividends data
+                const dividendsMonthlyCtxEl = document.getElementById('dividendsMonthlyChart');
+                if (dividendsMonthlyCtxEl && !initializedCharts.has('dividendsMonthlyChart')) {
+                    try {
+                        const dividendsMonthlyCtx = dividendsMonthlyCtxEl.getContext('2d');
+                        new Chart(dividendsMonthlyCtx, {
+                            type: 'bar',
+                            data: {
+                                labels: <?php echo json_encode($months_labels); ?>,
+                                datasets: [{
+                                    label: 'Dividendi Mensili',
+                                    data: <?php echo json_encode($monthly_dividends); ?>,
+                                    backgroundColor: typeof pattern !== 'undefined' ? pattern.draw('diagonal', '#8b5cf6') : '#8b5cf6',
+                                    borderColor: '#8b5cf6',
+                                    borderRadius: 0
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                animation: { duration: 800, easing: 'easeOutQuart' },
+                                plugins: { legend: { display: false } },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: { callback: v => '€' + v.toFixed(2) }
+                                    }
+                                }
+                            }
+                        });
+                        initializedCharts.add('dividendsMonthlyChart');
+                    } catch (error) {
+                        console.error('Errore inizializzazione Dividends Monthly Chart:', error);
+                    }
+                }
+
+                // Dividends Cumulative Chart - Dynamic from dividends data
+                const dividendsCumulativeCtxEl = document.getElementById('dividendsCumulativeChart');
+                if (dividendsCumulativeCtxEl && !initializedCharts.has('dividendsCumulativeChart')) {
+                    try {
+                        const dividendsCumulativeCtx = dividendsCumulativeCtxEl.getContext('2d');
+                        new Chart(dividendsCumulativeCtx, {
+                            type: 'line',
+                            data: {
+                                labels: <?php echo json_encode($months_labels); ?>,
+                                datasets: [{
+                                    label: 'Rendita Cumulativa',
+                                    data: <?php echo json_encode($cumulative_dividends); ?>,
+                                    borderColor: '#8b5cf6',
+                                    backgroundColor: typeof pattern !== 'undefined' ? pattern.draw('diagonal', 'rgba(139, 92, 246, 0.05)') : 'rgba(139, 92, 246, 0.05)',
+                                    borderWidth: 3,
+                                    fill: true,
+                                    tension: 0,
+                                    pointRadius: 5
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                animation: { duration: 800, easing: 'easeOutQuart' },
+                                plugins: { legend: { display: false } },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: { callback: v => '€' + v.toFixed(2) }
+                                    }
+                                }
+                            }
+                        });
+                        initializedCharts.add('dividendsCumulativeChart');
+                    } catch (error) {
+                        console.error('Errore inizializzazione Dividends Cumulative Chart:', error);
+                    }
+                }
+                </script>
+
             </div>
 
             <!-- View: Recommendations -->

@@ -17,63 +17,52 @@ try {
     // Top holdings (tutti gli holdings dal JSON)
     $top_holdings = $portfolioData['holdings'];
 
-    // Storico performance (ultimi 12 mesi)
-    $monthly_performance = $portfolioData['monthly_performance'];
+    // Storico performance - Caricato da snapshots se disponibili
+    $snapshotsPath = __DIR__ . '/snapshots.json';
+    if (file_exists($snapshotsPath)) {
+        $snapshotsData = json_decode(file_get_contents($snapshotsPath), true);
+        $snapshots = $snapshotsData['snapshots'] ?? [];
 
-    // Analisi tecnica (placeholder - verrà popolato da n8n)
-    $technical_analysis = [
-        [
-            'isin' => 'IE00B3RBWM25',
-            'ticker' => 'IWDA',
-            'signal' => 'HOLD',
-            'confidence' => 0.78,
-            'price' => 89.45,
-            'change_1d' => 0.85,
-            'change_1m' => 3.25,
-            'change_3m' => 8.15,
-            'volatility' => 12.45,
-            'volume' => 2540000,
-            'sma_50' => 87.20,
-            'sma_200' => 82.15,
-            'rsi' => 62.30,
-            'updated_at' => '2025-11-24 18:00',
-            'reasoning' => 'Prezzo sopra tutte le medie mobili con RSI in zona neutrale (62). Trend rialzista confermato ma momentum in raffreddamento. Consigliato mantenere posizione e attendere consolidamento.'
-        ],
-        [
-            'isin' => 'IE00B1FZC250',
-            'ticker' => 'IUSA',
-            'signal' => 'BUY',
-            'confidence' => 0.72,
-            'price' => 442.15,
-            'change_1d' => 1.25,
-            'change_1m' => 5.80,
-            'change_3m' => 12.35,
-            'volatility' => 15.20,
-            'volume' => 1850000,
-            'sma_50' => 435.20,
-            'sma_200' => 418.75,
-            'rsi' => 68.50,
-            'updated_at' => '2025-11-24 18:00',
-            'reasoning' => 'Forte momentum rialzista con RSI 68.5 e prezzo sopra SMA50/200. Volumi in crescita confermano interesse. Golden cross recente tra EMA50 e EMA200. Opportunità di accumulo su debolezza.'
-        ],
-        [
-            'isin' => 'IE00BF5JHG71',
-            'ticker' => 'EIMI',
-            'signal' => 'WATCH',
-            'confidence' => 0.45,
-            'price' => 32.10,
-            'change_1d' => -0.45,
-            'change_1m' => 2.15,
-            'change_3m' => 5.85,
-            'volatility' => 18.75,
-            'volume' => 965000,
-            'sma_50' => 31.85,
-            'sma_200' => 30.20,
-            'rsi' => 55.20,
-            'updated_at' => '2025-11-24 18:00',
-            'reasoning' => 'Segnali contrastanti: prezzo sopra medie ma volumi deboli. RSI neutrale a 55. Alta volatilità (18.75%) richiede cautela. Attendere breakout confermato sopra 32.50 o supporto a 31.20.'
-        ]
-    ];
+        // Genera monthly_performance da snapshots (ultimi 12 mesi)
+        if (!empty($snapshots)) {
+            $byMonth = [];
+            foreach ($snapshots as $snap) {
+                $month = date('M', strtotime($snap['date']));
+                $year = date('Y', strtotime($snap['date']));
+                $key = $year . '-' . $month;
+
+                // Prendi l'ultimo snapshot di ogni mese
+                if (!isset($byMonth[$key]) || $snap['date'] > $byMonth[$key]['date']) {
+                    $byMonth[$key] = [
+                        'month' => $month,
+                        'value' => $snap['metadata']['total_value'],
+                        'date' => $snap['date']
+                    ];
+                }
+            }
+
+            // Ordina per data e prendi ultimi 12 mesi
+            usort($byMonth, fn($a, $b) => $a['date'] <=> $b['date']);
+            $monthly_performance = array_slice(array_map(fn($item) => [
+                'month' => $item['month'],
+                'value' => $item['value']
+            ], $byMonth), -12);
+        } else {
+            // Fallback a dati da portfolio.json se no snapshots
+            $monthly_performance = $portfolioData['monthly_performance'];
+        }
+    } else {
+        // Fallback a dati da portfolio.json
+        $monthly_performance = $portfolioData['monthly_performance'];
+    }
+
+    // Analisi tecnica - Caricata da JSON (popolato da n8n workflow)
+    $technical_analysis = [];
+    $technicalPath = __DIR__ . '/technical_analysis.json';
+    if (file_exists($technicalPath)) {
+        $technicalData = json_decode(file_get_contents($technicalPath), true);
+        $technical_analysis = $technicalData['analysis'] ?? [];
+    }
 
     // Allocazione per asset class
     $allocation_by_asset_class = $portfolioData['allocation_by_asset_class'];
@@ -81,37 +70,69 @@ try {
     // Dividendi ricevuti
     $dividends = $portfolioData['dividends'];
 
-    // Opportunità da workflow n8n (placeholder)
-    $opportunities = [
-        [
-            'isin' => 'IE00B53S7W95',
-            'ticker' => 'IBCI',
-            'name' => 'iShares Core Euro Corp Bond UCITS ETF',
-            'signal' => 'BUY',
-            'confidence' => 0.82,
-            'commission_profile' => 'ZERO',
-            'reason' => 'Bonds Europe with zero commission on Fineco',
-            'yield' => 3.45,
-            'expense_ratio' => 0.40,
-            'entry_price' => 125.50,
-            'target_price' => 135.00,
-            'updated_at' => '2025-11-23'
+    // Opportunità ETF - Caricata da JSON (popolato da n8n workflow)
+    $opportunities = [];
+    $opportunitiesPath = __DIR__ . '/opportunities.json';
+    if (file_exists($opportunitiesPath)) {
+        $opportunitiesData = json_decode(file_get_contents($opportunitiesPath), true);
+        $opportunities = $opportunitiesData['opportunities'] ?? [];
+    }
+
+    // Dashboard Insights - Caricata da JSON (AI analysis)
+    $dashboardInsights = [
+        'portfolio_health' => [
+            'score' => null,
+            'score_label' => '-',
+            'diversification' => ['label' => '-', 'status' => 'neutral'],
+            'performance' => ['label' => '-', 'status' => 'neutral'],
+            'risk' => ['label' => '-', 'status' => 'neutral']
         ],
-        [
-            'isin' => 'IE00B4XGL253',
-            'ticker' => 'IEAG',
-            'name' => 'iShares Core € Govt Bond UCITS ETF',
-            'signal' => 'WATCH',
-            'confidence' => 0.65,
-            'commission_profile' => 'ZERO',
-            'reason' => 'Euro Government Bonds, good for diversification',
-            'yield' => 2.85,
-            'expense_ratio' => 0.20,
-            'entry_price' => 110.00,
-            'target_price' => 118.00,
-            'updated_at' => '2025-11-23'
-        ]
+        'ai_insights' => ['summary_title' => 'Riepilogo Portafoglio', 'insights' => []]
     ];
+    $dashboardInsightsPath = __DIR__ . '/dashboard_insights.json';
+    if (file_exists($dashboardInsightsPath)) {
+        $data = json_decode(file_get_contents($dashboardInsightsPath), true);
+        if (isset($data['portfolio_health'])) {
+            $dashboardInsights['portfolio_health'] = $data['portfolio_health'];
+        }
+        if (isset($data['ai_insights'])) {
+            $dashboardInsights['ai_insights'] = $data['ai_insights'];
+        }
+    }
+
+    // Recommendations - Caricata da JSON (AI analysis)
+    $recommendations = [
+        'immediate_actions' => [],
+        'operational_plan' => [],
+        'warnings_risks' => []
+    ];
+    $recommendationsPath = __DIR__ . '/recommendations.json';
+    if (file_exists($recommendationsPath)) {
+        $data = json_decode(file_get_contents($recommendationsPath), true);
+        $recommendations['immediate_actions'] = $data['immediate_actions'] ?? [];
+        $recommendations['operational_plan'] = $data['operational_plan'] ?? [];
+        $recommendations['warnings_risks'] = $data['warnings_risks'] ?? [];
+    }
+
+    // Dividends Calendar - Caricata da JSON (from API or n8n)
+    $dividends_calendar_data = [
+        'forecast_6m' => ['total_amount' => null, 'period' => '-'],
+        'portfolio_yield' => null,
+        'next_dividend' => ['date' => '-', 'ticker' => '-', 'amount' => null],
+        'monthly_forecast' => [],
+        'distributing_assets' => [],
+        'ai_insight' => '-'
+    ];
+    $dividendsCalendarPath = __DIR__ . '/dividends_calendar.json';
+    if (file_exists($dividendsCalendarPath)) {
+        $data = json_decode(file_get_contents($dividendsCalendarPath), true);
+        $dividends_calendar_data['forecast_6m'] = $data['forecast_6m'] ?? $dividends_calendar_data['forecast_6m'];
+        $dividends_calendar_data['portfolio_yield'] = $data['portfolio_yield'] ?? null;
+        $dividends_calendar_data['next_dividend'] = $data['next_dividend'] ?? $dividends_calendar_data['next_dividend'];
+        $dividends_calendar_data['monthly_forecast'] = $data['monthly_forecast'] ?? [];
+        $dividends_calendar_data['distributing_assets'] = $data['distributing_assets'] ?? [];
+        $dividends_calendar_data['ai_insight'] = $data['ai_insight'] ?? '-';
+    }
 
     // Calcoli per dashboard
     $holdings_count = count($top_holdings);

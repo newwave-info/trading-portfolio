@@ -1,0 +1,16 @@
+{
+  "last_update": null,
+  "forecast_6m": {
+    "total_amount": null,
+    "period": "-"
+  },
+  "portfolio_yield": null,
+  "next_dividend": {
+    "date": "-",
+    "ticker": "-",
+    "amount": null
+  },
+  "monthly_forecast": [],
+  "distributing_assets": [],
+  "ai_insight": "-"
+}
