@@ -1,10 +1,10 @@
 {
-    "last_update": "2025-11-27T10:05:33+00:00",
+    "last_update": "2025-11-27T13:11:51+00:00",
     "forecast_6m": {
-        "total_amount": 42.04,
+        "total_amount": 65.76,
         "period": "Nov - Apr"
     },
-    "portfolio_yield": 1.51,
+    "portfolio_yield": 1.35,
     "next_dividend": {
         "date": "2025-12-15",
         "ticker": "VHYL.MI",
@@ -17,7 +17,7 @@
         },
         {
             "month": "Dec",
-            "amount": 21.02
+            "amount": 32.88
         },
         {
             "month": "Jan",
@@ -29,7 +29,7 @@
         },
         {
             "month": "Mar",
-            "amount": 21.02
+            "amount": 32.88
         },
         {
             "month": "Apr",
@@ -47,14 +47,14 @@
             "next_div_date": null
         },
         {
-            "ticker": "VHYL.MI",
-            "name": "Vanguard FTSE All-World High Div. Yield UCITS ETF Dis",
-            "dividend_yield": 2.91,
-            "annual_amount": 42.03,
+            "ticker": "TDIV.MI",
+            "name": "VanEck Morn. Dev. Mkts Div Lead. UCITS ETF",
+            "dividend_yield": 3.83,
+            "annual_amount": 89.5,
             "frequency": "Quarterly",
             "last_div_date": null,
             "next_div_date": null
         }
     ],
-    "ai_insight": "2 dividend assets with conservative yield (1.5069902724677%). Focus on capital appreciation."
+    "ai_insight": "2 dividend assets with conservative yield (1.3508880879704%). Focus on capital appreciation."
 }

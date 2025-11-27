@@ -284,11 +284,11 @@
    - [ ] Conferma prima di eliminare (con recap valore posizione)
    - [ ] Undo dopo delete (toast con pulsante "Annulla")
 
-3. **Dividendi Form:**
-   - [ ] Modale "Registra Dividendo" in vista Dividendi
-   - [ ] Campi: ISIN, data stacco, data pagamento, importo, ritenute
-   - [ ] Salvataggio in `portfolio.json → dividends[]`
-   - [ ] Aggiornamento tabella dividendi
+3. **Dividendi**
+   - [x] Integrazione n8n completata (yield, freq, annual_dividend, calendario forecast)
+   - [x] Grafici e tab Dividendi collegati a dati reali (ricevuti) e previsti
+   - [ ] Modale "Registra Dividendo" manuale (future)
+   - [ ] Salvataggio nuove registrazioni in `portfolio.json → dividends[]` (future)
 
 ### **STEP 4: Database Migration (Priorità BASSA)**
 **Obiettivo:** Scalabilità e performance per produzione

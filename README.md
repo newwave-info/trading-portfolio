@@ -101,6 +101,7 @@ ETF Portfolio Manager è una **web application PHP** che funziona come centro di
 - ✅ Aggiornamento prezzi automatico giornaliero (4 provider API)
 - ✅ Grafici performance dinamici da snapshots
 - ✅ Sistema classificazione automatica ETF (settore/asset_class)
+- ✅ Dividendi: sincronizzazione da n8n (yield, frequenza, annual_dividend), calendario forecast 6 mesi, grafici ricevuti/previsti, tab dedicata
 
 **In roadmap (prossime iterazioni):**
 
@@ -221,6 +222,7 @@ Tracciamento completo delle distribuzioni:
 - **Metriche per holding**: Dividend yield, frequenza distribuzione
 - **Storico pagamenti**: Registro completo delle distribuzioni ricevute
 - **Proiezioni**: Stima dividendi futuri basata su storico
+- **Dati n8n**: yield/frequenza/annual_dividend aggiornati dal workflow; calendario generato automaticamente
 
 *Dati da `dividends_calendar.json`*
 
@@ -435,7 +437,9 @@ trading-portfolio/
 │   └── PortfolioManager.php        # Classe gestione portfolio.json
 │
 ├── api/
-│   └── holdings.php                # API REST per holdings
+│   ├── holdings.php                # API REST per holdings
+│   └── n8n/
+│       └── enrich.php              # Webhook n8n per enrichment (prezzi/dividendi/classificazione)
 │
 ├── views/
 │   ├── layouts/
