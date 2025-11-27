@@ -1,6 +1,7 @@
 {
   "permissions": {
     "allow": [
+<<<<<<< HEAD
       "Bash(cat:*)",
       "Bash(sed:*)",
       "Bash(node:*)",
@@ -8,6 +9,9 @@
       "Bash(find:*)",
       "Bash(git checkout:*)",
       "Bash(git merge:*)"
+=======
+      "Bash(git push:*)"
+>>>>>>> 5aff902e123a31de4130592376fa4f010ac1ff9c
     ],
     "deny": [],
     "ask": []
