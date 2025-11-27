@@ -28,7 +28,7 @@
       "typeVersion": 3.2,
       "position": [
         -1328,
-        944
+        1440
       ],
       "id": "e4c46d2b-09dd-4f5a-95df-5002b74756bd",
       "notes": "IMPORTANTE: Configura WEBHOOK_SECRET (obbligatorio). API keys opzionali (lascia vuoto se non hai)"
@@ -52,7 +52,7 @@
       "typeVersion": 4.1,
       "position": [
         -1104,
-        944
+        1440
       ],
       "id": "46f0c7ec-cff7-4fc2-be90-95a04f4273e6",
       "notes": "Recupera holdings da PHP (HMAC opzionale)"
@@ -66,7 +66,7 @@
       "typeVersion": 2,
       "position": [
         -880,
-        944
+        1440
       ],
       "id": "3968ebd7-d299-4886-817d-8e15e98f6bcb"
     },
@@ -79,7 +79,7 @@
       "typeVersion": 3,
       "position": [
         -656,
-        944
+        1440
       ],
       "id": "3c6ba4ab-1973-49f1-a350-3a86fc3336e6",
       "notes": "Processa 3 holdings per volta per evitare rate limiting"
@@ -93,7 +93,7 @@
       "typeVersion": 2,
       "position": [
         -432,
-        592
+        1152
       ],
       "id": "eb9b9305-41ab-4dce-b88a-f123cd8bd855"
     },
@@ -118,7 +118,7 @@
       "typeVersion": 4.1,
       "position": [
         -208,
-        480
+        1152
       ],
       "id": "622aac05-2077-491e-8044-53be23d470de",
       "continueOnFail": true,
@@ -132,8 +132,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        16,
-        480
+        -1552,
+        736
       ],
       "id": "11921e85-28f1-4052-ae59-4a6a9abf2e69"
     },
@@ -157,8 +157,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        -208,
-        720
+        240,
+        1248
       ],
       "id": "8ae934a7-41f9-47d2-9797-d639a18ccc17",
       "continueOnFail": true,
@@ -172,8 +172,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        16,
-        720
+        -1552,
+        512
       ],
       "id": "dda404cb-20fd-4c7d-a887-80bf62c75823"
     },
@@ -185,8 +185,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        256,
-        816
+        688,
+        1344
       ],
       "id": "00cc6430-5eaf-4026-bc61-3291881aa225",
       "notes": "Se tutti i provider falliscono, mantiene prezzo esistente + classificazione locale"
@@ -199,8 +199,8 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        464,
-        560
+        912,
+        1152
       ],
       "id": "5b760eac-0c08-40d6-88b1-920d2867ecb2",
       "webhookId": "cc8e4552-2a30-45e3-9a66-10228e2ad5d5",
@@ -212,8 +212,8 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        496,
-        1056
+        1136,
+        1416
       ],
       "id": "a9fc6144-db9c-482d-b2cc-daca6b78eafe"
     },
@@ -226,7 +226,7 @@
       "typeVersion": 2,
       "position": [
         -432,
-        944
+        1440
       ],
       "id": "0abcf404-c6bd-433d-9b23-2234ab98b86b"
     },
@@ -261,7 +261,7 @@
       "typeVersion": 4.1,
       "position": [
         -208,
-        944
+        1440
       ],
       "id": "4a31af76-0bb7-4e4e-b229-79f4695b9627"
     },
@@ -288,7 +288,7 @@
       "typeVersion": 1.3,
       "position": [
         -1552,
-        944
+        1440
       ],
       "id": "ed1e6389-c02a-4b8c-abda-586f00e9b9f6",
       "name": "Schedule Trigger"
@@ -303,140 +303,101 @@
       ],
       "id": "ed3c2cd5-ab15-4d41-8c44-2e3baec4187b",
       "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "de281cb0-f874-462a-a22a-690e0a9552e8",
+              "leftValue": "={{ $json.chart?.result?.[0]?.meta?.regularMarketPrice}}",
+              "rightValue": "={{ 0 }}",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        16,
+        1152
+      ],
+      "id": "d364dede-0278-41b2-b98c-12f856ce80ef",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Yahoo Finance v8 chart response - COMPLETE DATA EXTRACTION\nconst holding = $node['Preprocess Symbols'].json;\nconst yahooResponse = $json;\n\nlet meta = {};\nlet dividends = {};\nlet priceHistory = {};\n\ntry {\n  const result = yahooResponse.chart.result[0];\n  meta = result.meta || {};\n  dividends = result.events?.dividends || {};\n  priceHistory = {\n    timestamps: result.timestamp || [],\n    quotes: result.indicators?.quote?.[0] || {}\n  };\n} catch (e) {\n  return []; // Trigger fallback\n}\n\n// Get current price\nconst currentPrice = meta.regularMarketPrice || 0;\n\nif (!currentPrice || currentPrice === 0) {\n  return [];\n}\n\n// Calculate dividend yield from historical dividends (last 12 months)\nlet annualDividend = 0;\nconst today = Date.now() / 1000; // Unix timestamp\nconst oneYearAgo = today - (365 * 24 * 60 * 60);\n\nObject.keys(dividends).forEach(timestamp => {\n  if (parseInt(timestamp) >= oneYearAgo) {\n    annualDividend += dividends[timestamp].amount;\n  }\n});\n\nconst dividendYield = currentPrice > 0 ? (annualDividend / currentPrice) * 100 : 0;\n\n// Calculate price change percentage (YTD, 1M, 3M, 1Y)\nconst closePrices = priceHistory.quotes.close || [];\nconst timestamps = priceHistory.timestamps || [];\n\nlet changeData = {\n  ytd_change: 0,\n  one_month_change: 0,\n  three_month_change: 0,\n  one_year_change: 0\n};\n\nif (closePrices.length > 0 && timestamps.length > 0) {\n  const latestPrice = closePrices[closePrices.length - 1];\n  \n  // YTD (from Jan 1st this year)\n  const yearStart = new Date(new Date().getFullYear(), 0, 1).getTime() / 1000;\n  const ytdIndex = timestamps.findIndex(t => t >= yearStart);\n  if (ytdIndex !== -1) {\n    const ytdPrice = closePrices[ytdIndex];\n    changeData.ytd_change = ((latestPrice - ytdPrice) / ytdPrice * 100).toFixed(2);\n  }\n  \n  // 1 Month ago\n  const oneMonthAgo = today - (30 * 24 * 60 * 60);\n  const monthIndex = timestamps.findIndex(t => t >= oneMonthAgo);\n  if (monthIndex !== -1) {\n    const monthPrice = closePrices[monthIndex];\n    changeData.one_month_change = ((latestPrice - monthPrice) / monthPrice * 100).toFixed(2);\n  }\n  \n  // 3 Months ago\n  const threeMonthsAgo = today - (90 * 24 * 60 * 60);\n  const threeMonthIndex = timestamps.findIndex(t => t >= threeMonthsAgo);\n  if (threeMonthIndex !== -1) {\n    const threeMonthPrice = closePrices[threeMonthIndex];\n    changeData.three_month_change = ((latestPrice - threeMonthPrice) / threeMonthPrice * 100).toFixed(2);\n  }\n  \n  // 1 Year ago\n  const yearIndex = timestamps.findIndex(t => t >= oneYearAgo);\n  if (yearIndex !== -1) {\n    const yearPrice = closePrices[yearIndex];\n    changeData.one_year_change = ((latestPrice - yearPrice) / yearPrice * 100).toFixed(2);\n  }\n}\n\n// Classification\nconst name = holding.name.toLowerCase();\nconst instrumentType = meta.instrumentType || holding.instrument_type;\n\nlet asset_class = 'Unknown';\nlet sector = 'Unknown';\n\nif (name.includes('gold') || name.includes('silver') || instrumentType === 'ETC') {\n  asset_class = 'Commodity';\n  sector = name.includes('gold') ? 'Gold' : 'Precious Metals';\n} else if (instrumentType === 'ETF') {\n  asset_class = 'Equity';\n  if (name.includes('dividend') || name.includes('aristocrat')) {\n    sector = 'Dividend';\n  } else if (name.includes('world') || name.includes('global')) {\n    sector = 'Global';\n  } else if (name.includes('u.s.') || name.includes('s&p')) {\n    sector = 'USA';\n  } else if (name.includes('developed')) {\n    sector = 'Developed Markets';\n  } else {\n    sector = 'Mixed';\n  }\n} else if (instrumentType === 'Fondo' || instrumentType === 'MUTUALFUND') {\n  asset_class = 'Equity';\n  if (name.includes('biotech')) sector = 'Healthcare';\n  else if (name.includes('robot') || name.includes('tech')) sector = 'Technology';\n  else if (name.includes('dividend')) sector = 'Dividend';\n  else sector = 'Active Fund';\n}\n\n// Count dividends in last 12 months for frequency detection\nconst dividendCount = Object.keys(dividends).filter(ts => parseInt(ts) >= oneYearAgo).length;\nlet dividendFrequency = 'None';\nif (dividendCount >= 4) dividendFrequency = 'Quarterly';\nelse if (dividendCount >= 2) dividendFrequency = 'Semi-Annual';\nelse if (dividendCount === 1) dividendFrequency = 'Annual';\n\nconst output = {\n  isin: holding.isin,\n  ticker: holding.ticker,\n  name: meta.longName || holding.name,\n  short_name: meta.shortName || '',\n  current_price: currentPrice,\n  currency: meta.currency || 'EUR',\n  price_source: 'YahooFinance_v8',\n  \n  // Classification\n  asset_class: asset_class,\n  sector: sector,\n  instrument_type: instrumentType,\n  exchange: meta.exchangeName || '',\n  \n  // Financial metrics\n  dividend_yield: parseFloat(dividendYield.toFixed(2)),\n  annual_dividend: parseFloat(annualDividend.toFixed(4)),\n  dividend_frequency: dividendFrequency,\n  \n  // Price ranges\n  fifty_two_week_high: meta.fiftyTwoWeekHigh || 0,\n  fifty_two_week_low: meta.fiftyTwoWeekLow || 0,\n  day_high: meta.regularMarketDayHigh || 0,\n  day_low: meta.regularMarketDayLow || 0,\n  \n  // Performance\n  ytd_change_percent: parseFloat(changeData.ytd_change) || 0,\n  one_month_change_percent: parseFloat(changeData.one_month_change) || 0,\n  three_month_change_percent: parseFloat(changeData.three_month_change) || 0,\n  one_year_change_percent: parseFloat(changeData.one_year_change) || 0,\n  \n  // Volume & market\n  volume: meta.regularMarketVolume || 0,\n  previous_close: meta.chartPreviousClose || 0,\n  \n  // Metadata\n  has_dividends: Object.keys(dividends).length > 0,\n  total_dividends_5y: Object.keys(dividends).length,\n  first_trade_date: meta.firstTradeDate || 0,\n  \n  APP_BASE_URL: holding.APP_BASE_URL,\n  WEBHOOK_SECRET: holding.WEBHOOK_SECRET\n};\n\nreturn [{ json: output }];\n\nreturn [{ json: output }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        960
+      ],
+      "id": "a5032df5-3de2-4825-be8c-c84aaa719c00",
+      "name": "Parse Yahoo"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "371edcc0-0198-4c74-8dfd-a2ff2de2b4f8",
+              "leftValue": "={{ $json.latestQuote?.raw }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        464,
+        1248
+      ],
+      "id": "b6b29d74-d8b1-40b8-ae3f-303fd4658988",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse JustETF response - ENHANCED & COMPLETE\nconst holding = $node['Preprocess Symbols'].json;\nconst justETFResponse = $json;\n\nlet price = 0;\nlet fiftyTwoWeekHigh = 0;\nlet fiftyTwoWeekLow = 0;\nlet previousClose = 0;\nlet dayChange = 0;\n\ntry {\n  const data = typeof justETFResponse === 'string' ? JSON.parse(justETFResponse) : justETFResponse;\n  price = data.latestQuote?.raw || 0;\n  fiftyTwoWeekHigh = data.quoteLowHigh?.high?.raw || 0;\n  fiftyTwoWeekLow = data.quoteLowHigh?.low?.raw || 0;\n  previousClose = data.previousQuote?.raw || 0;\n  dayChange = data.dtdPrc?.raw || 0;\n} catch (e) {\n  return [];\n}\n\nif (!price || price === 0) {\n  return [];\n}\n\n// Local classification\nconst name = holding.name.toLowerCase();\nconst instrumentType = holding.instrument_type;\n\nlet asset_class = 'Unknown';\nlet sector = 'Unknown';\n\nif (name.includes('gold') || name.includes('silver') || instrumentType === 'ETC') {\n  asset_class = 'Commodity';\n  sector = name.includes('gold') ? 'Gold' : 'Precious Metals';\n} else if (instrumentType === 'ETF') {\n  asset_class = 'Equity';\n  if (name.includes('dividend')) sector = 'Dividend';\n  else if (name.includes('world') || name.includes('global')) sector = 'Global';\n  else if (name.includes('u.s.') || name.includes('s&p')) sector = 'USA';\n  else if (name.includes('developed')) sector = 'Developed Markets';\n  else sector = 'Mixed';\n} else if (instrumentType === 'Fondo' || instrumentType === 'MUTUALFUND') {\n  asset_class = 'Equity';\n  if (name.includes('biotech')) sector = 'Healthcare';\n  else if (name.includes('robot') || name.includes('tech')) sector = 'Technology';\n  else if (name.includes('dividend')) sector = 'Dividend';\n  else sector = 'Active Fund';\n}\n\nreturn [{\n  json: {\n    isin: holding.isin,\n    ticker: holding.ticker,\n    name: holding.name,\n    short_name: '',\n    current_price: price,\n    currency: 'EUR',\n    price_source: 'JustETF',\n    \n    // Classification\n    asset_class: asset_class,\n    sector: sector,\n    instrument_type: instrumentType,\n    exchange: '',\n    \n    // Financial metrics\n    dividend_yield: 0,\n    annual_dividend: 0,\n    dividend_frequency: 'None',\n    \n    // Price ranges (from JustETF)\n    fifty_two_week_high: fiftyTwoWeekHigh,\n    fifty_two_week_low: fiftyTwoWeekLow,\n    day_high: 0,\n    day_low: 0,\n    \n    // Performance\n    ytd_change_percent: dayChange, // Use day change as best approximation\n    one_month_change_percent: 0,\n    three_month_change_percent: 0,\n    one_year_change_percent: 0,\n    \n    // Volume & market\n    volume: 0,\n    previous_close: previousClose,\n    \n    // Metadata\n    has_dividends: false,\n    total_dividends_5y: 0,\n    first_trade_date: 0,\n    \n    APP_BASE_URL: holding.APP_BASE_URL,\n    WEBHOOK_SECRET: holding.WEBHOOK_SECRET\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        1152
+      ],
+      "id": "ca5a8d18-92a6-4e90-9ab1-742febaa1ac1",
+      "name": "Parse JustETF"
     }
   ],
-  "pinData": {
-    "Aggregate & Sign": [
-      {
-        "json": {
-          "payload": {
-            "workflow_id": "portfolio_enrichment_v2.2",
-            "timestamp": "2025-11-26T21:17:18.786Z",
-            "holdings": [
-              {
-                "isin": "IE00B579F325",
-                "ticker": "SGLD.MI",
-                "name": "Invesco Physical Gold ETC",
-                "short_name": "INVESCO PHYSICAL GOLD ETC",
-                "current_price": 345.62,
-                "currency": "EUR",
-                "price_source": "YahooFinance_v8",
-                "asset_class": "Commodity",
-                "sector": "Gold",
-                "instrument_type": "ETF",
-                "exchange": "MIL",
-                "dividend_yield": 0,
-                "annual_dividend": 0,
-                "dividend_frequency": "None",
-                "fifty_two_week_high": 359.67,
-                "fifty_two_week_low": 239.26,
-                "day_high": 347.21,
-                "day_low": 343.93,
-                "ytd_change_percent": 38.49,
-                "one_month_change_percent": 5.69,
-                "three_month_change_percent": 21.87,
-                "one_year_change_percent": 43.45,
-                "volume": 155393,
-                "previous_close": 147.27,
-                "has_dividends": false,
-                "total_dividends_5y": 0,
-                "first_trade_date": 1417161600
-              },
-              {
-                "isin": "IE00B8GKDB10",
-                "ticker": "VHYL.MI",
-                "name": "Vanguard FTSE All-World High Dividend Yield UCITS ETF USD Distributing",
-                "short_name": "VANGUARD FTSE ALLWLD HIDIV YLD ",
-                "current_price": 68.8,
-                "currency": "EUR",
-                "price_source": "YahooFinance_v8",
-                "asset_class": "Equity",
-                "sector": "Global",
-                "instrument_type": "ETF",
-                "exchange": "MIL",
-                "dividend_yield": 2.91,
-                "annual_dividend": 2.0016,
-                "dividend_frequency": "Quarterly",
-                "fifty_two_week_high": 69.5,
-                "fifty_two_week_low": 55.76,
-                "day_high": 68.84,
-                "day_low": 68.4,
-                "ytd_change_percent": 6.11,
-                "one_month_change_percent": 1,
-                "three_month_change_percent": 4.16,
-                "one_year_change_percent": 4.5,
-                "volume": 28686,
-                "previous_close": 45.955,
-                "has_dividends": true,
-                "total_dividends_5y": 20,
-                "first_trade_date": 1547798400
-              },
-              {
-                "isin": "NL0011683594",
-                "ticker": "TDIV.MI",
-                "name": "VanEck Morningstar Developed Markets Dividend Leaders UCITS ETF",
-                "short_name": "VanEck Morningstar Developed Ma",
-                "current_price": 46.71,
-                "currency": "EUR",
-                "price_source": "YahooFinance_v8",
-                "asset_class": "Equity",
-                "sector": "Mixed",
-                "instrument_type": "ETF",
-                "exchange": "MIL",
-                "dividend_yield": 3.83,
-                "annual_dividend": 1.79,
-                "dividend_frequency": "Quarterly",
-                "fifty_two_week_high": 46.98,
-                "fifty_two_week_low": 36.795,
-                "day_high": 46.76,
-                "day_low": 46.375,
-                "ytd_change_percent": 12.72,
-                "one_month_change_percent": 3.6,
-                "three_month_change_percent": 5.73,
-                "one_year_change_percent": 15.19,
-                "volume": 48510,
-                "previous_close": 25.725,
-                "has_dividends": true,
-                "total_dividends_5y": 20,
-                "first_trade_date": 1556002800
-              },
-              {
-                "isin": "NL0011683594",
-                "ticker": "TDIV.MI",
-                "name": "VanEck Morningstar Developed Markets Dividend Leaders UCITS ETF",
-                "short_name": "VanEck Morningstar Developed Ma",
-                "current_price": 46.71,
-                "currency": "EUR",
-                "price_source": "YahooFinance_v8",
-                "asset_class": "Equity",
-                "sector": "Mixed",
-                "instrument_type": "ETF",
-                "exchange": "MIL",
-                "dividend_yield": 3.83,
-                "annual_dividend": 1.79,
-                "dividend_frequency": "Quarterly",
-                "fifty_two_week_high": 46.98,
-                "fifty_two_week_low": 36.795,
-                "day_high": 46.76,
-                "day_low": 46.375,
-                "ytd_change_percent": 12.72,
-                "one_month_change_percent": 3.6,
-                "three_month_change_percent": 5.73,
-                "one_year_change_percent": 15.19,
-                "volume": 48510,
-                "previous_close": 25.725,
-                "has_dividends": true,
-                "total_dividends_5y": 20,
-                "first_trade_date": 1556002800
-              }
-            ]
-          },
-          "signature": "HMAC_DISABLED",
-          "payloadStr": "{\"workflow_id\":\"portfolio_enrichment_v2.2\",\"timestamp\":\"2025-11-26T21:17:18.786Z\",\"holdings\":[{\"isin\":\"IE00B579F325\",\"ticker\":\"SGLD.MI\",\"name\":\"Invesco Physical Gold ETC\",\"short_name\":\"INVESCO PHYSICAL GOLD ETC\",\"current_price\":345.62,\"currency\":\"EUR\",\"price_source\":\"YahooFinance_v8\",\"asset_class\":\"Commodity\",\"sector\":\"Gold\",\"instrument_type\":\"ETF\",\"exchange\":\"MIL\",\"dividend_yield\":0,\"annual_dividend\":0,\"dividend_frequency\":\"None\",\"fifty_two_week_high\":359.67,\"fifty_two_week_low\":239.26,\"day_high\":347.21,\"day_low\":343.93,\"ytd_change_percent\":38.49,\"one_month_change_percent\":5.69,\"three_month_change_percent\":21.87,\"one_year_change_percent\":43.45,\"volume\":155393,\"previous_close\":147.27,\"has_dividends\":false,\"total_dividends_5y\":0,\"first_trade_date\":1417161600},{\"isin\":\"IE00B8GKDB10\",\"ticker\":\"VHYL.MI\",\"name\":\"Vanguard FTSE All-World High Dividend Yield UCITS ETF USD Distributing\",\"short_name\":\"VANGUARD FTSE ALLWLD HIDIV YLD \",\"current_price\":68.8,\"currency\":\"EUR\",\"price_source\":\"YahooFinance_v8\",\"asset_class\":\"Equity\",\"sector\":\"Global\",\"instrument_type\":\"ETF\",\"exchange\":\"MIL\",\"dividend_yield\":2.91,\"annual_dividend\":2.0016,\"dividend_frequency\":\"Quarterly\",\"fifty_two_week_high\":69.5,\"fifty_two_week_low\":55.76,\"day_high\":68.84,\"day_low\":68.4,\"ytd_change_percent\":6.11,\"one_month_change_percent\":1,\"three_month_change_percent\":4.16,\"one_year_change_percent\":4.5,\"volume\":28686,\"previous_close\":45.955,\"has_dividends\":true,\"total_dividends_5y\":20,\"first_trade_date\":1547798400},{\"isin\":\"NL0011683594\",\"ticker\":\"TDIV.MI\",\"name\":\"VanEck Morningstar Developed Markets Dividend Leaders UCITS ETF\",\"short_name\":\"VanEck Morningstar Developed Ma\",\"current_price\":46.71,\"currency\":\"EUR\",\"price_source\":\"YahooFinance_v8\",\"asset_class\":\"Equity\",\"sector\":\"Mixed\",\"instrument_type\":\"ETF\",\"exchange\":\"MIL\",\"dividend_yield\":3.83,\"annual_dividend\":1.79,\"dividend_frequency\":\"Quarterly\",\"fifty_two_week_high\":46.98,\"fifty_two_week_low\":36.795,\"day_high\":46.76,\"day_low\":46.375,\"ytd_change_percent\":12.72,\"one_month_change_percent\":3.6,\"three_month_change_percent\":5.73,\"one_year_change_percent\":15.19,\"volume\":48510,\"previous_close\":25.725,\"has_dividends\":true,\"total_dividends_5y\":20,\"first_trade_date\":1556002800},{\"isin\":\"NL0011683594\",\"ticker\":\"TDIV.MI\",\"name\":\"VanEck Morningstar Developed Markets Dividend Leaders UCITS ETF\",\"short_name\":\"VanEck Morningstar Developed Ma\",\"current_price\":46.71,\"currency\":\"EUR\",\"price_source\":\"YahooFinance_v8\",\"asset_class\":\"Equity\",\"sector\":\"Mixed\",\"instrument_type\":\"ETF\",\"exchange\":\"MIL\",\"dividend_yield\":3.83,\"annual_dividend\":1.79,\"dividend_frequency\":\"Quarterly\",\"fifty_two_week_high\":46.98,\"fifty_two_week_low\":36.795,\"day_high\":46.76,\"day_low\":46.375,\"ytd_change_percent\":12.72,\"one_month_change_percent\":3.6,\"three_month_change_percent\":5.73,\"one_year_change_percent\":15.19,\"volume\":48510,\"previous_close\":25.725,\"has_dividends\":true,\"total_dividends_5y\":20,\"first_trade_date\":1556002800}]}"
-        }
-      }
-    ]
-  },
+  "pinData": {},
   "connections": {
     "Config Variables": {
       "main": [
@@ -496,11 +457,6 @@
             "node": "Yahoo Finance Price",
             "type": "main",
             "index": 0
-          },
-          {
-            "node": "JustETF Price",
-            "type": "main",
-            "index": 0
           }
         ]
       ]
@@ -509,7 +465,7 @@
       "main": [
         [
           {
-            "node": "Yahoo Success?",
+            "node": "If",
             "type": "main",
             "index": 0
           }
@@ -518,20 +474,14 @@
     },
     "Yahoo Success?": {
       "main": [
-        [
-          {
-            "node": "Wait",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "JustETF Price": {
       "main": [
         [
           {
-            "node": "JustETF Success?",
+            "node": "If1",
             "type": "main",
             "index": 0
           }
@@ -540,18 +490,7 @@
     },
     "JustETF Success?": {
       "main": [
-        [
-          {
-            "node": "Wait",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Fallback - Keep Existing",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "Fallback - Keep Existing": {
@@ -608,13 +547,71 @@
           }
         ]
       ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Parse Yahoo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "JustETF Price",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Yahoo": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Parse JustETF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fallback - Keep Existing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse JustETF": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "14b276bd-2ec1-4a33-bcd0-5f12a3e1ea4e",
+  "versionId": "131be63f-3657-49c4-a80a-902c1467b06a",
   "meta": {
     "instanceId": "fe117d56aad4346ee596609bb8c3079d6edd34e383a675201472f524674346cc"
   },

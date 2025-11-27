@@ -34,9 +34,12 @@
                                     <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer whitespace-nowrap" role="button">Quantità</th>
                                     <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer whitespace-nowrap" role="button">Prezzo Medio</th>
                                     <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer whitespace-nowrap" role="button">Prezzo Attuale</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer whitespace-nowrap" role="button">52w H/L</th>
                                     <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer whitespace-nowrap" role="button">Valore</th>
                                     <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer whitespace-nowrap" role="button">P&L €</th>
                                     <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer whitespace-nowrap" role="button">P&L %</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer whitespace-nowrap" role="button">Perf. % (YTD/1M/3M)</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer whitespace-nowrap" role="button">Yield / Freq</th>
                                     <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer whitespace-nowrap" role="button">Allocation</th>
                                     <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer whitespace-nowrap" role="button">Target %</th>
                                     <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase min-w-[150px]">Note</th>
@@ -46,7 +49,12 @@
                             <tbody>
                                 <?php foreach ($top_holdings as $holding): ?>
                                 <tr class="border-b border-gray-200 hover:bg-gray-50" data-isin="<?php echo htmlspecialchars($holding['isin']); ?>">
-                                    <td class="px-4 py-3 font-semibold text-purple whitespace-nowrap"><?php echo htmlspecialchars($holding['ticker']); ?></td>
+                                    <td class="px-4 py-3 font-semibold text-purple whitespace-nowrap">
+                                        <?php echo htmlspecialchars($holding['ticker']); ?>
+                                        <?php if (!empty($holding['price_source'])): ?>
+                                            <span class="ml-2 px-2 py-0.5 text-[10px] bg-gray-100 text-gray-700 rounded"><?php echo htmlspecialchars($holding['price_source']); ?></span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td class="px-4 py-3">
                                         <div class="font-medium text-gray-800"><?php echo htmlspecialchars($holding['name']); ?></div>
                                         <div class="text-[11px] text-gray-500 whitespace-nowrap"><?php echo htmlspecialchars($holding['asset_class']); ?></div>
@@ -54,6 +62,10 @@
                                     <td class="px-4 py-3 text-right whitespace-nowrap"><?php echo number_format($holding['quantity'], 2, ',', '.'); ?></td>
                                     <td class="px-4 py-3 text-right whitespace-nowrap">€<?php echo number_format($holding['avg_price'], 2, ',', '.'); ?></td>
                                     <td class="px-4 py-3 text-right whitespace-nowrap">€<?php echo number_format($holding['current_price'], 2, ',', '.'); ?></td>
+                                    <td class="px-4 py-3 text-right whitespace-nowrap">
+                                        <div class="text-xs text-gray-700">H: €<?php echo number_format($holding['fifty_two_week_high'] ?? 0, 2, ',', '.'); ?></div>
+                                        <div class="text-xs text-gray-500">L: €<?php echo number_format($holding['fifty_two_week_low'] ?? 0, 2, ',', '.'); ?></div>
+                                    </td>
                                     <td class="px-4 py-3 text-right font-semibold whitespace-nowrap">€<?php echo number_format($holding['market_value'], 2, ',', '.'); ?></td>
                                     <td class="px-4 py-3 text-right whitespace-nowrap">
                                         <div class="font-semibold <?php echo $holding['unrealized_pnl'] >= 0 ? 'text-positive' : 'text-negative'; ?>">
@@ -64,6 +76,21 @@
                                         <div class="font-semibold <?php echo $holding['pnl_percentage'] >= 0 ? 'text-positive' : 'text-negative'; ?>">
                                             <?php echo $holding['pnl_percentage'] >= 0 ? '+' : ''; ?><?php echo number_format($holding['pnl_percentage'], 2, ',', '.'); ?>%
                                         </div>
+                                    </td>
+                                    <td class="px-4 py-3 text-right whitespace-nowrap text-xs">
+                                        <div class="<?php echo ($holding['ytd_change_percent'] ?? 0) >= 0 ? 'text-positive' : 'text-negative'; ?>">
+                                            YTD <?php echo ($holding['ytd_change_percent'] ?? 0) >= 0 ? '+' : ''; ?><?php echo number_format($holding['ytd_change_percent'] ?? 0, 2, ',', '.'); ?>%
+                                        </div>
+                                        <div class="<?php echo ($holding['one_month_change_percent'] ?? 0) >= 0 ? 'text-positive' : 'text-negative'; ?>">
+                                            1M <?php echo ($holding['one_month_change_percent'] ?? 0) >= 0 ? '+' : ''; ?><?php echo number_format($holding['one_month_change_percent'] ?? 0, 2, ',', '.'); ?>%
+                                        </div>
+                                        <div class="<?php echo ($holding['three_month_change_percent'] ?? 0) >= 0 ? 'text-positive' : 'text-negative'; ?>">
+                                            3M <?php echo ($holding['three_month_change_percent'] ?? 0) >= 0 ? '+' : ''; ?><?php echo number_format($holding['three_month_change_percent'] ?? 0, 2, ',', '.'); ?>%
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 text-right whitespace-nowrap text-xs">
+                                        <div class="font-semibold"><?php echo number_format($holding['dividend_yield'] ?? 0, 2, ',', '.'); ?>%</div>
+                                        <div class="text-gray-500"><?php echo htmlspecialchars($holding['dividend_frequency'] ?? '-'); ?></div>
                                     </td>
                                     <td class="px-4 py-3 text-right whitespace-nowrap">
                                         <span class="px-2 py-1 text-[11px] <?php echo $holding['drift'] < 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'; ?>">

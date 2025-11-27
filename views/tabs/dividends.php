@@ -286,6 +286,33 @@
                             }
                         }
                     }
+                } else {
+                    // Fallback: genera forecast base dai holdings arricchiti (annual_dividend + frequency)
+                    $freqMap = [
+                        'Monthly' => 12,
+                        'Quarterly' => 4,
+                        'Semi-Annual' => 2,
+                        'Annual' => 1
+                    ];
+                    foreach ($top_holdings as $h) {
+                        if (empty($h['has_dividends']) || empty($h['annual_dividend'])) {
+                            continue;
+                        }
+                        $paymentsPerYear = $freqMap[$h['dividend_frequency'] ?? ''] ?? 0;
+                        if ($paymentsPerYear === 0) {
+                            continue;
+                        }
+                        $paymentAmount = ($h['annual_dividend'] ?? 0) * ($h['quantity'] ?? 0) / $paymentsPerYear;
+                        // distribuisci equidistante nei 12 mesi partendo da mese corrente
+                        $step = (int) floor(12 / $paymentsPerYear);
+                        $monthIndex = (int) date('n') - 1;
+                        for ($i = 0; $i < $paymentsPerYear; $i++) {
+                            $idx = ($monthIndex + ($i * $step)) % 12;
+                            if ($monthly_received[$idx] == 0) {
+                                $monthly_forecast[$idx] += $paymentAmount;
+                            }
+                        }
+                    }
                 }
 
                 // Calcola cumulativo RICEVUTI

@@ -85,6 +85,38 @@ try {
     $portfolioManager = new PortfolioManager();
     $updatedCount = 0;
 
+    // Log received holdings for debugging
+    error_log("[n8n/enrich] Received " . count($data["holdings"]) . " holdings from n8n");
+    $receivedISINs = array_map(fn($h) => $h['isin'] ?? 'NO-ISIN', $data["holdings"]);
+    error_log("[n8n/enrich] ISINs received: " . implode(", ", $receivedISINs));
+
+    // Check for duplicates in received data
+    $isinCounts = array_count_values($receivedISINs);
+    $hasDuplicates = false;
+    foreach ($isinCounts as $isin => $count) {
+        if ($count > 1) {
+            error_log("[n8n/enrich] WARNING: Duplicate ISIN received from n8n: {$isin} (appears {$count} times)");
+            $hasDuplicates = true;
+        }
+    }
+
+    // Remove duplicates - keep only first occurrence of each ISIN
+    if ($hasDuplicates) {
+        $uniqueHoldings = [];
+        $seenISINs = [];
+        foreach ($data["holdings"] as $holding) {
+            $isin = $holding["isin"] ?? null;
+            if ($isin && !in_array($isin, $seenISINs)) {
+                $uniqueHoldings[] = $holding;
+                $seenISINs[] = $isin;
+            } elseif ($isin) {
+                error_log("[n8n/enrich] Skipping duplicate holding: {$isin}");
+            }
+        }
+        $data["holdings"] = $uniqueHoldings;
+        error_log("[n8n/enrich] Deduplicated holdings: " . count($uniqueHoldings) . " unique holdings");
+    }
+
     // Update each holding
     foreach ($data["holdings"] as $enrichedHolding) {
         $isin = $enrichedHolding["isin"] ?? null;
@@ -93,6 +125,8 @@ try {
             error_log("[n8n/enrich] Warning: Holding without ISIN, skipping");
             continue;
         }
+
+        error_log("[n8n/enrich] Processing holding: {$isin} ({$enrichedHolding['ticker']} - {$enrichedHolding['name']})");
 
         // Find holding in portfolio
         $holding = $portfolioManager->getHoldingByIsin($isin);
@@ -175,9 +209,49 @@ try {
                 (float) $enrichedHolding["ytd_change_percent"];
         }
 
+        if (isset($enrichedHolding["one_month_change_percent"])) {
+            $updates["one_month_change_percent"] =
+                (float) $enrichedHolding["one_month_change_percent"];
+        }
+
+        if (isset($enrichedHolding["three_month_change_percent"])) {
+            $updates["three_month_change_percent"] =
+                (float) $enrichedHolding["three_month_change_percent"];
+        }
+
         if (isset($enrichedHolding["one_year_change_percent"])) {
             $updates["one_year_change_percent"] =
                 (float) $enrichedHolding["one_year_change_percent"];
+        }
+
+        if (isset($enrichedHolding["previous_close"])) {
+            $updates["previous_close"] =
+                (float) $enrichedHolding["previous_close"];
+        }
+
+        if (isset($enrichedHolding["day_high"])) {
+            $updates["day_high"] = (float) $enrichedHolding["day_high"];
+        }
+
+        if (isset($enrichedHolding["day_low"])) {
+            $updates["day_low"] = (float) $enrichedHolding["day_low"];
+        }
+
+        if (isset($enrichedHolding["volume"])) {
+            $updates["volume"] = (int) $enrichedHolding["volume"];
+        }
+
+        if (isset($enrichedHolding["price_source"])) {
+            $updates["price_source"] = $enrichedHolding["price_source"];
+        }
+
+        if (isset($enrichedHolding["exchange"])) {
+            $updates["exchange"] = $enrichedHolding["exchange"];
+        }
+
+        if (isset($enrichedHolding["first_trade_date"])) {
+            $updates["first_trade_date"] =
+                (int) $enrichedHolding["first_trade_date"];
         }
 
         // Apply updates
