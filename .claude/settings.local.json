@@ -5,7 +5,9 @@
       "Bash(sed:*)",
       "Bash(node:*)",
       "Bash(php:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(git checkout:*)",
+      "Bash(git merge:*)"
     ],
     "deny": [],
     "ask": []
