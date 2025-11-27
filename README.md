@@ -96,11 +96,15 @@ ETF Portfolio Manager è una **web application PHP** che funziona come centro di
 
 **Recentemente completato:**
 
-- ✅ Integrazione n8n per enrichment automatico (v2.2 attiva)
+- ✅ Integrazione n8n per enrichment automatico (v3.1 attiva)
 - ✅ Storico snapshots temporali per performance tracking
 - ✅ Aggiornamento prezzi automatico giornaliero (4 provider API)
 - ✅ Grafici performance dinamici da snapshots
 - ✅ Sistema classificazione automatica ETF (settore/asset_class)
+- ✅ **Integrazione dati dividendi da n8n** (dividend_yield, frequency, annual_dividend)
+- ✅ **Generazione automatica dividends_calendar.json** con forecast 6 mesi
+- ✅ **Calcolo portfolio-weighted dividend yield**
+- ✅ **Stima prossimi pagamenti dividendi** per ogni holding
 
 **In roadmap (prossime iterazioni):**
 
@@ -215,14 +219,22 @@ Indicatori tecnici e segnali operativi per ogni holding:
 
 ### 💰 Calendario Dividendi
 
-Tracciamento completo delle distribuzioni:
+Tracciamento completo delle distribuzioni con generazione automatica:
 
 - **Calendario annuale**: Vista dividendi attesi e percepiti
-- **Metriche per holding**: Dividend yield, frequenza distribuzione
-- **Storico pagamenti**: Registro completo delle distribuzioni ricevute
-- **Proiezioni**: Stima dividendi futuri basata su storico
+- **Metriche per holding**: Dividend yield, frequenza distribuzione (da n8n v3.1)
+- **Forecast 6 mesi**: Proiezione automatica dividendi basata su frequenza
+- **Portfolio yield**: Calcolo weighted yield basato su valore investito
+- **Prossimo dividendo**: Stima data e importo del prossimo pagamento
+- **Distribuzione mensile**: Previsione incassi per ogni mese
+- **AI Insight**: Analisi automatica qualità dividendi portafoglio
 
-*Dati da `dividends_calendar.json`*
+**Workflow automatico (n8n v3.1):**
+- Aggiornamento dati dividendi da Yahoo Finance
+- Generazione automatica `dividends_calendar.json`
+- Calcolo stima pagamenti futuri basata su frequenza
+
+*Dati generati automaticamente in `dividends_calendar.json`*
 
 ### 💡 Raccomandazioni Operative
 
@@ -304,13 +316,22 @@ fetch('/api/holdings.php', {
 
 | File | Contenuto | Aggiornamento |
 |------|-----------|---------------|
-| `portfolio.json` | Holdings, metadata, transazioni, n8n_config | Automatico (CRUD + n8n enrichment) |
+| `portfolio.json` | Holdings con campi estesi (dividendi, performance) | Automatico (CRUD + n8n enrichment v3.1) |
 | `snapshots.json` | Storico giornaliero performance | Automatico (n8n daily @ 22:00) |
+| `dividends_calendar.json` | Calendario dividendi generato automaticamente | Automatico (n8n enrichment v3.1) |
 | `technical_analysis.json` | Indicatori tecnici, segnali | Pianificato (workflow futuro) |
 | `opportunities.json` | ETF opportunità, nuove idee | Pianificato (workflow futuro) |
 | `recommendations.json` | Suggerimenti operativi | Manuale/Schedulato |
-| `dividends_calendar.json` | Calendario dividendi attesi/percepiti | Manuale |
 | `dashboard_insights.json` | Metriche dashboard | Automatico |
+
+**Campi nuovi in portfolio.json (da n8n v3.1):**
+- `dividend_yield`: Rendimento dividendi %
+- `annual_dividend`: Dividendo annuale per quota
+- `dividend_frequency`: Frequenza (Quarterly/Semi-Annual/Annual/Monthly)
+- `has_dividends`: Boolean
+- `total_dividends_5y`: Numero pagamenti ultimi 5 anni
+- `fifty_two_week_high/low`: Range prezzi 52 settimane
+- `ytd_change_percent`, `one_year_change_percent`: Performance
 
 ---
 
@@ -796,5 +817,5 @@ echo "Backup salvato in: $BACKUP_DIR"
 
 ---
 
-**Ultimo aggiornamento README**: 26 Novembre 2025
-**Versione progetto**: 0.1.0-MVP (JSON Based)
+**Ultimo aggiornamento README**: 27 Novembre 2025
+**Versione progetto**: 0.2.0-MVP (JSON Based + n8n v3.1 Dividends)

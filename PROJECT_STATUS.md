@@ -1,8 +1,8 @@
 # 📊 ETF Portfolio Manager - Stato Avanzamento Lavori
 
-**Ultimo aggiornamento:** 26 Novembre 2025
-**Versione:** 0.2.0-MVP (JSON Based + n8n Integration)
-**Stato:** MVP Avanzato ✅ - Fase 1 (JSON Storage) completa, n8n integration attiva, Fase 2 (Database Migration) in roadmap
+**Ultimo aggiornamento:** 27 Novembre 2025
+**Versione:** 0.3.0-MVP (JSON Based + n8n v3.1 Dividends Integration)
+**Stato:** MVP Avanzato ✅ - Fase 1 (JSON Storage) completa, n8n v3.1 attiva con dati dividendi, dividends_calendar automatico
 
 > 📋 **Documentazione:**
 > - [README.md](README.md) - Panoramica generale e setup (aggiornato 26 Nov 2025)
@@ -127,16 +127,26 @@
   - Endpoint `POST /api/n8n/enrich.php` con autenticazione HMAC
   - Verifica signature per prevenire chiamate non autorizzate
   - Webhook URL e HMAC secret configurabili in `portfolio.json`
-- [x] **Workflow Portfolio Enrichment v2.2** (giornaliero @ 22:00):
+- [x] **Workflow Portfolio Enrichment v3.1** (giornaliero @ 22:00):
   - Fetch prezzi da 4 provider con fallback chain:
     1. TwelveData API (primario)
     2. Financial Modeling Prep (secondario)
     3. Yahoo Finance (terziario)
     4. JustETF web scraping (ultimo tentativo)
-  - Classificazione automatica settore/asset_class da nome ETF
-  - Aggiornamento holdings in `portfolio.json` con prezzi attuali
-  - Creazione snapshot giornaliero in `data/snapshots.json`
-  - Aggiornamento `monthly_performance` da snapshots
+  - **Classificazione automatica** settore/asset_class da nome ETF
+  - **Aggiornamento campi estesi** in `portfolio.json`:
+    - dividend_yield, annual_dividend, dividend_frequency
+    - has_dividends, total_dividends_5y
+    - fifty_two_week_high/low
+    - ytd_change_percent, one_year_change_percent
+  - **Creazione snapshot giornaliero** in `data/snapshots.json`
+  - **Aggiornamento `monthly_performance`** da snapshots
+  - **Generazione automatica dividends_calendar.json** con:
+    - Portfolio-weighted dividend yield
+    - Forecast dividendi 6 mesi
+    - Stima prossimo pagamento
+    - Distribuzione mensile
+    - AI Insight qualità dividendi
   - Gestione rate limits e batch processing (5 holdings/batch)
 - [x] **Script di gestione:**
   - `initialize-snapshots.php` - Crea primo snapshot
@@ -144,6 +154,34 @@
   - `recalculate-metrics.php` - Ricalcola allocation_by_asset_class
   - `debug-charts.php` / `debug-charts-web.php` - Debug dati grafici
   - `debug-performance-widgets-web.php` - Debug widget performance
+
+### **6. Integrazione Dividendi ✅ COMPLETATO (27 Nov 2025)**
+- [x] **Backend dividendi completo:**
+  - `PortfolioManager->generateDividendsCalendar()` - Genera calendario automatica
+  - `getPaymentsPerYear()` - Calcola pagamenti per frequenza
+  - `getPaymentMonths()` - Mesi di pagamento per frequenza
+  - `generateDividendInsight()` - AI insight qualità dividendi
+- [x] **Campi dati estesi** in portfolio.json holdings:
+  - dividend_yield (%), annual_dividend (€), dividend_frequency
+  - has_dividends (bool), total_dividends_5y (int)
+  - fifty_two_week_high/low, ytd_change_percent, one_year_change_percent
+- [x] **Generazione automatica dividends_calendar.json** con:
+  - forecast_6m: Proiezione 6 mesi con periodo
+  - portfolio_yield: Rendiment weighted portafoglio
+  - next_dividend: Prossimo pagamento stimato (data, ticker, importo)
+  - monthly_forecast: Previsioni mensili dettagliate
+  - distributing_assets: Lista assets che distribuiscono dividendi
+  - ai_insight: Analisi automatica qualità strategia dividendi
+- [x] **Workflow n8n v3.1** integrato:
+  - Fetch dati dividendi da Yahoo Finance
+  - Salvataggio automatico in portfolio.json
+  - Generazione dividends_calendar.json
+  - Log operazioni per monitoring
+- [x] **Test e validazione:**
+  - Backup file prima delle modifiche
+  - Verifica sintassi PHP
+  - Output corretto dividendi calendar
+  - Struttura JSON validata
 
 ## ❌ **NON INIZIATO**
 
@@ -488,5 +526,50 @@ trading-portfolio/
 - ✅ Import CSV Fineco
 - ✅ Sistema permissions fix
 - ✅ PortfolioManager class con calcolo metriche
+
+---
+
+## 📅 **CHANGELOG**
+
+### [0.3.0-MVP] - 27 Novembre 2025
+**Integrazione Dividendi Completa:**
+- ✅ **Modifica A**: Estesi campi salvati in `api/n8n/enrich.php`
+  - Aggiunti 8 nuovi campi: dividend_yield, annual_dividend, dividend_frequency, has_dividends, total_dividends_5y, fifty_two_week_high/low, ytd_change_percent, one_year_change_percent
+- ✅ **Modifica B**: Generazione automatica dividends_calendar.json
+  - Chiamata `$portfolioManager->generateDividendsCalendar()` dopo enrichment
+  - Salvataggio automatico in data/dividends_calendar.json
+  - Gestione errori con try-catch
+- ✅ **PortfolioManager.php**: Aggiunti 4 nuovi metodi
+  - `generateDividendsCalendar()` - Genera calendario completo dividendi
+  - `getPaymentsPerYear()` - Pagamenti/anno per frequenza
+  - `getPaymentMonths()` - Mesi pagamento per frequenza
+  - `generateDividendInsight()` - AI insight qualità dividendi
+- ✅ **dividends_calendar.json** struttura completa:
+  - forecast_6m con periodo e totale
+  - portfolio_yield weighted
+  - next_dividend (data, ticker, importo)
+  - monthly_forecast 6 mesi
+  - distributing_assets con dettagli
+  - ai_insight qualità strategia
+- ✅ **Documentazione aggiornata:**
+  - README.md: Sezione dividendi estesa, file JSON output
+  - PROJECT_STATUS.md: Nuova sezione "6. Integrazione Dividendi"
+
+### [0.2.0-MVP] - 26 Novembre 2025
+**Documentazione Completa:**
+- ✅ **README.md aggiornato completamente** - riflette stato MVP con storage JSON
+  - Architettura attuale vs futura
+  - API REST implementate documentate
+  - Setup semplificato senza Docker
+  - Roadmap a 4 fasi dettagliata
+  - Utilizzo quotidiano e best practices
+- ✅ **PROJECT_STATUS.md aggiornato** - allineato con README e roadmap
+  - Versioning uniformato (0.2.0-MVP)
+  - Obiettivi suddivisi per fase
+  - Decisioni architetturali documentate
+- ✅ Rinominati widget con indicazioni temporali (YTD, 2025, Ultimi 5 Giorni)
+- ✅ Fix larghezze colonne tabella Holdings (whitespace-nowrap)
+- ✅ Aggiunta colonne Target % e Note nella tabella Holdings
+- ✅ Sistema di reload che mantiene vista attiva (localStorage)
 
 ---
