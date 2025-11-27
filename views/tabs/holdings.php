@@ -49,10 +49,10 @@
                             <tbody>
                                 <?php foreach ($top_holdings as $holding): ?>
                                 <tr class="border-b border-gray-200 hover:bg-gray-50" data-isin="<?php echo htmlspecialchars($holding['isin']); ?>">
-                                    <td class="px-4 py-3 font-semibold text-purple whitespace-nowrap">
-                                        <?php echo htmlspecialchars($holding['ticker']); ?>
+                                    <td class="px-4 py-3">
+                                        <div class="font-semibold text-purple"><?php echo htmlspecialchars($holding['ticker']); ?></div>
                                         <?php if (!empty($holding['price_source'])): ?>
-                                            <span class="ml-2 px-2 py-0.5 text-[10px] bg-gray-100 text-gray-700 rounded"><?php echo htmlspecialchars($holding['price_source']); ?></span>
+                                            <div class="text-[10px] text-gray-500 mt-0.5"><?php echo htmlspecialchars($holding['price_source']); ?></div>
                                         <?php endif; ?>
                                     </td>
                                     <td class="px-4 py-3">
@@ -78,13 +78,13 @@
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 text-right whitespace-nowrap text-xs">
-                                        <div class="<?php echo ($holding['ytd_change_percent'] ?? 0) >= 0 ? 'text-positive' : 'text-negative'; ?>">
+                                        <div class="text-gray-800">
                                             YTD <?php echo ($holding['ytd_change_percent'] ?? 0) >= 0 ? '+' : ''; ?><?php echo number_format($holding['ytd_change_percent'] ?? 0, 2, ',', '.'); ?>%
                                         </div>
-                                        <div class="<?php echo ($holding['one_month_change_percent'] ?? 0) >= 0 ? 'text-positive' : 'text-negative'; ?>">
+                                        <div class="text-gray-800">
                                             1M <?php echo ($holding['one_month_change_percent'] ?? 0) >= 0 ? '+' : ''; ?><?php echo number_format($holding['one_month_change_percent'] ?? 0, 2, ',', '.'); ?>%
                                         </div>
-                                        <div class="<?php echo ($holding['three_month_change_percent'] ?? 0) >= 0 ? 'text-positive' : 'text-negative'; ?>">
+                                        <div class="text-gray-800">
                                             3M <?php echo ($holding['three_month_change_percent'] ?? 0) >= 0 ? '+' : ''; ?><?php echo number_format($holding['three_month_change_percent'] ?? 0, 2, ',', '.'); ?>%
                                         </div>
                                     </td>

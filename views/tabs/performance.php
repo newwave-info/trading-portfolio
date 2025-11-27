@@ -380,263 +380,94 @@
                         return;
                     }
 
-                    console.log('📊 Starting chart initialization...');
+                    console.log('📊 Starting chart initialization with ChartManager...');
 
-                // Performance Detail Chart (Andamento Annuale) - Dynamic from snapshots
-                const performanceDetailCtxEl = document.getElementById('performanceDetailChart');
-                if (performanceDetailCtxEl && !initializedCharts.has('performanceDetailChart')) {
+                // Performance Detail Chart (Andamento Annuale) - Usando ChartManager
+                if (document.getElementById('performanceDetailChart')) {
                     try {
-                        const performanceDetailCtx = performanceDetailCtxEl.getContext('2d');
-                        new Chart(performanceDetailCtx, {
-                            type: 'line',
-                            data: {
-                                labels: <?php echo json_encode($chart_monthly_labels); ?>,
-                                datasets: [{
-                                    label: 'Valore Portafoglio',
-                                    data: <?php echo json_encode($chart_monthly_values); ?>,
-                                    borderColor: '#8b5cf6',
-                                    backgroundColor: typeof pattern !== 'undefined' ? pattern.draw('diagonal', 'rgba(139, 92, 246, 0.05)') : 'rgba(139, 92, 246, 0.05)',
-                                    borderWidth: 3,
-                                    fill: true,
-                                    tension: 0,
-                                    pointStyle: 'rect',
-                                    pointRadius: 4,
-                                    pointHoverRadius: 6,
-                                    order: 2
-                                },{
-                                    label: 'Performance %',
-                                    data: <?php echo json_encode($chart_monthly_gain_pct); ?>,
-                                    borderColor: '#4b5563',
-                                    backgroundColor: 'transparent',
-                                    borderWidth: 2,
-                                    fill: false,
-                                    tension: 0,
-                                    pointRadius: 3,
-                                    yAxisID: 'y1',
-                                    order: 1
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                animation: { duration: 800, easing: 'easeOutQuart' },
-                                plugins: {
-                                    legend: { display: true, position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } },
-                                    tooltip: {
-                                        callbacks: {
-                                            label: function(context) {
-                                                const label = context.dataset.label || '';
-                                                if (context.dataset.yAxisID === 'y1') {
-                                                    return label + ': ' + context.parsed.y.toFixed(2) + '%';
-                                                }
-                                                return label + ': €' + context.parsed.y.toLocaleString('it-IT', { minimumFractionDigits: 2 });
-                                            }
-                                        }
-                                    }
-                                },
-                                scales: {
-                                    y: {
-                                        beginAtZero: false,
-                                        ticks: { callback: v => '€' + v.toLocaleString('it-IT') }
-                                    },
-                                    y1: {
-                                        position: 'right',
-                                        grid: { drawOnChartArea: false },
-                                        ticks: { callback: v => v.toFixed(1) + '%' }
-                                    }
-                                }
-                            }
-                        });
+                        window.ChartManager.createPerformanceDetailChart(
+                            'performanceDetailChart',
+                            <?php echo json_encode($chart_monthly_labels); ?>,
+                            <?php echo json_encode($chart_monthly_values); ?>,
+                            <?php echo json_encode($chart_monthly_gain_pct); ?>
+                        );
                         initializedCharts.add('performanceDetailChart');
+                        console.log('✅ Performance Detail Chart created');
                     } catch (error) {
                         console.error('Errore inizializzazione Performance Detail Chart:', error);
                     }
                 }
 
-                // Cumulative Gain Chart - Dynamic from snapshots
-                const cumulativeGainCtxEl = document.getElementById('cumulativeGainChart');
-                if (cumulativeGainCtxEl && !initializedCharts.has('cumulativeGainChart')) {
+                // Cumulative Gain Chart - Usando ChartManager
+                if (document.getElementById('cumulativeGainChart')) {
                     try {
-                        const cumulativeGainCtx = cumulativeGainCtxEl.getContext('2d');
-                        new Chart(cumulativeGainCtx, {
-                            type: 'line',
-                            data: {
-                                labels: <?php echo json_encode($chart_labels); ?>,
-                                datasets: [{
-                                    label: 'Guadagno Cumulativo',
-                                    data: <?php echo json_encode($chart_cumul_gain); ?>,
-                                    borderColor: '#8b5cf6',
-                                    backgroundColor: typeof pattern !== 'undefined' ? pattern.draw('diagonal', 'rgba(139, 92, 246, 0.05)') : 'rgba(139, 92, 246, 0.05)',
-                                    borderWidth: 3,
-                                    fill: true,
-                                    tension: 0.4,
-                                    pointRadius: 8,
-                                    pointHoverRadius: 10,
-                                    pointBackgroundColor: '#8b5cf6',
-                                    pointBorderColor: '#fff',
-                                    pointBorderWidth: 2,
-                                    order: 2
-                                },{
-                                    label: 'Performance %',
-                                    data: <?php echo json_encode($chart_gain_pct); ?>,
-                                    borderColor: '#4b5563',
-                                    backgroundColor: 'transparent',
-                                    borderWidth: 2,
-                                    fill: false,
-                                    tension: 0.2,
-                                    pointRadius: 3,
-                                    yAxisID: 'y1',
-                                    order: 1
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                animation: { duration: 800, easing: 'easeOutQuart' },
-                                plugins: {
-                                    legend: { display: true, position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } },
-                                    tooltip: {
-                                        callbacks: {
-                                            label: function(context) {
-                                                const label = context.dataset.label || '';
-                                                if (context.dataset.yAxisID === 'y1') {
-                                                    return label + ': ' + context.parsed.y.toFixed(2) + '%';
-                                                }
-                                                return label + ': €' + context.parsed.y.toLocaleString('it-IT', { minimumFractionDigits: 2 });
-                                            }
-                                        }
-                                    }
-                                },
-                                scales: {
-                                    y: {
-                                        beginAtZero: true,
-                                        ticks: { callback: v => '€' + v.toLocaleString('it-IT') }
-                                    },
-                                    y1: {
-                                        position: 'right',
-                                        grid: { drawOnChartArea: false },
-                                        ticks: { callback: v => v.toFixed(1) + '%' }
-                                    }
-                                }
-                            }
-                        });
+                        window.ChartManager.createCumulativeGainChart(
+                            'cumulativeGainChart',
+                            <?php echo json_encode($chart_labels); ?>,
+                            <?php echo json_encode($chart_cumul_gain); ?>,
+                            <?php echo json_encode($chart_gain_pct); ?>
+                        );
                         initializedCharts.add('cumulativeGainChart');
+                        console.log('✅ Cumulative Gain Chart created');
                     } catch (error) {
                         console.error('Errore inizializzazione Cumulative Gain Chart:', error);
                     }
                 }
 
-                // Value Over Time Chart - Dynamic from snapshots
-                const valueOverTimeCtxEl = document.getElementById('valueOverTimeChart');
-                if (valueOverTimeCtxEl && !initializedCharts.has('valueOverTimeChart')) {
+                // Value Over Time Chart - Usando ChartManager
+                if (document.getElementById('valueOverTimeChart')) {
                     try {
-                        const valueOverTimeCtx = valueOverTimeCtxEl.getContext('2d');
-                        new Chart(valueOverTimeCtx, {
-                            type: 'line',
-                            data: {
-                                labels: <?php echo json_encode($chart_labels); ?>,
-                                datasets: [{
-                                    label: 'Valore Portafoglio',
-                                    data: <?php echo json_encode($chart_values); ?>,
-                                    borderColor: '#8b5cf6',
-                                    backgroundColor: typeof pattern !== 'undefined' ? pattern.draw('diagonal', 'rgba(139, 92, 246, 0.05)') : 'rgba(139, 92, 246, 0.05)',
-                                    borderWidth: 3,
-                                    fill: true,
-                                    tension: 0.4,
-                                    pointRadius: 8,
-                                    pointHoverRadius: 10,
-                                    pointBackgroundColor: '#8b5cf6',
-                                    pointBorderColor: '#fff',
-                                    pointBorderWidth: 2,
-                                    order: 2
-                                },{
-                                    label: 'Performance %',
-                                    data: <?php echo json_encode($chart_gain_pct); ?>,
-                                    borderColor: '#4b5563',
-                                    backgroundColor: 'transparent',
-                                    borderWidth: 2,
-                                    fill: false,
-                                    tension: 0.2,
-                                    pointRadius: 3,
-                                    yAxisID: 'y1',
-                                    order: 1
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                animation: { duration: 800, easing: 'easeOutQuart' },
-                                plugins: {
-                                    legend: { display: true, position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } },
-                                    tooltip: {
-                                        callbacks: {
-                                            label: function(context) {
-                                                const label = context.dataset.label || '';
-                                                if (context.dataset.yAxisID === 'y1') {
-                                                    return label + ': ' + context.parsed.y.toFixed(2) + '%';
-                                                }
-                                                return label + ': €' + context.parsed.y.toLocaleString('it-IT', { minimumFractionDigits: 2 });
-                                            }
-                                        }
-                                    }
-                                },
-                                scales: {
-                                    y: {
-                                        beginAtZero: false,
-                                        ticks: { callback: v => '€' + v.toLocaleString('it-IT') }
-                                    },
-                                    y1: {
-                                        position: 'right',
-                                        grid: { drawOnChartArea: false },
-                                        ticks: { callback: v => v.toFixed(1) + '%' }
-                                    }
-                                }
-                            }
-                        });
+                        window.ChartManager.createValueOverTimeChart(
+                            'valueOverTimeChart',
+                            <?php echo json_encode($chart_labels); ?>,
+                            <?php echo json_encode($chart_values); ?>,
+                            <?php echo json_encode($chart_gain_pct); ?>
+                        );
                         initializedCharts.add('valueOverTimeChart');
+                        console.log('✅ Value Over Time Chart created');
                     } catch (error) {
                         console.error('Errore inizializzazione Value Over Time Chart:', error);
                     }
                 }
 
-                    // Mark charts as initialized
-                    window.performanceChartsInitialized = true;
-                    console.log('✅ Performance charts initialized successfully');
-                }
+                // Mark charts as initialized
+                window.performanceChartsInitialized = true;
+                console.log('✅ Performance charts initialized successfully');
+            }
 
-                // Initialize charts when performance view becomes visible
-                // Observer to detect when #performance div becomes visible
-                const performanceView = document.getElementById('performance');
-                if (performanceView) {
-                    const observer = new MutationObserver((mutations) => {
-                        mutations.forEach((mutation) => {
-                            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                                const isVisible = !performanceView.classList.contains('hidden');
-                                if (isVisible && !window.performanceChartsInitialized) {
-                                    console.log('👁️ Performance view is now visible, initializing charts...');
-                                    // Small delay to ensure DOM is fully rendered
-                                    setTimeout(() => {
-                                        initializePerformanceCharts();
-                                    }, 100);
-                                }
+            // Initialize charts when performance view becomes visible
+            // Observer to detect when #performance div becomes visible
+            const performanceView = document.getElementById('performance');
+            if (performanceView) {
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                            const isVisible = !performanceView.classList.contains('hidden');
+                            if (isVisible && !window.performanceChartsInitialized) {
+                                console.log('👁️ Performance view is now visible, initializing charts...');
+                                // Small delay to ensure DOM is fully rendered
+                                setTimeout(() => {
+                                    initializePerformanceCharts();
+                                }, 100);
                             }
-                        });
+                        }
                     });
+                });
 
-                    observer.observe(performanceView, {
-                        attributes: true,
-                        attributeFilter: ['class']
-                    });
+                observer.observe(performanceView, {
+                    attributes: true,
+                    attributeFilter: ['class']
+                });
 
-                    // Also try immediate initialization if view is already visible
-                    if (!performanceView.classList.contains('hidden')) {
-                        console.log('👁️ Performance view already visible, initializing charts immediately...');
-                        setTimeout(() => {
-                            initializePerformanceCharts();
-                        }, 100);
-                    }
+                // Also try immediate initialization if view is already visible
+                if (!performanceView.classList.contains('hidden')) {
+                    console.log('👁️ Performance view already visible, initializing charts immediately...');
+                    setTimeout(() => {
+                        initializePerformanceCharts();
+                    }, 100);
                 }
-                </script>
+            }
+            </script>
             </div>
 
             <!-- View: Technical Analysis -->

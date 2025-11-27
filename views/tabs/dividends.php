@@ -339,108 +339,33 @@
                 console.log('Cumulative Received:', <?php echo json_encode(array_values($cumulative_received)); ?>);
                 console.log('Cumulative Total:', <?php echo json_encode(array_values($cumulative_total)); ?>);
 
-                // Dividends Monthly Chart - Ricevuti + Previsti
-                const dividendsMonthlyCtxEl = document.getElementById('dividendsMonthlyChart');
-                if (dividendsMonthlyCtxEl && !initializedCharts.has('dividendsMonthlyChart')) {
+                // Dividends Monthly Chart - Usando ChartManager
+                if (document.getElementById('dividendsMonthlyChart')) {
                     try {
-                        const dividendsMonthlyCtx = dividendsMonthlyCtxEl.getContext('2d');
-                        new Chart(dividendsMonthlyCtx, {
-                            type: 'bar',
-                            data: {
-                                labels: <?php echo json_encode($months_labels); ?>,
-                                datasets: [
-                                    {
-                                        label: 'Ricevuti',
-                                        data: <?php echo json_encode(array_values($monthly_received)); ?>,
-                                        backgroundColor: '#8b5cf6',
-                                        borderColor: '#8b5cf6',
-                                        borderRadius: 0
-                                    },
-                                    {
-                                        label: 'Previsti',
-                                        data: <?php echo json_encode(array_values($monthly_forecast)); ?>,
-                                        backgroundColor: 'rgba(139, 92, 246, 0.4)',
-                                        borderColor: '#8b5cf6',
-                                        borderWidth: 1,
-                                        borderDash: [5, 5],
-                                        borderRadius: 0
-                                    }
-                                ]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                animation: { duration: 800, easing: 'easeOutQuart' },
-                                plugins: {
-                                    legend: { display: true, position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
-                                },
-                                scales: {
-                                    x: { stacked: true },
-                                    y: {
-                                        stacked: true,
-                                        beginAtZero: true,
-                                        ticks: { callback: v => '€' + v.toFixed(0) }
-                                    }
-                                }
-                            }
-                        });
+                        window.ChartManager.createDividendsMonthlyChart(
+                            'dividendsMonthlyChart',
+                            <?php echo json_encode($months_labels); ?>,
+                            <?php echo json_encode(array_values($monthly_received)); ?>,
+                            <?php echo json_encode(array_values($monthly_forecast)); ?>
+                        );
                         initializedCharts.add('dividendsMonthlyChart');
+                        console.log('✅ Dividends Monthly Chart created');
                     } catch (error) {
                         console.error('Errore inizializzazione Dividends Monthly Chart:', error);
                     }
                 }
 
-                // Dividends Cumulative Chart - Ricevuti + Totale (con previsti)
-                const dividendsCumulativeCtxEl = document.getElementById('dividendsCumulativeChart');
-                if (dividendsCumulativeCtxEl && !initializedCharts.has('dividendsCumulativeChart')) {
+                // Dividends Cumulative Chart - Usando ChartManager
+                if (document.getElementById('dividendsCumulativeChart')) {
                     try {
-                        const dividendsCumulativeCtx = dividendsCumulativeCtxEl.getContext('2d');
-                        new Chart(dividendsCumulativeCtx, {
-                            type: 'line',
-                            data: {
-                                labels: <?php echo json_encode($months_labels); ?>,
-                                datasets: [
-                                    {
-                                        label: 'Ricevuti',
-                                        data: <?php echo json_encode(array_values($cumulative_received)); ?>,
-                                        borderColor: '#8b5cf6',
-                                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                                        borderWidth: 3,
-                                        fill: true,
-                                        tension: 0,
-                                        pointRadius: 4,
-                                        pointBackgroundColor: '#8b5cf6'
-                                    },
-                                    {
-                                        label: 'Totale (+ Previsti)',
-                                        data: <?php echo json_encode(array_values($cumulative_total)); ?>,
-                                        borderColor: 'rgba(139, 92, 246, 0.5)',
-                                        backgroundColor: 'rgba(139, 92, 246, 0.05)',
-                                        borderWidth: 2,
-                                        borderDash: [5, 5],
-                                        fill: true,
-                                        tension: 0,
-                                        pointRadius: 3,
-                                        pointBackgroundColor: 'rgba(139, 92, 246, 0.5)'
-                                    }
-                                ]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                animation: { duration: 800, easing: 'easeOutQuart' },
-                                plugins: {
-                                    legend: { display: true, position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
-                                },
-                                scales: {
-                                    y: {
-                                        beginAtZero: true,
-                                        ticks: { callback: v => '€' + v.toFixed(0) }
-                                    }
-                                }
-                            }
-                        });
+                        window.ChartManager.createDividendsCumulativeChart(
+                            'dividendsCumulativeChart',
+                            <?php echo json_encode($months_labels); ?>,
+                            <?php echo json_encode(array_values($cumulative_received)); ?>,
+                            <?php echo json_encode(array_values($cumulative_total)); ?>
+                        );
                         initializedCharts.add('dividendsCumulativeChart');
+                        console.log('✅ Dividends Cumulative Chart created');
                     } catch (error) {
                         console.error('Errore inizializzazione Dividends Cumulative Chart:', error);
                     }
