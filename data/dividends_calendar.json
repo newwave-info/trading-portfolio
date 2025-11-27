@@ -1,16 +1,69 @@
 {
-  "last_update": null,
-  "forecast_6m": {
-    "total_amount": null,
-    "period": "-"
-  },
-  "portfolio_yield": null,
-  "next_dividend": {
-    "date": "-",
-    "ticker": "-",
-    "amount": null
-  },
-  "monthly_forecast": [],
-  "distributing_assets": [],
-  "ai_insight": "-"
+    "last_update": "2025-11-27T08:39:41+00:00",
+    "forecast_6m": {
+        "total_amount": 110.52,
+        "period": "Nov - Apr"
+    },
+    "portfolio_yield": 2.53,
+    "next_dividend": {
+        "date": "2025-12-15",
+        "ticker": "VHYL.MI",
+        "amount": 10.51
+    },
+    "monthly_forecast": [
+        {
+            "month": "Nov",
+            "amount": 0
+        },
+        {
+            "month": "Dec",
+            "amount": 55.26
+        },
+        {
+            "month": "Jan",
+            "amount": 0
+        },
+        {
+            "month": "Feb",
+            "amount": 0
+        },
+        {
+            "month": "Mar",
+            "amount": 55.26
+        },
+        {
+            "month": "Apr",
+            "amount": 0
+        }
+    ],
+    "distributing_assets": [
+        {
+            "ticker": "VHYL.MI",
+            "name": "Vanguard FTSE All-World High Div. Yield UCITS ETF Dis",
+            "dividend_yield": 2.91,
+            "annual_amount": 42.03,
+            "frequency": "Quarterly",
+            "last_div_date": null,
+            "next_div_date": null
+        },
+        {
+            "ticker": "TDIV.MI",
+            "name": "VanEck Morn. Dev. Mkts Div Lead. UCITS ETF",
+            "dividend_yield": 3.84,
+            "annual_amount": 89.5,
+            "frequency": "Quarterly",
+            "last_div_date": null,
+            "next_div_date": null
+        },
+        {
+            "ticker": "TDIV.MI",
+            "name": "VanEck Morn. Dev. Mkts Div Lead. UCITS ETF",
+            "dividend_yield": 3.84,
+            "annual_amount": 89.5,
+            "frequency": "Quarterly",
+            "last_div_date": null,
+            "next_div_date": null
+        }
+    ],
+    "ai_insight": "3 dividend-paying assets with moderate yield (2.5271121663294%). Balanced income strategy."
 }
