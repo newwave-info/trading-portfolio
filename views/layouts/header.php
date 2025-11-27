@@ -41,6 +41,9 @@
         }
     </script>
     <script>
+        // Initialize global variables before any other scripts
+        window.initializedCharts = window.initializedCharts || new Set();
+
         // Funzioni base inline per evitare errori prima del caricamento di app.js
         function showView(viewId) {
             document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));

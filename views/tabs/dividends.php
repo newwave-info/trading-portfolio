@@ -77,17 +77,26 @@
                             </div>
                         <?php else: ?>
                             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                                <?php foreach ($dividends_calendar_data['monthly_forecast'] as $month):
-                                    $has_events = $month["events"] > 0; ?>
+                                <?php
+                                $currentMonth = (int)date('n');
+                                $currentYear = (int)date('Y');
+                                $monthIndex = 0;
+                                foreach ($dividends_calendar_data['monthly_forecast'] as $month):
+                                    $has_events = ($month["amount"] ?? 0) > 0;
+                                    // Calculate year based on month position in forecast
+                                    $monthNum = array_search($month["month"], ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']) + 1;
+                                    $forecastYear = ($monthNum < $currentMonth && $monthIndex > 0) ? $currentYear + 1 : $currentYear;
+                                    $monthIndex++;
+                                ?>
                                 <div class="p-4 bg-white border border-gray-200">
                                     <div class="font-semibold text-primary text-sm"><?php echo htmlspecialchars($month["month"]); ?></div>
-                                    <div class="text-[10px] text-gray-500 mb-2"><?php echo htmlspecialchars($month["year"]); ?></div>
+                                    <div class="text-[10px] text-gray-500 mb-2"><?php echo $forecastYear; ?></div>
                                     <?php if ($has_events): ?>
                                         <div class="text-xs text-gray-600 mb-1">
-                                            <span class="px-2 py-0.5 bg-purple-100 text-purple-700 font-semibold"><?php echo $month["events"]; ?> evento/i</span>
+                                            <span class="px-2 py-0.5 bg-purple-100 text-purple-700 font-semibold">Dividendo</span>
                                         </div>
                                         <div class="text-sm font-bold text-positive mt-2">€<?php echo number_format(
-                                            $month["amount"],
+                                            $month["amount"] ?? 0,
                                             2,
                                             ",",
                                             "."
@@ -102,13 +111,38 @@
                     </div>
                 </div>
                 
+                <!-- DEBUG: Dividends Data -->
+                <?php if (isset($_GET['debug'])): ?>
+                <div class="mb-8 p-4 bg-gray-100 border border-gray-300 text-xs font-mono">
+                    <strong>DEBUG INFO:</strong><br>
+                    Dividends calendar loaded: <?php echo !empty($dividends_calendar_data) ? 'YES' : 'NO'; ?><br>
+                    Monthly forecast items: <?php echo count($dividends_calendar_data['monthly_forecast'] ?? []); ?><br>
+                    Historical dividends: <?php echo count($dividends); ?><br><br>
+
+                    <strong>Monthly Forecast from JSON:</strong><br>
+                    <?php
+                    if (!empty($dividends_calendar_data['monthly_forecast'])) {
+                        foreach ($dividends_calendar_data['monthly_forecast'] as $m) {
+                            echo "{$m['month']}: €{$m['amount']}<br>";
+                        }
+                    } else {
+                        echo "EMPTY!<br>";
+                    }
+                    ?>
+                </div>
+                <?php endif; ?>
+
                 <!-- Grafici Dividendi -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                         <div class="widget-card widget-purple p-6">
                             <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
                                 <div class="flex items-center gap-2">
                                     <i class="fa-solid fa-calendar-check text-purple text-sm"></i>
-                                    <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Dividendi Mensili 2025</span>
+                                    <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Dividendi Mensili (Ricevuti + Previsti)</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-[10px]">
+                                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-purple inline-block"></span> Ricevuti</span>
+                                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-purple/40 inline-block"></span> Previsti</span>
                                 </div>
                             </div>
                             <div class="relative h-[300px]">
@@ -119,7 +153,11 @@
                             <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
                                 <div class="flex items-center gap-2">
                                     <i class="fa-solid fa-money-bill-trend-up text-purple text-sm"></i>
-                                    <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Rendita Cumulativa (2025)</span>
+                                    <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Rendita Cumulativa (Ricevuti + Previsti)</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-[10px]">
+                                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-purple inline-block"></span> Ricevuti</span>
+                                    <span class="flex items-center gap-1"><span class="w-3 h-3 border-2 border-purple border-dashed inline-block"></span> Previsti</span>
                                 </div>
                             </div>
                             <div class="relative h-[300px]">
@@ -165,11 +203,11 @@
                                         <tr class="border-b border-gray-200 hover:bg-gray-50">
                                             <td class="px-4 py-3 font-semibold text-purple"><?php echo htmlspecialchars($asset['ticker']); ?></td>
                                             <td class="px-4 py-3"><?php echo htmlspecialchars($asset['name']); ?></td>
-                                            <td class="px-4 py-3 text-right font-semibold"><?php echo number_format($asset['yield'], 1, ',', '.'); ?>%</td>
+                                            <td class="px-4 py-3 text-right font-semibold"><?php echo number_format($asset['dividend_yield'] ?? 0, 1, ',', '.'); ?>%</td>
                                             <td class="px-4 py-3 text-center text-xs"><?php echo htmlspecialchars($asset['frequency']); ?></td>
-                                            <td class="px-4 py-3 text-right"><?php echo htmlspecialchars($asset['last_payment']); ?></td>
-                                            <td class="px-4 py-3 text-right font-medium"><?php echo htmlspecialchars($asset['next_ex_date']); ?></td>
-                                            <td class="px-4 py-3 text-right text-positive font-semibold">€<?php echo number_format($asset['expected_amount'], 2, ',', '.'); ?></td>
+                                            <td class="px-4 py-3 text-right"><?php echo $asset['last_div_date'] ? htmlspecialchars($asset['last_div_date']) : '-'; ?></td>
+                                            <td class="px-4 py-3 text-right font-medium"><?php echo $asset['next_div_date'] ? htmlspecialchars($asset['next_div_date']) : '-'; ?></td>
+                                            <td class="px-4 py-3 text-right text-positive font-semibold">€<?php echo number_format($asset['annual_amount'] ?? 0, 2, ',', '.'); ?></td>
                                         </tr>
                                         <?php endforeach; ?>
                                     <?php endif; ?>
@@ -220,24 +258,61 @@
                 <?php
                 // Crea array mensili per i grafici
                 $months_labels = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
-                $monthly_dividends = array_fill(0, 12, 0);
-                $cumulative_dividends = array_fill(0, 12, 0);
+                $months_map = ['Jan' => 0, 'Feb' => 1, 'Mar' => 2, 'Apr' => 3, 'May' => 4, 'Jun' => 5,
+                               'Jul' => 6, 'Aug' => 7, 'Sep' => 8, 'Oct' => 9, 'Nov' => 10, 'Dec' => 11];
 
-                // Popola array con dati reali da $dividends
+                // Array per dividendi RICEVUTI (storico)
+                $monthly_received = array_fill(0, 12, 0);
+
+                // Array per dividendi PREVISTI (forecast)
+                $monthly_forecast = array_fill(0, 12, 0);
+
+                // Popola array RICEVUTI con dati reali da $dividends (storico)
                 foreach ($dividends as $div) {
                     $month_num = (int)date('n', strtotime($div['pay_date'])) - 1; // 0-11
-                    $monthly_dividends[$month_num] += $div['amount'];
+                    $monthly_received[$month_num] += $div['amount'];
                 }
 
-                // Calcola cumulativo
+                // Popola array PREVISTI con dati dal calendario dividendi
+                if (!empty($dividends_calendar_data['monthly_forecast'])) {
+                    foreach ($dividends_calendar_data['monthly_forecast'] as $forecast) {
+                        $monthName = $forecast['month'] ?? '';
+                        $amount = $forecast['amount'] ?? 0;
+                        if (isset($months_map[$monthName]) && $amount > 0) {
+                            $monthIdx = $months_map[$monthName];
+                            // Solo se non abbiamo già ricevuto dividendi in quel mese
+                            if ($monthly_received[$monthIdx] == 0) {
+                                $monthly_forecast[$monthIdx] = $amount;
+                            }
+                        }
+                    }
+                }
+
+                // Calcola cumulativo RICEVUTI
+                $cumulative_received = array_fill(0, 12, 0);
                 $cumul = 0;
                 for ($i = 0; $i < 12; $i++) {
-                    $cumul += $monthly_dividends[$i];
-                    $cumulative_dividends[$i] = $cumul;
+                    $cumul += $monthly_received[$i];
+                    $cumulative_received[$i] = $cumul;
+                }
+
+                // Calcola cumulativo TOTALE (ricevuti + previsti)
+                $cumulative_total = array_fill(0, 12, 0);
+                $cumul = 0;
+                for ($i = 0; $i < 12; $i++) {
+                    $cumul += $monthly_received[$i] + $monthly_forecast[$i];
+                    $cumulative_total[$i] = $cumul;
                 }
                 ?>
 
-                // Dividends Monthly Chart - Dynamic from dividends data
+                // DEBUG: Log data to console
+                console.log('=== DIVIDENDS DEBUG ===');
+                console.log('Monthly Received:', <?php echo json_encode(array_values($monthly_received)); ?>);
+                console.log('Monthly Forecast:', <?php echo json_encode(array_values($monthly_forecast)); ?>);
+                console.log('Cumulative Received:', <?php echo json_encode(array_values($cumulative_received)); ?>);
+                console.log('Cumulative Total:', <?php echo json_encode(array_values($cumulative_total)); ?>);
+
+                // Dividends Monthly Chart - Ricevuti + Previsti
                 const dividendsMonthlyCtxEl = document.getElementById('dividendsMonthlyChart');
                 if (dividendsMonthlyCtxEl && !initializedCharts.has('dividendsMonthlyChart')) {
                     try {
@@ -246,23 +321,38 @@
                             type: 'bar',
                             data: {
                                 labels: <?php echo json_encode($months_labels); ?>,
-                                datasets: [{
-                                    label: 'Dividendi Mensili',
-                                    data: <?php echo json_encode($monthly_dividends); ?>,
-                                    backgroundColor: typeof pattern !== 'undefined' ? pattern.draw('diagonal', '#8b5cf6') : '#8b5cf6',
-                                    borderColor: '#8b5cf6',
-                                    borderRadius: 0
-                                }]
+                                datasets: [
+                                    {
+                                        label: 'Ricevuti',
+                                        data: <?php echo json_encode(array_values($monthly_received)); ?>,
+                                        backgroundColor: '#8b5cf6',
+                                        borderColor: '#8b5cf6',
+                                        borderRadius: 0
+                                    },
+                                    {
+                                        label: 'Previsti',
+                                        data: <?php echo json_encode(array_values($monthly_forecast)); ?>,
+                                        backgroundColor: 'rgba(139, 92, 246, 0.4)',
+                                        borderColor: '#8b5cf6',
+                                        borderWidth: 1,
+                                        borderDash: [5, 5],
+                                        borderRadius: 0
+                                    }
+                                ]
                             },
                             options: {
                                 responsive: true,
                                 maintainAspectRatio: false,
                                 animation: { duration: 800, easing: 'easeOutQuart' },
-                                plugins: { legend: { display: false } },
+                                plugins: {
+                                    legend: { display: true, position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
+                                },
                                 scales: {
+                                    x: { stacked: true },
                                     y: {
+                                        stacked: true,
                                         beginAtZero: true,
-                                        ticks: { callback: v => '€' + v.toFixed(2) }
+                                        ticks: { callback: v => '€' + v.toFixed(0) }
                                     }
                                 }
                             }
@@ -273,7 +363,7 @@
                     }
                 }
 
-                // Dividends Cumulative Chart - Dynamic from dividends data
+                // Dividends Cumulative Chart - Ricevuti + Totale (con previsti)
                 const dividendsCumulativeCtxEl = document.getElementById('dividendsCumulativeChart');
                 if (dividendsCumulativeCtxEl && !initializedCharts.has('dividendsCumulativeChart')) {
                     try {
@@ -282,26 +372,43 @@
                             type: 'line',
                             data: {
                                 labels: <?php echo json_encode($months_labels); ?>,
-                                datasets: [{
-                                    label: 'Rendita Cumulativa',
-                                    data: <?php echo json_encode($cumulative_dividends); ?>,
-                                    borderColor: '#8b5cf6',
-                                    backgroundColor: typeof pattern !== 'undefined' ? pattern.draw('diagonal', 'rgba(139, 92, 246, 0.05)') : 'rgba(139, 92, 246, 0.05)',
-                                    borderWidth: 3,
-                                    fill: true,
-                                    tension: 0,
-                                    pointRadius: 5
-                                }]
+                                datasets: [
+                                    {
+                                        label: 'Ricevuti',
+                                        data: <?php echo json_encode(array_values($cumulative_received)); ?>,
+                                        borderColor: '#8b5cf6',
+                                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                                        borderWidth: 3,
+                                        fill: true,
+                                        tension: 0,
+                                        pointRadius: 4,
+                                        pointBackgroundColor: '#8b5cf6'
+                                    },
+                                    {
+                                        label: 'Totale (+ Previsti)',
+                                        data: <?php echo json_encode(array_values($cumulative_total)); ?>,
+                                        borderColor: 'rgba(139, 92, 246, 0.5)',
+                                        backgroundColor: 'rgba(139, 92, 246, 0.05)',
+                                        borderWidth: 2,
+                                        borderDash: [5, 5],
+                                        fill: true,
+                                        tension: 0,
+                                        pointRadius: 3,
+                                        pointBackgroundColor: 'rgba(139, 92, 246, 0.5)'
+                                    }
+                                ]
                             },
                             options: {
                                 responsive: true,
                                 maintainAspectRatio: false,
                                 animation: { duration: 800, easing: 'easeOutQuart' },
-                                plugins: { legend: { display: false } },
+                                plugins: {
+                                    legend: { display: true, position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
+                                },
                                 scales: {
                                     y: {
                                         beginAtZero: true,
-                                        ticks: { callback: v => '€' + v.toFixed(2) }
+                                        ticks: { callback: v => '€' + v.toFixed(0) }
                                     }
                                 }
                             }

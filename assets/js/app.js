@@ -278,8 +278,9 @@ function showView(viewId) {
     }, 100);
 }
 
-// Track initialized charts
-const initializedCharts = new Set();
+// Track initialized charts (global)
+window.initializedCharts = window.initializedCharts || new Set();
+const initializedCharts = window.initializedCharts; // Local alias for convenience
 
 // Animation config
 const animationConfig = {
