@@ -1,13 +1,148 @@
 # 📊 ETF Portfolio Manager - Stato Avanzamento Lavori
 
 **Ultimo aggiornamento:** 27 Novembre 2025
-**Versione:** 0.2.0-MVP (JSON Based + n8n Integration)
-**Stato:** MVP Avanzato ✅ - Fase 1 (JSON Storage) completa, n8n integration attiva, Fase 2 (Database Migration) in roadmap
+**Versione:** 0.3.0-MySQL ✅
+**Stato:** Produzione - Migrazione MySQL completata, Repository Pattern implementato, n8n integration attiva
 
 > 📋 **Documentazione:**
 > - [README.md](README.md) - Panoramica generale e setup (aggiornato 26 Nov 2025)
 > - [STYLE_GUIDE.md](STYLE_GUIDE.md) - Linee guida UI/UX (REGOLE FERREE)
 > - Questo documento - Stato tecnico dettagliato e prossimi step operativi
+
+---
+
+## 🚀 **MIGRAZIONE MYSQL (v0.3.0) - COMPLETATA 27/11/2025**
+
+### **Architettura Database**
+- **Storage:** Migrazione completa da JSON a MySQL
+- **Database:** `trading_portfolio` (MySQL 8.2.29)
+- **Schema:** 10 tabelle + 2 VIEWs per computed values real-time
+- **Pattern:** Repository Pattern per separazione concerns
+- **Performance:** Query indexed, connection pooling, transactions
+
+### **Database Schema**
+
+#### Tabelle (10)
+1. **`portfolios`** - Metadata portfolio
+2. **`holdings`** - Posizioni con prezzi correnti
+3. **`transactions`** - Storico transazioni (BUY/SELL/DIVIDEND/FEE)
+4. **`dividend_payments`** - Dividendi ricevuti e previsti
+5. **`snapshots`** - Snapshot giornalieri portafoglio
+6. **`snapshot_holdings`** - Holdings per ogni snapshot
+7. **`allocation_by_asset_class`** - Allocazioni per classe asset
+8. **`monthly_performance`** - Performance mensile aggregata
+9. **`metadata_cache`** - Cache valori computati (opzionale)
+10. **`cron_logs`** - Log esecuzioni cron jobs
+
+#### VIEWs (2) - Computed Values Real-Time
+1. **`v_holdings_enriched`** - Holdings con P&L calcolati in tempo reale
+   - Calcola: `invested`, `market_value`, `pnl`, `pnl_pct`
+   - Usata per: Dashboard, Holdings table, API
+2. **`v_portfolio_metadata`** - Metadata portfolio aggregati
+   - Calcola: totali invested/value/pnl, count holdings, dividends received
+   - Usata per: Dashboard header, metriche
+
+### **Repository Pattern**
+
+#### Struttura
+```
+lib/Database/
+├── DatabaseManager.php          (Singleton PDO wrapper)
+├── config.php                   (Database configuration)
+└── Repositories/
+    ├── BaseRepository.php       (Abstract CRUD base)
+    ├── PortfolioRepository.php  (Metadata, allocations, performance)
+    ├── HoldingRepository.php    (Holdings + enriched VIEW)
+    ├── TransactionRepository.php
+    ├── DividendRepository.php
+    └── SnapshotRepository.php
+```
+
+#### Features
+- **DatabaseManager:** Singleton, connection pooling, transactions, auto-reconnect
+- **BaseRepository:** CRUD base (find, findAll, create, update, delete)
+- **Transactions:** BEGIN/COMMIT/ROLLBACK support per atomic operations
+- **Security:** PDO prepared statements, no SQL injection
+
+### **Migrazione Dati**
+
+#### Script: `scripts/migrate-to-mysql.php`
+- ✅ **Eseguita:** 27 Novembre 2025
+- **Dati migrati:**
+  - 1 Portfolio
+  - 4 Holdings (SGLD.MI, VHYL.MI, TDIV.MI, SPYD.FRA)
+  - 0 Transactions (nessuna transazione in JSON)
+  - 0 Dividends (nessun dividendo in JSON)
+  - 2 Allocations (Equity 67.33%, Commodity 32.67%)
+  - 1 Snapshot
+  - 1 Monthly Performance
+
+#### Validazione Post-Migrazione
+- ✅ Total invested: €9,733.27
+- ✅ Total value: €10,575.85
+- ✅ Holdings count: 4
+- ✅ P&L calculations: Corretti
+- ✅ VIEWs: Funzionanti
+- ✅ Dashboard: Nessun errore
+
+### **API Updates**
+
+#### Nuovi Endpoint
+1. **`POST /api/update.php`** - Webhook n8n per aggiornamento prezzi
+   - Bulk update prices con transazioni atomiche
+   - HMAC signature validation (opzionale)
+   - Response JSON compatibile con n8n
+   - Auto-update portfolio timestamp
+
+#### Endpoint Aggiornati
+2. **`GET /api/holdings.php`** - Lista holdings (usa MySQL VIEW)
+3. **`POST /api/holdings.php`** - Create/Update holding (usa Repository)
+4. **`DELETE /api/holdings.php?ticker=X`** - Soft delete holding
+
+### **Data Loader**
+
+#### File: `data/portfolio_data.php`
+- **Refactoring completo:** Da PortfolioManager (JSON) a Repositories (MySQL)
+- **Mapping compatibilità:** Chiavi JSON → MySQL per retrocompatibilità view
+- **Performance:** Query ottimizzate con VIEWs
+- **Features:**
+  - Metadata da `v_portfolio_metadata` VIEW
+  - Holdings enriched da `v_holdings_enriched` VIEW
+  - Allocazioni calcolate in real-time
+  - Monthly performance da tabella o snapshots
+  - Fallback graceful in caso di errore DB
+
+### **Vantaggi Migrazione**
+
+✅ **Performance:** Query indexed più veloci di file I/O
+✅ **Scalabilità:** Supporta milioni di record senza degrado
+✅ **Integrità:** Foreign keys, constraints, transactions ACID
+✅ **Real-time P&L:** Calcolato dalle VIEWs, sempre aggiornato
+✅ **Concorrenza:** Gestione lock ottimistica per update simultanei
+✅ **Backup:** Backup automatici MySQL invece di file JSON
+✅ **Query complesse:** Aggregazioni, JOIN, analisi storiche
+
+### **n8n Integration**
+
+#### Webhook Configuration
+- **URL:** `POST https://portfolio.newwave-media.it/api/update.php`
+- **Payload:**
+```json
+{
+  "holdings": [
+    {"ticker": "SGLD.MI", "price": 345.50, "source": "YahooFinance_v8"},
+    {"ticker": "VHYL.MI", "price": 68.85, "source": "YahooFinance_v8"}
+  ]
+}
+```
+- **Authentication:** HMAC SHA256 (opzionale, configurabile in `.env`)
+- **Response:** `{"success": true, "updated": 4, "timestamp": "..."}`
+
+#### Compatibilità
+- ✅ Stesso payload format
+- ✅ Stessa logica di update
+- ✅ Response format invariato
+- ✅ Nessuna modifica richiesta al workflow n8n
 
 ---
 
@@ -74,30 +209,31 @@
   ```
 - [x] **Backup** creato: `index.php.backup` (119KB originale)
 
-### **3. Sistema Dati Dinamici (95%)**
-- [x] **Storage JSON** (`data/portfolio.json`) con struttura completa:
-  - `metadata` - Metriche aggregate portfolio
-  - `holdings` - Posizioni correnti
-  - `transactions` - Storico operazioni
-  - `dividends` - Dividendi ricevuti
-  - `monthly_performance` - Performance mensile (auto-aggiornato da snapshots)
-  - `allocation_by_asset_class` - Allocazioni per classe (auto-calcolato)
-  - `n8n_config` - Config integrazione n8n
-- [x] **PortfolioManager class** (`lib/PortfolioManager.php`):
-  - CRUD holdings completo
-  - Import CSV Fineco (parser con separatore `;`)
-  - Ricalcolo metriche automatico con `allocation_by_asset_class`
-  - Metodo `setData()` per inizializzazione snapshot
-  - Preparazione payload per n8n
-  - Backup automatico prima del save
-- [x] **API REST Endpoints** (`api/holdings.php`):
-  - `GET /api/holdings.php` → Lista holdings
+### **3. Sistema Dati (100%) - MySQL Database**
+- [x] **Storage MySQL** (`trading_portfolio` database):
+  - 10 tabelle relazionali con foreign keys
+  - 2 VIEWs per computed values real-time
+  - Indexes ottimizzati per query performance
+  - Transactions ACID per data integrity
+- [x] **Repository Pattern** (`lib/Database/Repositories/`):
+  - 5 Repository classes (Portfolio, Holding, Transaction, Dividend, Snapshot)
+  - BaseRepository con CRUD operations comuni
+  - DatabaseManager singleton con connection pooling
+  - Security: PDO prepared statements, no SQL injection
+- [x] **API REST Endpoints**:
+  - `GET /api/holdings.php` → Lista holdings (da VIEW)
   - `POST /api/holdings.php` → Create/Update holding
-  - `DELETE /api/holdings.php?isin=X` → Delete holding
-  - `POST /api/holdings.php?action=import` → Import CSV
-- [x] **Frontend CRUD Holdings:**
-  - Form Add/Edit posizione (modale responsive)
-  - Import CSV con validazione
+  - `DELETE /api/holdings.php?ticker=X` → Soft delete holding
+  - `POST /api/update.php` → Webhook n8n bulk price update
+- [x] **Data Loader** (`data/portfolio_data.php`):
+  - Carica dati da MySQL usando Repositories
+  - Mapping compatibilità chiavi per retrocompatibilità view
+  - Fallback graceful in caso di errore DB
+- [x] **Migration Script** (`scripts/migrate-to-mysql.php`):
+  - Migrazione completa JSON → MySQL
+  - Validazione pre/post migrazione
+  - Dry-run mode per testing
+- [x] **Deprecato:** `lib/PortfolioManager.php` (sostituito da Repositories)
   - Pulsanti Edit/Delete per ogni riga
   - JavaScript AJAX con fetch API (`assets/js/holdings.js`)
   - Notification toast system

@@ -1,62 +1,135 @@
 <?php
 // ============================================
-// PORTFOLIO DATA - Caricato da JSON
+// PORTFOLIO DATA - Caricato da MySQL
 // ============================================
-// Questo file carica i dati da portfolio.json usando PortfolioManager
+// Questo file carica i dati dal database MySQL usando i Repository
 // Mantiene retrocompatibilità con le variabili utilizzate nelle viste
 
-require_once __DIR__ . '/../lib/PortfolioManager.php';
+require_once __DIR__ . '/../lib/Database/DatabaseManager.php';
+require_once __DIR__ . '/../lib/Database/Repositories/PortfolioRepository.php';
+require_once __DIR__ . '/../lib/Database/Repositories/HoldingRepository.php';
+require_once __DIR__ . '/../lib/Database/Repositories/DividendRepository.php';
+require_once __DIR__ . '/../lib/Database/Repositories/SnapshotRepository.php';
+require_once __DIR__ . '/../lib/Database/Repositories/TransactionRepository.php';
 
 try {
-    $portfolioManager = new PortfolioManager();
-    $portfolioData = $portfolioManager->getData();
+    // Initialize database and repositories
+    $db = DatabaseManager::getInstance();
+    $portfolioRepo = new PortfolioRepository($db);
+    $holdingRepo = new HoldingRepository($db);
+    $dividendRepo = new DividendRepository($db);
+    $snapshotRepo = new SnapshotRepository($db);
+    $transactionRepo = new TransactionRepository($db);
 
-    // Metadata del portafoglio
-    $metadata = $portfolioData['metadata'];
+    // ============================================
+    // METADATA DEL PORTAFOGLIO (da VIEW)
+    // ============================================
+    $metadata_raw = $portfolioRepo->getMetadata();
 
-    // Top holdings (tutti gli holdings dal JSON)
-    $top_holdings = $portfolioData['holdings'];
+    // Mappa i nomi delle chiavi per compatibilità con le view
+    $metadata = [
+        'portfolio_name' => $metadata_raw['portfolio_name'],
+        'owner' => $metadata_raw['owner'],
+        'last_update' => $metadata_raw['last_update'],
+        'total_holdings' => $metadata_raw['total_holdings'],
+        'total_invested' => $metadata_raw['total_invested'],
+        'total_value' => $metadata_raw['total_market_value'], // Compatibilità
+        'total_market_value' => $metadata_raw['total_market_value'],
+        'unrealized_pnl' => $metadata_raw['total_pnl'], // Compatibilità
+        'total_pnl' => $metadata_raw['total_pnl'],
+        'unrealized_pnl_pct' => $metadata_raw['total_pnl_pct'], // Compatibilità
+        'total_pnl_pct' => $metadata_raw['total_pnl_pct'],
+        'total_dividends' => $metadata_raw['total_dividends_received'], // Compatibilità
+        'total_dividends_received' => $metadata_raw['total_dividends_received'],
+        'realized_pnl' => 0, // TODO: calcolare da transazioni
+        'cash_balance' => 0,
+        'base_currency' => 'EUR'
+    ];
 
-    // Storico performance - Caricato da snapshots se disponibili
-    $snapshotsPath = __DIR__ . '/snapshots.json';
-    if (file_exists($snapshotsPath)) {
-        $snapshotsData = json_decode(file_get_contents($snapshotsPath), true);
-        $snapshots = $snapshotsData['snapshots'] ?? [];
+    // ============================================
+    // TOP HOLDINGS (da VIEW con computed values)
+    // ============================================
+    $holdings_raw = $holdingRepo->getEnrichedHoldings();
 
-        // Genera monthly_performance da snapshots (ultimi 12 mesi)
-        if (!empty($snapshots)) {
-            $byMonth = [];
-            foreach ($snapshots as $snap) {
-                $month = date('M', strtotime($snap['date']));
-                $year = date('Y', strtotime($snap['date']));
-                $key = $year . '-' . $month;
+    // Calcola il totale per le percentuali di allocazione
+    $total_market_value = array_sum(array_column($holdings_raw, 'market_value'));
 
-                // Prendi l'ultimo snapshot di ogni mese
-                if (!isset($byMonth[$key]) || $snap['date'] > $byMonth[$key]['date']) {
-                    $byMonth[$key] = [
-                        'month' => $month,
-                        'value' => $snap['metadata']['total_value'],
-                        'date' => $snap['date']
-                    ];
-                }
-            }
+    // Mappa i nomi delle chiavi per compatibilità con le view
+    $top_holdings = array_map(function($holding) use ($total_market_value) {
+        // Calcola allocazione corrente
+        $current_allocation = $total_market_value > 0
+            ? ($holding['market_value'] / $total_market_value) * 100
+            : 0;
 
-            // Ordina per data e prendi ultimi 12 mesi
-            usort($byMonth, fn($a, $b) => $a['date'] <=> $b['date']);
-            $monthly_performance = array_slice(array_map(fn($item) => [
-                'month' => $item['month'],
-                'value' => $item['value']
-            ], $byMonth), -12);
-        } else {
-            // Fallback a dati da portfolio.json se no snapshots
-            $monthly_performance = $portfolioData['monthly_performance'];
-        }
-    } else {
-        // Fallback a dati da portfolio.json
-        $monthly_performance = $portfolioData['monthly_performance'];
+        return [
+            'id' => $holding['id'],
+            'ticker' => $holding['ticker'],
+            'isin' => '', // Non disponibile nel DB, campo opzionale
+            'name' => $holding['name'],
+            'asset_class' => $holding['asset_class'],
+            'quantity' => $holding['quantity'],
+            'avg_price' => $holding['avg_price'],
+            'current_price' => $holding['current_price'],
+            'price_source' => $holding['price_source'],
+            'invested_value' => $holding['invested'],
+            'market_value' => $holding['market_value'],
+            'unrealized_pnl' => $holding['pnl'],
+            'pnl_percentage' => $holding['pnl_pct'],
+            'current_allocation' => $current_allocation,
+            'target_allocation' => 0, // TODO: aggiungere campo al DB
+            'drift' => $current_allocation - 0, // drift = current - target
+            'updated_at' => $holding['updated_at'],
+            // Campi extra per compatibilità
+            'sector' => '',
+            'market' => '',
+            'instrument_type' => $holding['asset_class'],
+            'currency' => 'EUR',
+            'dividend_yield' => 0,
+            'expense_ratio' => 0,
+            'distributor' => '',
+            'notes' => ''
+        ];
+    }, $holdings_raw);
+
+    // Riordina per market_value decrescente
+    usort($top_holdings, fn($a, $b) => $b['market_value'] <=> $a['market_value']);
+
+    // ============================================
+    // STORICO PERFORMANCE - Da snapshots
+    // ============================================
+    $currentYear = date('Y');
+    $monthly_performance = $portfolioRepo->getMonthlyPerformance($currentYear);
+
+    // Se non ci sono dati, prendi dagli snapshot
+    if (empty($monthly_performance)) {
+        $yearSnapshots = $snapshotRepo->getMonthlySnapshots($currentYear);
+
+        $monthly_performance = array_map(function($snap) {
+            return [
+                'month' => date('M', strtotime($snap['snapshot_date'])),
+                'value' => (float)$snap['total_market_value']
+            ];
+        }, $yearSnapshots);
     }
 
-    // Analisi tecnica - Caricata da JSON (popolato da n8n workflow)
+    // ============================================
+    // ALLOCAZIONE PER ASSET CLASS
+    // ============================================
+    $allocation_by_asset_class = $portfolioRepo->getAllocations();
+
+    // ============================================
+    // DIVIDENDI
+    // ============================================
+    $dividends = $dividendRepo->getAll();
+
+    // ============================================
+    // TRANSAZIONI (BUY/SELL/DIVIDEND)
+    // ============================================
+    $transactions = $transactionRepo->getCompletedHistory();
+
+    // ============================================
+    // ANALISI TECNICA - Caricata da JSON (popolato da n8n workflow)
+    // ============================================
     $technical_analysis = [];
     $technicalPath = __DIR__ . '/technical_analysis.json';
     if (file_exists($technicalPath)) {
@@ -64,22 +137,9 @@ try {
         $technical_analysis = $technicalData['analysis'] ?? [];
     }
 
-    // Allocazione per asset class
-    $allocation_by_asset_class = $portfolioData['allocation_by_asset_class'];
-
-    // Dividendi ricevuti
-    $dividends = $portfolioData['dividends'];
-
-    // Transazioni (BUY/SELL/DIVIDEND)
-    $transactions = $portfolioData['transactions'] ?? [];
-    // Ordina per timestamp decrescente se presente
-    usort($transactions, function ($a, $b) {
-        $ta = $a['timestamp'] ?? '';
-        $tb = $b['timestamp'] ?? '';
-        return strcmp($tb, $ta);
-    });
-
-    // Opportunità ETF - Caricata da JSON (popolato da n8n workflow)
+    // ============================================
+    // OPPORTUNITÀ ETF - Caricata da JSON (popolato da n8n workflow)
+    // ============================================
     $opportunities = [];
     $opportunitiesPath = __DIR__ . '/opportunities.json';
     if (file_exists($opportunitiesPath)) {
@@ -87,7 +147,9 @@ try {
         $opportunities = $opportunitiesData['opportunities'] ?? [];
     }
 
-    // Dashboard Insights - Caricata da JSON (AI analysis)
+    // ============================================
+    // DASHBOARD INSIGHTS - Caricata da JSON (AI analysis)
+    // ============================================
     $dashboardInsights = [
         'portfolio_health' => [
             'score' => null,
@@ -109,7 +171,9 @@ try {
         }
     }
 
-    // Recommendations - Caricata da JSON (AI analysis)
+    // ============================================
+    // RECOMMENDATIONS - Caricata da JSON (AI analysis)
+    // ============================================
     $recommendations = [
         'immediate_actions' => [],
         'operational_plan' => [],
@@ -123,7 +187,9 @@ try {
         $recommendations['warnings_risks'] = $data['warnings_risks'] ?? [];
     }
 
-    // Dividends Calendar - Caricata da JSON (from API or n8n)
+    // ============================================
+    // DIVIDENDS CALENDAR - Caricata da JSON (from API or n8n)
+    // ============================================
     $dividends_calendar_data = [
         'forecast_6m' => ['total_amount' => null, 'period' => '-'],
         'portfolio_yield' => null,
@@ -143,27 +209,46 @@ try {
         $dividends_calendar_data['ai_insight'] = $data['ai_insight'] ?? '-';
     }
 
-    // Calcoli per dashboard
+    // ============================================
+    // CALCOLI PER DASHBOARD
+    // ============================================
     $holdings_count = count($top_holdings);
-    $best_performer = $top_holdings[0] ?? null;
-    $worst_performer = end($top_holdings) ?: null;
+
+    // Best/worst performer basato su pnl_percentage
+    $best_performer = null;
+    $worst_performer = null;
+
+    if (!empty($top_holdings)) {
+        $sorted_by_pnl = $top_holdings;
+        usort($sorted_by_pnl, fn($a, $b) => $b['pnl_percentage'] <=> $a['pnl_percentage']);
+
+        $best_performer = $sorted_by_pnl[0];
+        $worst_performer = end($sorted_by_pnl);
+    }
 
 } catch (Exception $e) {
     // Fallback in caso di errore
-    error_log("Error loading portfolio data: " . $e->getMessage());
+    error_log("Error loading portfolio data from MySQL: " . $e->getMessage());
+    error_log("Stack trace: " . $e->getTraceAsString());
 
     // Dati di fallback minimali
     $metadata = [
         'portfolio_name' => 'Portafoglio ETF',
         'owner' => 'User',
-        'last_update' => date('Y-m-d'),
-        'base_currency' => 'EUR',
-        'total_value' => 0,
+        'last_update' => date('Y-m-d H:i:s'),
+        'total_holdings' => 0,
         'total_invested' => 0,
+        'total_value' => 0,
+        'total_market_value' => 0,
         'unrealized_pnl' => 0,
+        'total_pnl' => 0,
         'unrealized_pnl_pct' => 0,
+        'total_pnl_pct' => 0,
+        'total_dividends' => 0,
+        'total_dividends_received' => 0,
         'realized_pnl' => 0,
-        'total_dividends' => 0
+        'cash_balance' => 0,
+        'base_currency' => 'EUR'
     ];
 
     $top_holdings = [];
@@ -171,7 +256,31 @@ try {
     $technical_analysis = [];
     $allocation_by_asset_class = [];
     $dividends = [];
+    $transactions = [];
     $opportunities = [];
+    $dashboardInsights = [
+        'portfolio_health' => [
+            'score' => null,
+            'score_label' => '-',
+            'diversification' => ['label' => '-', 'status' => 'neutral'],
+            'performance' => ['label' => '-', 'status' => 'neutral'],
+            'risk' => ['label' => '-', 'status' => 'neutral']
+        ],
+        'ai_insights' => ['summary_title' => 'Riepilogo Portafoglio', 'insights' => []]
+    ];
+    $recommendations = [
+        'immediate_actions' => [],
+        'operational_plan' => [],
+        'warnings_risks' => []
+    ];
+    $dividends_calendar_data = [
+        'forecast_6m' => ['total_amount' => null, 'period' => '-'],
+        'portfolio_yield' => null,
+        'next_dividend' => ['date' => '-', 'ticker' => '-', 'amount' => null],
+        'monthly_forecast' => [],
+        'distributing_assets' => [],
+        'ai_insight' => '-'
+    ];
     $holdings_count = 0;
     $best_performer = null;
     $worst_performer = null;

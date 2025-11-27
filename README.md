@@ -6,18 +6,19 @@ Strumento web per la gestione e analisi di un portafoglio ETF su Fineco Bank, co
 
 ## Stato del progetto
 
-Questo è un progetto in **fase di sviluppo attivo**. La versione attuale è una **MVP (Minimum Viable Product)** funzionante che utilizza storage JSON per una prototipazione rapida. La roadmap prevede l'evoluzione verso un'architettura più robusta con database relazionale e automazioni avanzate.
+Progetto in **produzione attiva** (v0.3.0-MySQL). Migrazione da storage JSON a **MySQL** completata il 27/11/2025. Architettura robusta con Repository Pattern, VIEWs per computed values real-time, e integrazione n8n per automazioni.
 
-### Versione attuale (MVP - JSON Based)
+### Versione attuale (v0.3.0 - MySQL Production)
 
 | Componente | Versione | Ruolo |
 |-----------|----------|-------|
-| PHP | 8.x | Backend API + Frontend rendering |
-| JSON | - | Storage dati (portfolio, analisi, dividendi) |
-| JavaScript | Vanilla | Interazioni client-side e visualizzazioni |
+| PHP | 8.2+ | Backend API + Frontend rendering |
+| MySQL | 8.2.29 | Storage relazionale (10 tabelle + 2 VIEWs) |
+| Repository Pattern | - | Data layer con Repositories + DatabaseManager |
+| JavaScript | Vanilla + Chart.js | Interazioni client-side e grafici |
 | Apache/Nginx | - | Web server |
 
-### Architettura attuale
+### Architettura attuale (MySQL Production)
 
 ```
 ┌─────────────────┐
@@ -26,55 +27,66 @@ Questo è un progetto in **fase di sviluppo attivo**. La versione attuale è una
          │ HTTP
          ▼
 ┌──────────────────────────────────────┐
-│   PHP 8.x (portfolio-app)            │
+│   PHP 8.2+ (portfolio-app)           │
 │   - Dashboard con widgets            │
 │   - Gestione Holdings (API REST)     │
 │   - Visualizzazioni performance      │
-│   - Analisi tecnica e dividendi      │
-│   - API n8n webhook (/api/n8n/)      │
+│   - Repository Pattern (Data Layer)  │
+│   - API n8n webhook (/api/update)    │
 └─────────┬────────────────────────────┘
           │
-          │ Read/Write
+          │ PDO + Repositories
           ▼
 ┌─────────────────────────────────────┐
-│   File System JSON                  │
-│   - portfolio.json                  │
-│   - snapshots.json                  │
-│   - technical_analysis.json         │
-│   - opportunities.json              │
-│   - recommendations.json            │
-│   - dividends_calendar.json         │
+│   MySQL 8.2.29 Database             │
+│   ┌───────────────────────────┐     │
+│   │ Tables (10):              │     │
+│   │ - portfolios              │     │
+│   │ - holdings                │     │
+│   │ - transactions            │     │
+│   │ - dividend_payments       │     │
+│   │ - snapshots               │     │
+│   │ - snapshot_holdings       │     │
+│   │ - allocation_by_asset_class│    │
+│   │ - monthly_performance     │     │
+│   │ - metadata_cache          │     │
+│   │ - cron_logs               │     │
+│   └───────────────────────────┘     │
+│   ┌───────────────────────────┐     │
+│   │ VIEWs (2):                │     │
+│   │ - v_holdings_enriched     │     │
+│   │ - v_portfolio_metadata    │     │
+│   └───────────────────────────┘     │
 └──────────┬──────────────────────────┘
            │
-           │ HMAC-authenticated Webhook
+           │ HMAC Webhook (POST /api/update.php)
            ▼
 ┌─────────────────────────────────────┐
 │   n8n Workflow Automation           │
 │   - Portfolio Enrichment (daily)    │
-│   - Price fetching (4 providers)    │
-│   - Auto-classification ETF         │
-│   - Snapshot creation               │
+│   - Price fetching (YahooFinance)   │
+│   - Bulk price update via webhook   │
+│   - Auto-snapshot creation          │
 └─────────┬───────────────────────────┘
           │
           │ REST API
           ▼
 ┌─────────────────────────────────────┐
 │   External Services                 │
-│   - TwelveData API                  │
-│   - Financial Modeling Prep         │
-│   - Yahoo Finance                   │
-│   - JustETF (scraping)              │
+│   - Yahoo Finance API (v8)          │
+│   - (Future: TwelveData, FMP)       │
 └─────────────────────────────────────┘
 ```
 
-**Scelta dello storage JSON:**
+**Vantaggi architettura MySQL:**
 
-La scelta di utilizzare file JSON come storage nella fase MVP offre diversi vantaggi:
-- **Semplicità di setup**: nessuna configurazione database necessaria
-- **Portabilità**: facile backup e migrazione (copia cartella `/data`)
-- **Trasparenza**: dati leggibili e modificabili direttamente
-- **Prototipazione rapida**: focus sulla logica di business e UI
-- **Debugging facilitato**: ispezione immediata dello stato dell'applicazione
+- **Performance**: Query indexed, connection pooling, cache results
+- **Scalabilità**: Supporta milioni di record senza degrado
+- **Integrità**: Foreign keys, constraints, transactions ACID
+- **Real-time P&L**: Calcolato dalle VIEWs, sempre aggiornato
+- **Concorrenza**: Gestione lock ottimistica per update simultanei
+- **Backup**: Backup automatici MySQL schedulati
+- **Query complesse**: Aggregazioni, JOIN, analisi storiche
 
 ---
 

@@ -5,13 +5,15 @@
  * Endpoints:
  * - GET    /api/holdings.php          → Lista holdings
  * - POST   /api/holdings.php          → Crea/aggiorna holding
- * - DELETE /api/holdings.php?isin=X   → Elimina holding
+ * - DELETE /api/holdings.php?ticker=X → Elimina holding
  * - POST   /api/holdings.php?action=import → Import CSV
  */
 
 header('Content-Type: application/json');
 
-require_once __DIR__ . '/../lib/PortfolioManager.php';
+require_once __DIR__ . '/../lib/Database/DatabaseManager.php';
+require_once __DIR__ . '/../lib/Database/Repositories/HoldingRepository.php';
+require_once __DIR__ . '/../lib/Database/Repositories/PortfolioRepository.php';
 
 // CORS headers (se necessario per sviluppo locale)
 header('Access-Control-Allow-Origin: *');
@@ -24,14 +26,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 try {
-    $portfolioManager = new PortfolioManager();
+    // Initialize repositories
+    $db = DatabaseManager::getInstance();
+    $holdingRepo = new HoldingRepository($db);
+    $portfolioRepo = new PortfolioRepository($db);
+
     $method = $_SERVER['REQUEST_METHOD'];
 
     // ============================================
     // GET - Lista holdings
     // ============================================
     if ($method === 'GET') {
-        $holdings = $portfolioManager->getHoldings();
+        $holdings = $holdingRepo->getEnrichedHoldings();
 
         echo json_encode([
             'success' => true,
@@ -65,25 +71,8 @@ try {
                 throw new Exception('Il file deve essere in formato CSV');
             }
 
-            // Salva temporaneamente
-            $tmpPath = sys_get_temp_dir() . '/' . uniqid('portfolio_') . '.csv';
-            move_uploaded_file($file['tmp_name'], $tmpPath);
-
-            // Import
-            $result = $portfolioManager->importFromCsv($tmpPath);
-
-            // Rimuovi file temporaneo
-            unlink($tmpPath);
-
-            echo json_encode([
-                'success' => $result['success'],
-                'imported' => $result['imported'],
-                'errors' => $result['errors'],
-                'message' => $result['imported'] > 0
-                    ? "Importate {$result['imported']} posizioni con successo"
-                    : 'Nessuna posizione importata'
-            ]);
-            exit;
+            // TODO: Implementa import CSV per MySQL
+            throw new Exception('Import CSV non ancora implementato per MySQL');
         }
 
         // Altrimenti è un upsert holding normale
@@ -94,51 +83,57 @@ try {
         }
 
         // Validazione campi obbligatori
-        $required = ['isin', 'ticker', 'name', 'quantity', 'avg_price'];
+        $required = ['ticker', 'name', 'quantity', 'avg_price'];
         foreach ($required as $field) {
             if (!isset($input[$field]) || $input[$field] === '') {
                 throw new Exception("Campo obbligatorio mancante: {$field}");
             }
         }
 
-        // ISIN validation
-        $isinVal = strtoupper(trim($input['isin']));
-        if (!preg_match('/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/', $isinVal)) {
-            throw new Exception('ISIN non valido');
-        }
-
+        $ticker = strtoupper(trim($input['ticker']));
         $isUpdate = isset($input['is_update']) ? (bool) $input['is_update'] : false;
 
         // Check duplicati se non è update
-        if (!$isUpdate && $portfolioManager->getHoldingByIsin($isinVal)) {
-            throw new Exception('ISIN già presente. Usa Modifica per aggiornare la posizione.');
+        if (!$isUpdate && $holdingRepo->findByTicker($ticker)) {
+            throw new Exception('Ticker già presente. Usa Modifica per aggiornare la posizione.');
         }
 
-        // Sanitizzazione
-        $holding = [
-            'isin' => $isinVal,
-            'ticker' => strtoupper(trim($input['ticker'])),
+        // Prepara dati holding
+        $holdingData = [
+            'ticker' => $ticker,
             'name' => trim($input['name']),
+            'asset_class' => isset($input['asset_class']) ? trim($input['asset_class']) : 'ETF',
             'quantity' => (float) $input['quantity'],
             'avg_price' => (float) $input['avg_price'],
-            'target_allocation' => isset($input['target_allocation']) ? (float) $input['target_allocation'] : 0.00,
-            'notes' => isset($input['notes']) ? trim($input['notes']) : ''
+            'current_price' => isset($input['current_price']) ? (float) $input['current_price'] : null,
+            'price_source' => isset($input['price_source']) ? trim($input['price_source']) : null,
         ];
 
-        // Campi opzionali
-        if (isset($input['asset_class'])) $holding['asset_class'] = trim($input['asset_class']);
-        if (isset($input['sector'])) $holding['sector'] = trim($input['sector']);
-        if (isset($input['market'])) $holding['market'] = trim($input['market']);
-        if (isset($input['instrument_type'])) $holding['instrument_type'] = trim($input['instrument_type']);
-        if (isset($input['currency'])) $holding['currency'] = strtoupper(trim($input['currency']));
-        if (isset($input['dividend_yield'])) $holding['dividend_yield'] = (float) $input['dividend_yield'];
-        if (isset($input['expense_ratio'])) $holding['expense_ratio'] = (float) $input['expense_ratio'];
-        if (isset($input['distributor'])) $holding['distributor'] = trim($input['distributor']);
+        if ($isUpdate) {
+            // Update existing holding
+            $success = $holdingRepo->updateQuantityAndPrice(
+                $ticker,
+                $holdingData['quantity'],
+                $holdingData['avg_price']
+            );
 
-        $success = $portfolioManager->upsertHolding($holding, true);
+            if ($holdingData['current_price']) {
+                $holdingRepo->updatePrice(
+                    $ticker,
+                    $holdingData['current_price'],
+                    $holdingData['price_source']
+                );
+            }
+        } else {
+            // Create new holding
+            $success = $holdingRepo->createHolding($holdingData);
+        }
 
         if ($success) {
-            $updated = $portfolioManager->getHoldingByIsin($holding['isin']);
+            $updated = $holdingRepo->findByTicker($ticker);
+
+            // Update portfolio timestamp
+            $portfolioRepo->updateLastUpdate();
 
             echo json_encode([
                 'success' => true,
@@ -152,17 +147,20 @@ try {
     }
 
     // ============================================
-    // DELETE - Elimina holding
+    // DELETE - Elimina holding (soft delete)
     // ============================================
     if ($method === 'DELETE') {
-        if (!isset($_GET['isin'])) {
-            throw new Exception('ISIN non specificato');
+        if (!isset($_GET['ticker'])) {
+            throw new Exception('Ticker non specificato');
         }
 
-        $isin = strtoupper(trim($_GET['isin']));
-        $success = $portfolioManager->deleteHolding($isin);
+        $ticker = strtoupper(trim($_GET['ticker']));
+        $success = $holdingRepo->softDelete($ticker);
 
         if ($success) {
+            // Update portfolio timestamp
+            $portfolioRepo->updateLastUpdate();
+
             echo json_encode([
                 'success' => true,
                 'message' => 'Posizione eliminata con successo'
