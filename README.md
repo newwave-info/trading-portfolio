@@ -102,6 +102,7 @@ ETF Portfolio Manager è una **web application PHP** che funziona come centro di
 - ✅ Grafici performance dinamici da snapshots
 - ✅ Sistema classificazione automatica ETF (settore/asset_class)
 - ✅ Dividendi: sincronizzazione da n8n (yield, frequenza, annual_dividend), calendario forecast 6 mesi, grafici ricevuti/previsti, tab dedicata
+- ✅ Payout automatico dividendi via script (`dividends-payout.php`) schedulabile in cron (nessun inserimento manuale)
 
 **In roadmap (prossime iterazioni):**
 

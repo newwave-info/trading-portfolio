@@ -287,6 +287,7 @@
 3. **Dividendi**
    - [x] Integrazione n8n completata (yield, freq, annual_dividend, calendario forecast)
    - [x] Grafici e tab Dividendi collegati a dati reali (ricevuti) e previsti
+   - [x] Payout automatico con `dividends-payout.php` (cron daily, niente input manuale)
    - [ ] Modale "Registra Dividendo" manuale (future)
    - [ ] Salvataggio nuove registrazioni in `portfolio.json → dividends[]` (future)
 
