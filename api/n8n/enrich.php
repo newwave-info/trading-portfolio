@@ -107,11 +107,13 @@ try {
         // Update fields if provided
         $updates = [];
 
+        // Price
         if (isset($enrichedHolding["current_price"])) {
             $updates["current_price"] =
                 (float) $enrichedHolding["current_price"];
         }
 
+        // Classification
         if (
             isset($enrichedHolding["asset_class"]) &&
             $enrichedHolding["asset_class"] !== "Unknown"
@@ -126,6 +128,7 @@ try {
             $updates["sector"] = $enrichedHolding["sector"];
         }
 
+        // Financial metrics
         if (isset($enrichedHolding["expense_ratio"])) {
             $updates["expense_ratio"] =
                 (float) $enrichedHolding["expense_ratio"];
@@ -134,6 +137,47 @@ try {
         if (isset($enrichedHolding["dividend_yield"])) {
             $updates["dividend_yield"] =
                 (float) $enrichedHolding["dividend_yield"];
+        }
+
+        // 🆕 DIVIDEND DATA
+        if (isset($enrichedHolding["annual_dividend"])) {
+            $updates["annual_dividend"] =
+                (float) $enrichedHolding["annual_dividend"];
+        }
+
+        if (isset($enrichedHolding["dividend_frequency"])) {
+            $updates["dividend_frequency"] =
+                $enrichedHolding["dividend_frequency"];
+        }
+
+        if (isset($enrichedHolding["has_dividends"])) {
+            $updates["has_dividends"] = (bool) $enrichedHolding["has_dividends"];
+        }
+
+        if (isset($enrichedHolding["total_dividends_5y"])) {
+            $updates["total_dividends_5y"] =
+                (int) $enrichedHolding["total_dividends_5y"];
+        }
+
+        // 🆕 PRICE RANGES & PERFORMANCE
+        if (isset($enrichedHolding["fifty_two_week_high"])) {
+            $updates["fifty_two_week_high"] =
+                (float) $enrichedHolding["fifty_two_week_high"];
+        }
+
+        if (isset($enrichedHolding["fifty_two_week_low"])) {
+            $updates["fifty_two_week_low"] =
+                (float) $enrichedHolding["fifty_two_week_low"];
+        }
+
+        if (isset($enrichedHolding["ytd_change_percent"])) {
+            $updates["ytd_change_percent"] =
+                (float) $enrichedHolding["ytd_change_percent"];
+        }
+
+        if (isset($enrichedHolding["one_year_change_percent"])) {
+            $updates["one_year_change_percent"] =
+                (float) $enrichedHolding["one_year_change_percent"];
         }
 
         // Apply updates
@@ -219,6 +263,31 @@ try {
             "[n8n/enrich] Updated monthly_performance with " .
                 count($monthlyPerformance) .
                 " months"
+        );
+    }
+
+    // 🆕 Generate dividends calendar
+    try {
+        $dividendsCalendar = $portfolioManager->generateDividendsCalendar();
+        $dividendsFile = __DIR__ . "/../../data/dividends_calendar.json";
+
+        file_put_contents(
+            $dividendsFile,
+            json_encode(
+                $dividendsCalendar,
+                JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE
+            )
+        );
+
+        error_log(
+            "[n8n/enrich] Updated dividends calendar with " .
+                count($dividendsCalendar["distributing_assets"]) .
+                " distributing assets"
+        );
+    } catch (Exception $e) {
+        error_log(
+            "[n8n/enrich] Warning: Could not generate dividends calendar: " .
+                $e->getMessage()
         );
     }
 
