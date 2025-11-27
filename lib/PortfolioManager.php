@@ -383,4 +383,189 @@ class PortfolioManager {
     public function setData(array $data): void {
         $this->data = $data;
     }
+
+    /**
+     * Generate dividends calendar from holdings data
+     *
+     * Calculates next payment dates based on dividend frequency
+     *
+     * @return array Dividends calendar structure
+     */
+    public function generateDividendsCalendar(): array
+    {
+        $data = $this->getData();
+        $holdings = $data["holdings"] ?? [];
+
+        $distributingAssets = [];
+        $monthlyForecast = array_fill(1, 12, 0); // Jan to Dec
+        $portfolioYield = 0;
+        $nextDividend = null;
+        $totalInvested = $data["metadata"]["total_invested"] ?? 0;
+
+        $today = new DateTime();
+        $currentMonth = (int) $today->format('n');
+
+        foreach ($holdings as $holding) {
+            $hasDividends = $holding["has_dividends"] ?? false;
+            $dividendYield = $holding["dividend_yield"] ?? 0;
+            $annualDividend = $holding["annual_dividend"] ?? 0;
+            $frequency = $holding["dividend_frequency"] ?? "None";
+            $quantity = $holding["quantity"] ?? 0;
+            $marketValue = $holding["market_value"] ?? 0;
+
+            if (!$hasDividends || $dividendYield == 0 || $frequency === "None") {
+                continue;
+            }
+
+            // Add to distributing assets
+            $distributingAssets[] = [
+                "ticker" => $holding["ticker"],
+                "name" => $holding["name"],
+                "dividend_yield" => round($dividendYield, 2),
+                "annual_amount" => round($annualDividend * $quantity, 2),
+                "frequency" => $frequency,
+                "last_div_date" => null,
+                "next_div_date" => null
+            ];
+
+            // Calculate portfolio-weighted yield
+            if ($totalInvested > 0) {
+                $portfolioYield += ($marketValue / $totalInvested) * $dividendYield;
+            }
+
+            // Estimate monthly distribution based on frequency
+            $paymentsPerYear = $this->getPaymentsPerYear($frequency);
+            $dividendPerPayment = ($annualDividend * $quantity) / $paymentsPerYear;
+
+            // Distribute across months (simple estimation)
+            $months = $this->getPaymentMonths($frequency);
+
+            foreach ($months as $month) {
+                $monthlyForecast[$month] += $dividendPerPayment;
+            }
+
+            // Find next dividend date (estimate)
+            $nextMonth = null;
+            foreach ($months as $month) {
+                if ($month >= $currentMonth) {
+                    $nextMonth = $month;
+                    break;
+                }
+            }
+
+            if ($nextMonth === null && count($months) > 0) {
+                $nextMonth = $months[0]; // Next year
+            }
+
+            if ($nextMonth !== null) {
+                $estimatedDate = new DateTime();
+                $estimatedDate->setDate((int) $today->format('Y'), $nextMonth, 15);
+
+                if ($nextMonth < $currentMonth) {
+                    $estimatedDate->modify('+1 year');
+                }
+
+                if ($nextDividend === null || $estimatedDate < new DateTime($nextDividend["date"])) {
+                    $nextDividend = [
+                        "date" => $estimatedDate->format('Y-m-d'),
+                        "ticker" => $holding["ticker"],
+                        "amount" => round($dividendPerPayment, 2)
+                    ];
+                }
+            }
+        }
+
+        // Format monthly forecast for next 6 months
+        $forecast6m = [];
+        for ($i = 0; $i < 6; $i++) {
+            $month = ($currentMonth + $i - 1) % 12 + 1;
+            $forecast6m[] = [
+                "month" => date('M', mktime(0, 0, 0, $month, 1)),
+                "amount" => round($monthlyForecast[$month], 2)
+            ];
+        }
+
+        $totalForecast6m = array_sum(array_column($forecast6m, 'amount'));
+
+        return [
+            "last_update" => date('c'),
+            "forecast_6m" => [
+                "total_amount" => round($totalForecast6m, 2),
+                "period" => date('M') . " - " . date('M', strtotime('+5 months'))
+            ],
+            "portfolio_yield" => round($portfolioYield, 2),
+            "next_dividend" => $nextDividend ?? [
+                "date" => "-",
+                "ticker" => "-",
+                "amount" => 0
+            ],
+            "monthly_forecast" => $forecast6m,
+            "distributing_assets" => $distributingAssets,
+            "ai_insight" => $this->generateDividendInsight($distributingAssets, $portfolioYield)
+        ];
+    }
+
+    /**
+     * Get number of payments per year based on frequency
+     *
+     * @param string $frequency Dividend frequency
+     *
+     * @return int Number of payments per year
+     */
+    private function getPaymentsPerYear(string $frequency): int
+    {
+        return match($frequency) {
+            'Quarterly' => 4,
+            'Semi-Annual' => 2,
+            'Monthly' => 12,
+            'Annual' => 1,
+            default => 4
+        };
+    }
+
+    /**
+     * Get payment months based on frequency
+     *
+     * @param string $frequency Dividend frequency
+     *
+     * @return array Array of month numbers (1-12)
+     */
+    private function getPaymentMonths(string $frequency): array
+    {
+        return match($frequency) {
+            'Quarterly' => [3, 6, 9, 12], // Q1=Mar, Q2=Jun, Q3=Sep, Q4=Dec
+            'Semi-Annual' => [6, 12],      // Jun, Dec
+            'Monthly' => range(1, 12),     // Every month
+            'Annual' => [12],              // December
+            default => [3, 6, 9, 12]
+        };
+    }
+
+    /**
+     * Generate AI-style insight about dividends
+     *
+     * @param array $distributingAssets Array of assets with dividends
+     *
+     * @param float $portfolioYield Portfolio-weighted yield
+     *
+     * @return string Insight text
+     */
+    private function generateDividendInsight(array $distributingAssets, float $portfolioYield): string
+    {
+        $count = count($distributingAssets);
+
+        if ($count === 0) {
+            return "No distributing assets in portfolio.";
+        }
+
+        $avgYield = $portfolioYield;
+
+        if ($avgYield > 4) {
+            return "$count assets with strong dividend yield ({$avgYield}%). Excellent passive income potential.";
+        } elseif ($avgYield > 2.5) {
+            return "$count dividend-paying assets with moderate yield ({$avgYield}%). Balanced income strategy.";
+        } else {
+            return "$count dividend assets with conservative yield ({$avgYield}%). Focus on capital appreciation.";
+        }
+    }
 }
