@@ -176,6 +176,44 @@ Visualizzazione dell'andamento storico del portafoglio con dati dinamici da snap
 - **Snapshot giornalieri**: Storico automatico creato daily via n8n (22:00)
 - **Tabella storica**: Performance progressiva giornaliera con day change
 
+### 📊 ChartManager - Sistema Grafici Centralizzato
+
+Sistema unificato per la gestione di tutti i grafici Chart.js dell'applicazione (`assets/js/charts.js`):
+
+**Factory Functions disponibili:**
+- `createPerformanceDetailChart()` - Andamento Annuale mensile con dual axis
+- `createCumulativeGainChart()` - Guadagno Cumulativo YTD con dual axis
+- `createValueOverTimeChart()` - Ultimi 5 Giorni con dual axis
+- `createDividendsMonthlyChart()` - Dividendi Mensili (bar chart stacked)
+- `createDividendsCumulativeChart()` - Dividendi Cumulativi (line chart)
+- `createPerformanceChart()` - Dashboard Performance mensile
+- `createAllocationChart()` - Dashboard Allocation (donut chart)
+
+**Configurazioni globali:**
+```javascript
+ChartManager.colors        // Palette colori unificata (purple, gray, ecc.)
+ChartManager.animation     // Animazioni uniformi (800ms, easeOutQuart)
+ChartManager.pointStyle    // Stile punti: quadrati 6px con bordo bianco 2px
+```
+
+**Design System unificato:**
+- **Punti**: Quadrati (rect) 6px con bordo bianco 2px su tutti i grafici
+- **Pattern**: Linee diagonali (Patternomaly) per aree riempite
+- **Dual Axis**: Euro (sinistra) e Percentuale (destra) con tooltip formattati
+- **Legenda**: Bottom con dimensioni ottimizzate (12px boxWidth, 10px font)
+- **Lazy Loading**: MutationObserver per inizializzazione solo quando visibile
+
+**Utility Functions:**
+- `formatEuro(value, decimals)` - Formattazione consistente valori in euro
+- `formatPercent(value, decimals)` - Formattazione consistente percentuali
+- `getPattern(color)` - Generazione pattern diagonale Patternomaly
+
+**Benefici:**
+- Codice ridotto del 35% (~450 righe eliminate)
+- Manutenzione centralizzata in un unico file
+- Coerenza visiva garantita su tutti i grafici
+- Facile estensione per nuovi tipi di grafici
+
 ### 🤖 Automazione n8n
 
 Sistema di enrichment automatico del portafoglio con workflow n8n:
@@ -465,8 +503,9 @@ trading-portfolio/
 │   │   └── styles.css              # Stili globali applicazione
 │   │
 │   └── js/
-│       ├── app.js                  # JavaScript principale (tabs, utilities)
-│       ├── holdings.js             # Gestione holdings interattiva
+│       ├── charts.js               # ChartManager: sistema centralizzato grafici (7 factory functions)
+│       ├── app.js                  # JavaScript principale (tabs, utilities, Chart.js defaults)
+│       ├── holdings.js             # Gestione holdings interattiva (CRUD, import CSV)
 │       └── holdings-debug.js       # Debug utilities
 │
 ├── data/                           # Storage JSON (gitignored per dati reali)
@@ -804,5 +843,5 @@ echo "Backup salvato in: $BACKUP_DIR"
 
 ---
 
-**Ultimo aggiornamento README**: 27 Novembre 2025
-**Versione progetto**: 0.2.0-MVP (JSON Based + n8n Integration)
+**Ultimo aggiornamento README**: 27 Novembre 2025 (ChartManager System)
+**Versione progetto**: 0.2.0-MVP (JSON Based + n8n Integration + Centralized Charts)

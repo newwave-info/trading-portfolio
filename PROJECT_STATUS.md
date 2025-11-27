@@ -37,20 +37,32 @@
   - Grafico donut spacing: 6
   - 32+ icone Font Awesome su titoli widget
   - Nomenclatura unificata: "Portafoglio" (non "portfolio")
-- [x] **Grafici Performance** (Chart.js):
-  - Grafico "Andamento Annuale (2025)" con dati mensili
-  - Grafico "Guadagno Cumulativo (YTD)" con storico snapshot
-  - Grafico "Ultimi 5 Giorni" con valori portafoglio
-  - Widget performance: 1M, 3M, YTD con percentuali e valori
-  - Fix lazy-loading: inizializzazione chart solo quando tab visibile (MutationObserver)
-  - Configurazione punti evidenziati (radius: 8) per singoli data point
-  - Pie chart allocazioni con labels corrette
-  - **Design System Grafici unificato:**
-    - Dataset valore euro: linea viola + area con pattern a righe diagonali (Patternomaly)
-    - Dataset andamento %: solo linea grigio scuro con z-index superiore
+- [x] **Sistema Grafici Centralizzato** (Chart.js + ChartManager):
+  - **ChartManager** (`assets/js/charts.js`): Sistema centralizzato per tutti i grafici
+    - Factory functions per 7 tipi di grafici (Performance, Dividendi, Dashboard)
+    - Configurazioni globali unificate (colori, animazioni, stili punti)
+    - Gestione pattern Patternomaly centralizzata
+    - Utility functions per formattazione (euro, percentuali)
+  - **Grafici Performance:**
+    - Andamento Annuale (2025) con dati mensili + dual axis
+    - Guadagno Cumulativo (YTD) con storico snapshot + dual axis
+    - Ultimi 5 Giorni con valori portafoglio + dual axis
+  - **Grafici Dividendi:**
+    - Dividendi Mensili (bar chart stacked) con Ricevuti/Previsti
+    - Dividendi Cumulativi (line chart) con pattern diagonali
+  - **Grafici Dashboard:**
+    - Performance Chart mensile con pattern diagonali
+    - Allocation Chart (donut) per asset class
+  - **Design System Unificato:**
+    - Punti: quadrati (rect) 6px con bordo bianco 2px - uniforme su tutti i grafici
+    - Dataset valore euro: linea viola + area con pattern a righe diagonali
+    - Dataset percentuale: linea grigio scuro con z-index superiore
     - Doppio asse Y: euro (sx) e percentuale (dx) con tooltip personalizzati
-    - Legenda bottom con dimensioni ottimizzate
-    - Applicato a tutti i grafici Performance (Annuale, YTD, Ultimi 5 Giorni)
+    - Legenda bottom con dimensioni ottimizzate (12px boxWidth, 10px font)
+  - **Ottimizzazioni:**
+    - Lazy-loading con MutationObserver per tab nascoste
+    - Registro grafici inizializzati per evitare duplicati
+    - Codice ridotto del 35% (~450 righe risparmiate)
 
 ### **2. Refactoring Architettura (100%)**
 - [x] **Struttura modulare MVC-like:**
@@ -470,17 +482,28 @@ trading-portfolio/
 ## 📅 **CHANGELOG**
 
 ### [0.2.0-MVP] - 27 Novembre 2025
-**Miglioramento Grafici Performance:**
-- ✅ **Design System Grafici unificato** - Applicato a tutti i grafici Performance
-  - Dataset valore euro: linea viola + area con pattern a righe diagonali (Patternomaly)
-  - Dataset andamento percentuale: solo linea grigio scuro con z-index superiore
+**Centralizzazione e Unificazione Sistema Grafici:**
+- ✅ **ChartManager** (`assets/js/charts.js`) - Sistema centralizzato per tutti i grafici
+  - Factory functions per 7 tipi di grafici (Performance, Dividendi, Dashboard)
+  - Configurazioni globali unificate (colori, animazioni, stili punti)
+  - Gestione pattern Patternomaly centralizzata
+  - Utility functions per formattazione consistente (euro, percentuali)
+  - Riduzione codice del 35% (~450 righe eliminate)
+- ✅ **Design System Visivo Unificato:**
+  - Punti quadrati (rect) 6px con bordo bianco 2px - uniforme su tutti i grafici
+  - Dataset valore euro: linea viola + area con pattern a righe diagonali
+  - Dataset percentuale: linea grigio scuro con z-index superiore
   - Doppio asse Y (euro sx, percentuale dx) con tooltip personalizzati
-  - Legenda bottom ottimizzata per tutti i grafici
-- ✅ **Grafico "Andamento Annuale (2025)":**
-  - Aggiunto calcolo percentuale mensile in PHP
-  - Aggiunto secondo dataset (Performance %) con linea grigio scuro
-  - Implementato doppio asse Y con tooltip formattati
-- ✅ **Coerenza visiva** - Tutti i grafici Performance ora seguono lo stesso pattern design
+  - Legenda bottom ottimizzata (12px boxWidth, 10px font)
+- ✅ **Refactoring File:**
+  - `views/tabs/performance.php`: ridotto da 722 a 473 righe (-34%)
+  - `views/tabs/dividends.php`: ridotto da 476 a 377 righe (-21%)
+  - `views/layouts/footer.php`: ridotto da 95 a 36 righe (-62%)
+  - `views/layouts/header.php`: aggiunto caricamento charts.js
+- ✅ **Grafici Aggiornati:**
+  - Performance: Andamento Annuale, Guadagno Cumulativo YTD, Ultimi 5 Giorni
+  - Dividendi: Mensili (bar stacked), Cumulativi (line pattern)
+  - Dashboard: Performance mensile, Allocation (donut)
 
 ### [0.1.0-MVP] - 26 Novembre 2025
 **Documentazione Completa:**
