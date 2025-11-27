@@ -1,69 +1,60 @@
 {
-    "last_update": "2025-11-27T08:39:41+00:00",
-    "forecast_6m": {
-        "total_amount": 110.52,
-        "period": "Nov - Apr"
+  "last_update": "2025-11-27T10:45:31+00:00",
+  "forecast_6m": {
+    "total_amount": 142.45,
+    "period": "Nov - Apr"
+  },
+  "portfolio_yield": 3.11,
+  "next_dividend": {
+    "date": "2025-12-15",
+    "ticker": "VHYL.MI",
+    "amount": 10.51
+  },
+  "monthly_forecast": [
+    {
+      "month": "Nov",
+      "amount": 0
     },
-    "portfolio_yield": 2.53,
-    "next_dividend": {
-        "date": "2025-12-15",
-        "ticker": "VHYL.MI",
-        "amount": 10.51
+    {
+      "month": "Dec",
+      "amount": 47.48
     },
-    "monthly_forecast": [
-        {
-            "month": "Nov",
-            "amount": 0
-        },
-        {
-            "month": "Dec",
-            "amount": 55.26
-        },
-        {
-            "month": "Jan",
-            "amount": 0
-        },
-        {
-            "month": "Feb",
-            "amount": 0
-        },
-        {
-            "month": "Mar",
-            "amount": 55.26
-        },
-        {
-            "month": "Apr",
-            "amount": 0
-        }
-    ],
-    "distributing_assets": [
-        {
-            "ticker": "VHYL.MI",
-            "name": "Vanguard FTSE All-World High Div. Yield UCITS ETF Dis",
-            "dividend_yield": 2.91,
-            "annual_amount": 42.03,
-            "frequency": "Quarterly",
-            "last_div_date": null,
-            "next_div_date": null
-        },
-        {
-            "ticker": "TDIV.MI",
-            "name": "VanEck Morn. Dev. Mkts Div Lead. UCITS ETF",
-            "dividend_yield": 3.84,
-            "annual_amount": 89.5,
-            "frequency": "Quarterly",
-            "last_div_date": null,
-            "next_div_date": null
-        },
-        {
-            "ticker": "TDIV.MI",
-            "name": "VanEck Morn. Dev. Mkts Div Lead. UCITS ETF",
-            "dividend_yield": 3.84,
-            "annual_amount": 89.5,
-            "frequency": "Quarterly",
-            "last_div_date": null,
-            "next_div_date": null
-        }
-    ],
-    "ai_insight": "3 dividend-paying assets with moderate yield (2.5271121663294%). Balanced income strategy."
+    {
+      "month": "Jan",
+      "amount": 0
+    },
+    {
+      "month": "Feb",
+      "amount": 0
+    },
+    {
+      "month": "Mar",
+      "amount": 47.48
+    },
+    {
+      "month": "Apr",
+      "amount": 47.49
+    }
+  ],
+  "distributing_assets": [
+    {
+      "ticker": "VHYL.MI",
+      "name": "Vanguard FTSE All-World High Div. Yield UCITS ETF Dis",
+      "dividend_yield": 2.91,
+      "annual_amount": 42.03,
+      "frequency": "Quarterly",
+      "last_div_date": null,
+      "next_div_date": "2025-12-15"
+    },
+    {
+      "ticker": "TDIV.MI",
+      "name": "VanEck Morn. Dev. Mkts Div Lead. UCITS ETF",
+      "dividend_yield": 3.83,
+      "annual_amount": 89.5,
+      "frequency": "Quarterly",
+      "last_div_date": null,
+      "next_div_date": "2025-12-20"
+    }
+  ],
+  "ai_insight": "2 dividend-paying assets with moderate yield (3.11%). Balanced income strategy."
 }
