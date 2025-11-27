@@ -2,3 +2,4 @@
 .env
 .nova
 .claude
+.DS_Store
