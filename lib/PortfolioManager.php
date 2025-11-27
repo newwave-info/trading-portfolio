@@ -195,41 +195,92 @@ class PortfolioManager {
         }
 
         $file = fopen($csvPath, 'r');
+        if (!$file) {
+            throw new Exception("Cannot open CSV file: {$csvPath}");
+        }
+
         $imported = 0;
         $errors = [];
+        $processedIsins = [];
+        $rowNumber = 0;
+        $newHoldings = [];
 
-        // Skip prime 3 righe (header Fineco)
-        fgets($file); // Portafoglio di sintesi
-        fgets($file); // Riga vuota
-        $headers = fgetcsv($file, 0, ';'); // Headers
-
-        // Reset holdings
-        $this->data['holdings'] = [];
+        // Skip header lines using fgetcsv for consistency
+        $skippedLines = 0;
+        while ($skippedLines < 3 && ($skipRow = fgetcsv($file, 0, ';')) !== false) {
+            $skippedLines++;
+        }
 
         while (($row = fgetcsv($file, 0, ';')) !== false) {
-            if (count($row) < 10) continue; // Skip righe incomplete
+            $rowNumber++;
+
+            // Skip empty rows or incomplete rows
+            if (empty($row) || count($row) < 10) {
+                $errors[] = "Skipped row {$rowNumber}: incomplete data (" . count($row) . " fields)";
+                continue;
+            }
 
             try {
+                // Normalize ISIN (remove spaces, convert to uppercase)
+                $isin = strtoupper(trim($row[1]));
+
+                // Skip if ISIN is empty
+                if (empty($isin)) {
+                    $errors[] = "Skipped row {$rowNumber} with empty ISIN: " . implode(';', array_slice($row, 0, 3));
+                    continue;
+                }
+
+                // Skip if we already processed this ISIN (avoid duplicates)
+                if (isset($processedIsins[$isin])) {
+                    $errors[] = "Skipped duplicate ISIN on row {$rowNumber}: {$isin}";
+                    continue;
+                }
+
                 $holding = [
                     'name' => trim($row[0]),
-                    'isin' => trim($row[1]),
-                    'ticker' => trim($row[2]) ?: trim($row[1]), // Se simbolo vuoto, usa ISIN
-                    'market' => trim($row[3]),
-                    'instrument_type' => trim($row[4]),
-                    'currency' => trim($row[5]),
-                    'quantity' => (float) str_replace(',', '.', $row[6]),
-                    'avg_price' => (float) str_replace(',', '.', $row[7]),
+                    'isin' => $isin,
+                    'ticker' => strtoupper(trim($row[2]) ?: $isin),
+                    'market' => trim($row[3]) ?: 'AFF',
+                    'instrument_type' => trim($row[4]) ?: 'ETF',
+                    'currency' => strtoupper(trim($row[5]) ?: 'EUR'),
+                    'quantity' => $this->normalizeNumber($row[6]),
+                    'avg_price' => $this->normalizeNumber($row[7]),
                 ];
 
-                $this->upsertHolding($holding);
+                // Applica defaults e accumula senza salvare su disco ad ogni iterazione
+                $newHoldings[$isin] = array_merge([
+                    'asset_class' => 'Unknown',
+                    'sector' => 'Unknown',
+                    'current_price' => $holding['avg_price'],
+                    'market_value' => $holding['quantity'] * $holding['avg_price'],
+                    'invested_value' => $holding['quantity'] * $holding['avg_price'],
+                    'unrealized_pnl' => 0.00,
+                    'pnl_percentage' => 0.00,
+                    'target_allocation' => 0.00,
+                    'current_allocation' => 0.00,
+                    'drift' => 0.00,
+                    'dividend_yield' => 0.00,
+                    'expense_ratio' => 0.00,
+                    'distributor' => '',
+                    'notes' => ''
+                ], $holding);
+
+                $processedIsins[$isin] = true;
                 $imported++;
 
             } catch (Exception $e) {
-                $errors[] = "Row error: " . $e->getMessage() . " - Data: " . implode(';', $row);
+                $errors[] = "Row {$rowNumber} error: " . $e->getMessage() . " - Data: " . implode(';', $row);
             }
         }
 
         fclose($file);
+
+        // Sovrascrivi holdings solo se è stato importato almeno un record
+        if ($imported > 0) {
+            $this->data['holdings'] = array_values($newHoldings);
+            $this->recalculateMetrics();
+            $this->save();
+        }
 
         return [
             'success' => $imported > 0,
@@ -259,6 +310,7 @@ class PortfolioManager {
             $totalValue += $holding['market_value'];
             $totalInvested += $holding['invested_value'];
         }
+        unset($holding);
 
         // Calcola allocazioni correnti
         foreach ($this->data['holdings'] as &$holding) {
@@ -268,6 +320,7 @@ class PortfolioManager {
 
             $holding['drift'] = $holding['current_allocation'] - $holding['target_allocation'];
         }
+        unset($holding);
 
         // Aggiorna metadata
         $this->data['metadata']['total_value'] = round($totalValue, 2);
@@ -308,6 +361,22 @@ class PortfolioManager {
         // Converti a array indicizzato e ordina per valore decrescente
         $this->data['allocation_by_asset_class'] = array_values($allocationByAssetClass);
         usort($this->data['allocation_by_asset_class'], fn($a, $b) => $b['total_value'] <=> $a['total_value']);
+    }
+
+    /**
+     * Normalizza numeri in formato italiano (rimuove separatori migliaia e converte virgola in punto)
+     */
+    private function normalizeNumber(string $value): float {
+        $value = trim($value);
+        if ($value === '' || $value === '-') {
+            return 0.0;
+        }
+
+        // Rimuove separatori migliaia e converte la virgola in punto decimale
+        $normalized = str_replace(['.', ' '], '', $value);
+        $normalized = str_replace(',', '.', $normalized);
+
+        return (float) $normalized;
     }
 
     /**
