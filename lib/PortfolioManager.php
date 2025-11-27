@@ -391,7 +391,8 @@ class PortfolioManager {
      *
      * @return array Dividends calendar structure
      */
-    public function generateDividendsCalendar(): array {
+    public function generateDividendsCalendar(): array
+    {
         $data = $this->getData();
         $holdings = $data["holdings"] ?? [];
 
@@ -511,7 +512,8 @@ class PortfolioManager {
      *
      * @return int Number of payments per year
      */
-    private function getPaymentsPerYear(string $frequency): int {
+    private function getPaymentsPerYear(string $frequency): int
+    {
         return match($frequency) {
             'Quarterly' => 4,
             'Semi-Annual' => 2,
@@ -528,7 +530,8 @@ class PortfolioManager {
      *
      * @return array Array of month numbers (1-12)
      */
-    private function getPaymentMonths(string $frequency): array {
+    private function getPaymentMonths(string $frequency): array
+    {
         return match($frequency) {
             'Quarterly' => [3, 6, 9, 12], // Q1=Mar, Q2=Jun, Q3=Sep, Q4=Dec
             'Semi-Annual' => [6, 12],      // Jun, Dec
@@ -547,7 +550,8 @@ class PortfolioManager {
      *
      * @return string Insight text
      */
-    private function generateDividendInsight(array $distributingAssets, float $portfolioYield): string {
+    private function generateDividendInsight(array $distributingAssets, float $portfolioYield): string
+    {
         $count = count($distributingAssets);
 
         if ($count === 0) {
