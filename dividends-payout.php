@@ -36,6 +36,9 @@ try {
     $data = $pm->getData();
 
     $dividends = $data['dividends'] ?? [];
+    if (!isset($data['transactions']) || !is_array($data['transactions'])) {
+        $data['transactions'] = [];
+    }
     $existingKeys = [];
     foreach ($dividends as $div) {
         if (!empty($div['pay_date']) && !empty($div['isin'])) {
@@ -44,6 +47,7 @@ try {
     }
 
     $added = 0;
+    $payoutAddedCurrentMonth = 0;
     foreach ($data['holdings'] as $holding) {
         $isin = $holding['isin'] ?? null;
         if (!$isin) {
@@ -94,6 +98,19 @@ try {
         ];
         $existingKeys[$key] = true;
         $added++;
+        $payoutAddedCurrentMonth += $payoutAmount;
+
+        // Registra transazione DIVIDEND
+        $data['transactions'][] = [
+            'type' => 'DIVIDEND',
+            'isin' => $isin,
+            'ticker' => $holding['ticker'] ?? '',
+            'quantity_change' => 0,
+            'price_reference' => $holding['avg_price'],
+            'amount' => round($payoutAmount, 2),
+            'timestamp' => date('Y-m-d\TH:i:s\Z'),
+            'note' => 'Payout dividendo automatico'
+        ];
     }
 
     if ($added > 0) {
@@ -116,7 +133,7 @@ try {
             if (isset($cal['monthly_forecast']) && is_array($cal['monthly_forecast'])) {
                 foreach ($cal['monthly_forecast'] as &$m) {
                     if (($m['month'] ?? '') === $monthShort) {
-                        $m['amount'] = max(0, ($m['amount'] ?? 0) - array_sum(array_column($dividends, 'amount')));
+                        $m['amount'] = max(0, ($m['amount'] ?? 0) - $payoutAddedCurrentMonth);
                     }
                 }
                 unset($m);

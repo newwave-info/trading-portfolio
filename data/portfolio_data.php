@@ -70,6 +70,15 @@ try {
     // Dividendi ricevuti
     $dividends = $portfolioData['dividends'];
 
+    // Transazioni (BUY/SELL/DIVIDEND)
+    $transactions = $portfolioData['transactions'] ?? [];
+    // Ordina per timestamp decrescente se presente
+    usort($transactions, function ($a, $b) {
+        $ta = $a['timestamp'] ?? '';
+        $tb = $b['timestamp'] ?? '';
+        return strcmp($tb, $ta);
+    });
+
     // Opportunità ETF - Caricata da JSON (popolato da n8n workflow)
     $opportunities = [];
     $opportunitiesPath = __DIR__ . '/opportunities.json';

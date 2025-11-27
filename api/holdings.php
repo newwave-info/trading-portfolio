@@ -101,9 +101,22 @@ try {
             }
         }
 
+        // ISIN validation
+        $isinVal = strtoupper(trim($input['isin']));
+        if (!preg_match('/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/', $isinVal)) {
+            throw new Exception('ISIN non valido');
+        }
+
+        $isUpdate = isset($input['is_update']) ? (bool) $input['is_update'] : false;
+
+        // Check duplicati se non è update
+        if (!$isUpdate && $portfolioManager->getHoldingByIsin($isinVal)) {
+            throw new Exception('ISIN già presente. Usa Modifica per aggiornare la posizione.');
+        }
+
         // Sanitizzazione
         $holding = [
-            'isin' => strtoupper(trim($input['isin'])),
+            'isin' => $isinVal,
             'ticker' => strtoupper(trim($input['ticker'])),
             'name' => trim($input['name']),
             'quantity' => (float) $input['quantity'],
@@ -122,7 +135,7 @@ try {
         if (isset($input['expense_ratio'])) $holding['expense_ratio'] = (float) $input['expense_ratio'];
         if (isset($input['distributor'])) $holding['distributor'] = trim($input['distributor']);
 
-        $success = $portfolioManager->upsertHolding($holding);
+        $success = $portfolioManager->upsertHolding($holding, true);
 
         if ($success) {
             $updated = $portfolioManager->getHoldingByIsin($holding['isin']);

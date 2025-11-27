@@ -90,7 +90,7 @@ class PortfolioManager {
     /**
      * Aggiungi o aggiorna holding
      */
-    public function upsertHolding(array $holding): bool {
+    public function upsertHolding(array $holding, bool $logTransaction = true): bool {
         // Validazione campi obbligatori
         $required = ['isin', 'ticker', 'name', 'quantity', 'avg_price'];
         foreach ($required as $field) {
@@ -101,8 +101,12 @@ class PortfolioManager {
 
         // Cerca se esiste già
         $found = false;
+        $previousQuantity = 0;
+        $previousAvg = 0;
         foreach ($this->data['holdings'] as &$existingHolding) {
             if ($existingHolding['isin'] === $holding['isin']) {
+                $previousQuantity = $existingHolding['quantity'] ?? 0;
+                $previousAvg = $existingHolding['avg_price'] ?? 0;
                 // Update
                 $existingHolding = array_merge($existingHolding, $holding);
                 $found = true;
@@ -134,6 +138,11 @@ class PortfolioManager {
             ], $holding);
 
             $this->data['holdings'][] = $holding;
+        }
+
+        // Log transazione solo per operazioni manuali (skip import/n8n)
+        if ($logTransaction) {
+            $this->logTransaction($holding, $found, $previousQuantity, $previousAvg);
         }
 
         // Ricalcola metriche
@@ -377,6 +386,43 @@ class PortfolioManager {
         $normalized = str_replace(',', '.', $normalized);
 
         return (float) $normalized;
+    }
+
+    /**
+     * Registra una transazione (BUY/SELL) derivata da upsert holding
+     */
+    private function logTransaction(array $holding, bool $wasExisting, float $previousQty, float $previousAvg): void {
+        if (!isset($this->data['transactions']) || !is_array($this->data['transactions'])) {
+            $this->data['transactions'] = [];
+        }
+
+        $type = $wasExisting ? 'UPDATE' : 'BUY';
+        $qtyChange = $holding['quantity'];
+        $amount = $holding['quantity'] * $holding['avg_price'];
+
+        if ($wasExisting) {
+            $qtyChange = $holding['quantity'] - $previousQty;
+            if ($qtyChange > 0) {
+                $type = 'BUY';
+            } elseif ($qtyChange < 0) {
+                $type = 'SELL';
+            } else {
+                // Nessuna variazione quantità: evita transazione rumorosa
+                return;
+            }
+            $amount = $qtyChange * $holding['avg_price'];
+        }
+
+        $this->data['transactions'][] = [
+            'type' => $type,
+            'isin' => $holding['isin'],
+            'ticker' => $holding['ticker'],
+            'quantity_change' => $qtyChange,
+            'price_reference' => $holding['avg_price'],
+            'amount' => round($amount, 2),
+            'timestamp' => date('Y-m-d\TH:i:s\Z'),
+            'note' => $wasExisting ? 'Aggiornamento posizione' : 'Nuova posizione'
+        ];
     }
 
     /**

@@ -98,7 +98,8 @@ document.addEventListener('DOMContentLoaded', function() {
         avg_price: parseFloat(document.getElementById('avg_price').value),
         target_allocation: parseFloat(document.getElementById('target_allocation').value) || 0,
         asset_class: document.getElementById('asset_class').value.trim() || 'Unknown',
-        notes: document.getElementById('notes').value.trim()
+        notes: document.getElementById('notes').value.trim(),
+        is_update: document.getElementById('editMode').value === 'true'
     };
 
     try {

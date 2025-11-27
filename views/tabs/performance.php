@@ -262,6 +262,58 @@
                     </div>
                 </div>
 
+                <!-- Timeline Transazioni -->
+                <div class="mb-8 widget-card p-6">
+                    <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-clock-rotate-left text-purple text-sm"></i>
+                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Timeline Transazioni</span>
+                        </div>
+                        <span class="text-[11px] text-gray-500"><?php echo count($transactions); ?> eventi</span>
+                    </div>
+                    <?php if (empty($transactions)): ?>
+                        <div class="p-6 text-center text-gray-500 italic">
+                            Nessuna transazione registrata. Aggiungi/modifica una posizione o attendi payout dividendi.
+                        </div>
+                    <?php else: ?>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-50 border-b border-gray-200">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Data</th>
+                                        <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Tipo</th>
+                                        <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Ticker</th>
+                                        <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Quantità</th>
+                                        <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Importo</th>
+                                        <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Note</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($transactions as $tx):
+                                        $ts = $tx['timestamp'] ?? '';
+                                        $dateStr = $ts ? date('d/m/Y H:i', strtotime($ts)) : '-';
+                                        $amount = $tx['amount'] ?? 0;
+                                        $qty = $tx['quantity_change'] ?? 0;
+                                        $type = strtoupper($tx['type'] ?? '-');
+                                        $isPositive = $amount >= 0;
+                                        ?>
+                                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                            <td class="px-4 py-3 text-sm text-gray-700"><?php echo htmlspecialchars($dateStr); ?></td>
+                                            <td class="px-4 py-3 font-semibold text-primary"><?php echo htmlspecialchars($type); ?></td>
+                                            <td class="px-4 py-3 font-medium text-gray-800"><?php echo htmlspecialchars($tx['ticker'] ?? '-'); ?></td>
+                                            <td class="px-4 py-3 text-right text-gray-700"><?php echo number_format($qty, 2, ',', '.'); ?></td>
+                                            <td class="px-4 py-3 text-right font-semibold <?php echo $isPositive ? 'text-positive' : 'text-negative'; ?>">
+                                                <?php echo $isPositive ? '+' : ''; ?>€<?php echo number_format($amount, 2, ',', '.'); ?>
+                                            </td>
+                                            <td class="px-4 py-3 text-left text-[11px] text-gray-600"><?php echo htmlspecialchars($tx['note'] ?? '-'); ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
                 <!-- Charts Scripts with Dynamic Data -->
                 <script>
                 <?php
@@ -269,13 +321,16 @@
                 $chart_labels = [];
                 $chart_values = [];
                 $chart_cumul_gain = [];
+                $chart_gain_pct = [];
                 $chart_monthly_labels = [];
                 $chart_monthly_values = [];
+                $chart_monthly_gain_pct = [];
 
                 if (!empty($history_data)) {
                     $chart_labels = array_column($history_data, 'date');
                     $chart_values = array_column($history_data, 'value');
                     $chart_cumul_gain = array_column($history_data, 'cumul_gain');
+                    $chart_gain_pct = array_column($history_data, 'gain_pct');
                 }
 
                 // Dati mensili per performanceDetailChart da snapshots
@@ -292,9 +347,14 @@
 
                             // Prendi l'ultimo snapshot di ogni mese
                             if (!isset($byMonth[$monthKey]) || $snap['date'] > $byMonth[$monthKey]['date']) {
+                                $value = $snap['metadata']['total_value'];
+                                $invested = $snap['metadata']['total_invested'] ?? $metadata['total_invested'];
+                                $gain_pct = $invested > 0 ? (($value - $invested) / $invested) * 100 : 0;
+
                                 $byMonth[$monthKey] = [
                                     'month' => $month,
-                                    'value' => $snap['metadata']['total_value'],
+                                    'value' => $value,
+                                    'gain_pct' => $gain_pct,
                                     'date' => $snap['date']
                                 ];
                             }
@@ -305,6 +365,7 @@
                         $last12 = array_slice($byMonth, -12);
                         $chart_monthly_labels = array_column($last12, 'month');
                         $chart_monthly_values = array_column($last12, 'value');
+                        $chart_monthly_gain_pct = array_column($last12, 'gain_pct');
                     }
                 }
                 ?>
@@ -340,18 +401,48 @@
                                     tension: 0,
                                     pointStyle: 'rect',
                                     pointRadius: 4,
-                                    pointHoverRadius: 6
+                                    pointHoverRadius: 6,
+                                    order: 2
+                                },{
+                                    label: 'Performance %',
+                                    data: <?php echo json_encode($chart_monthly_gain_pct); ?>,
+                                    borderColor: '#4b5563',
+                                    backgroundColor: 'transparent',
+                                    borderWidth: 2,
+                                    fill: false,
+                                    tension: 0,
+                                    pointRadius: 3,
+                                    yAxisID: 'y1',
+                                    order: 1
                                 }]
                             },
                             options: {
                                 responsive: true,
                                 maintainAspectRatio: false,
                                 animation: { duration: 800, easing: 'easeOutQuart' },
-                                plugins: { legend: { display: false } },
+                                plugins: {
+                                    legend: { display: true, position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                const label = context.dataset.label || '';
+                                                if (context.dataset.yAxisID === 'y1') {
+                                                    return label + ': ' + context.parsed.y.toFixed(2) + '%';
+                                                }
+                                                return label + ': €' + context.parsed.y.toLocaleString('it-IT', { minimumFractionDigits: 2 });
+                                            }
+                                        }
+                                    }
+                                },
                                 scales: {
                                     y: {
                                         beginAtZero: false,
                                         ticks: { callback: v => '€' + v.toLocaleString('it-IT') }
+                                    },
+                                    y1: {
+                                        position: 'right',
+                                        grid: { drawOnChartArea: false },
+                                        ticks: { callback: v => v.toFixed(1) + '%' }
                                     }
                                 }
                             }
@@ -383,7 +474,19 @@
                                     pointHoverRadius: 10,
                                     pointBackgroundColor: '#8b5cf6',
                                     pointBorderColor: '#fff',
-                                    pointBorderWidth: 2
+                                    pointBorderWidth: 2,
+                                    order: 2
+                                },{
+                                    label: 'Performance %',
+                                    data: <?php echo json_encode($chart_gain_pct); ?>,
+                                    borderColor: '#4b5563',
+                                    backgroundColor: 'transparent',
+                                    borderWidth: 2,
+                                    fill: false,
+                                    tension: 0.2,
+                                    pointRadius: 3,
+                                    yAxisID: 'y1',
+                                    order: 1
                                 }]
                             },
                             options: {
@@ -391,11 +494,15 @@
                                 maintainAspectRatio: false,
                                 animation: { duration: 800, easing: 'easeOutQuart' },
                                 plugins: {
-                                    legend: { display: false },
+                                    legend: { display: true, position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } },
                                     tooltip: {
                                         callbacks: {
                                             label: function(context) {
-                                                return 'Guadagno: €' + context.parsed.y.toLocaleString('it-IT', { minimumFractionDigits: 2 });
+                                                const label = context.dataset.label || '';
+                                                if (context.dataset.yAxisID === 'y1') {
+                                                    return label + ': ' + context.parsed.y.toFixed(2) + '%';
+                                                }
+                                                return label + ': €' + context.parsed.y.toLocaleString('it-IT', { minimumFractionDigits: 2 });
                                             }
                                         }
                                     }
@@ -404,6 +511,11 @@
                                     y: {
                                         beginAtZero: true,
                                         ticks: { callback: v => '€' + v.toLocaleString('it-IT') }
+                                    },
+                                    y1: {
+                                        position: 'right',
+                                        grid: { drawOnChartArea: false },
+                                        ticks: { callback: v => v.toFixed(1) + '%' }
                                     }
                                 }
                             }
@@ -427,7 +539,7 @@
                                     label: 'Valore Portafoglio',
                                     data: <?php echo json_encode($chart_values); ?>,
                                     borderColor: '#8b5cf6',
-                                    backgroundColor: 'rgba(139, 92, 246, 0.05)',
+                                    backgroundColor: typeof pattern !== 'undefined' ? pattern.draw('diagonal', 'rgba(139, 92, 246, 0.05)') : 'rgba(139, 92, 246, 0.05)',
                                     borderWidth: 3,
                                     fill: true,
                                     tension: 0.4,
@@ -435,7 +547,19 @@
                                     pointHoverRadius: 10,
                                     pointBackgroundColor: '#8b5cf6',
                                     pointBorderColor: '#fff',
-                                    pointBorderWidth: 2
+                                    pointBorderWidth: 2,
+                                    order: 2
+                                },{
+                                    label: 'Performance %',
+                                    data: <?php echo json_encode($chart_gain_pct); ?>,
+                                    borderColor: '#4b5563',
+                                    backgroundColor: 'transparent',
+                                    borderWidth: 2,
+                                    fill: false,
+                                    tension: 0.2,
+                                    pointRadius: 3,
+                                    yAxisID: 'y1',
+                                    order: 1
                                 }]
                             },
                             options: {
@@ -443,11 +567,15 @@
                                 maintainAspectRatio: false,
                                 animation: { duration: 800, easing: 'easeOutQuart' },
                                 plugins: {
-                                    legend: { display: false },
+                                    legend: { display: true, position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } },
                                     tooltip: {
                                         callbacks: {
                                             label: function(context) {
-                                                return 'Valore: €' + context.parsed.y.toLocaleString('it-IT', { minimumFractionDigits: 2 });
+                                                const label = context.dataset.label || '';
+                                                if (context.dataset.yAxisID === 'y1') {
+                                                    return label + ': ' + context.parsed.y.toFixed(2) + '%';
+                                                }
+                                                return label + ': €' + context.parsed.y.toLocaleString('it-IT', { minimumFractionDigits: 2 });
                                             }
                                         }
                                     }
@@ -456,6 +584,11 @@
                                     y: {
                                         beginAtZero: false,
                                         ticks: { callback: v => '€' + v.toLocaleString('it-IT') }
+                                    },
+                                    y1: {
+                                        position: 'right',
+                                        grid: { drawOnChartArea: false },
+                                        ticks: { callback: v => v.toFixed(1) + '%' }
                                     }
                                 }
                             }

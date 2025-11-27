@@ -33,7 +33,6 @@ require_once __DIR__ . '/views/tabs/performance.php';
 require_once __DIR__ . '/views/tabs/technical.php';
 require_once __DIR__ . '/views/tabs/dividends.php';
 require_once __DIR__ . '/views/tabs/recommendations.php';
-require_once __DIR__ . '/views/tabs/flows.php';
 
 // Includi footer
 require_once __DIR__ . '/views/layouts/footer.php';

@@ -103,6 +103,7 @@ ETF Portfolio Manager è una **web application PHP** che funziona come centro di
 - ✅ Sistema classificazione automatica ETF (settore/asset_class)
 - ✅ Dividendi: sincronizzazione da n8n (yield, frequenza, annual_dividend), calendario forecast 6 mesi, grafici ricevuti/previsti, tab dedicata
 - ✅ Payout automatico dividendi via script (`dividends-payout.php`) schedulabile in cron (nessun inserimento manuale)
+- ✅ Log transazioni base (BUY/SELL/DIVIDEND) in `portfolio.json` per timeline e report futuri
 
 **In roadmap (prossime iterazioni):**
 
@@ -165,10 +166,13 @@ Visualizzazione dell'andamento storico del portafoglio con dati dinamici da snap
 
 - **Grafici temporali**: Evoluzione del valore nel tempo (ultimi 30 giorni)
 - **Performance widgets**: Rendimenti a 1 mese, 3 mesi, YTD
-- **Grafici dinamici**:
+- **Grafici dinamici** con design system unificato:
   - Andamento annuale (performance mensile)
   - Guadagno cumulativo YTD
   - Ultimi 5 giorni (valori giornalieri)
+  - **Design**: Linea viola + area pattern diagonale (valori €) + linea grigio scuro (%)
+  - **Dual axis**: Euro (sinistra) e percentuale (destra)
+  - **Tooltip personalizzati**: Formattazione separata per € e %
 - **Snapshot giornalieri**: Storico automatico creato daily via n8n (22:00)
 - **Tabella storica**: Performance progressiva giornaliera con day change
 
@@ -455,7 +459,6 @@ trading-portfolio/
 │       ├── technical.php           # Analisi tecnica
 │       ├── dividends.php           # Calendario dividendi
 │       ├── recommendations.php     # Raccomandazioni operative
-│       └── flows.php               # Flussi di capitale
 │
 ├── assets/
 │   ├── css/
@@ -801,5 +804,5 @@ echo "Backup salvato in: $BACKUP_DIR"
 
 ---
 
-**Ultimo aggiornamento README**: 26 Novembre 2025
-**Versione progetto**: 0.1.0-MVP (JSON Based)
+**Ultimo aggiornamento README**: 27 Novembre 2025
+**Versione progetto**: 0.2.0-MVP (JSON Based + n8n Integration)

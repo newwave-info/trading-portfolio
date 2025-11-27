@@ -1,6 +1,6 @@
 # 📊 ETF Portfolio Manager - Stato Avanzamento Lavori
 
-**Ultimo aggiornamento:** 26 Novembre 2025
+**Ultimo aggiornamento:** 27 Novembre 2025
 **Versione:** 0.2.0-MVP (JSON Based + n8n Integration)
 **Stato:** MVP Avanzato ✅ - Fase 1 (JSON Storage) completa, n8n integration attiva, Fase 2 (Database Migration) in roadmap
 
@@ -45,6 +45,12 @@
   - Fix lazy-loading: inizializzazione chart solo quando tab visibile (MutationObserver)
   - Configurazione punti evidenziati (radius: 8) per singoli data point
   - Pie chart allocazioni con labels corrette
+  - **Design System Grafici unificato:**
+    - Dataset valore euro: linea viola + area con pattern a righe diagonali (Patternomaly)
+    - Dataset andamento %: solo linea grigio scuro con z-index superiore
+    - Doppio asse Y: euro (sx) e percentuale (dx) con tooltip personalizzati
+    - Legenda bottom con dimensioni ottimizzate
+    - Applicato a tutti i grafici Performance (Annuale, YTD, Ultimi 5 Giorni)
 
 ### **2. Refactoring Architettura (100%)**
 - [x] **Struttura modulare MVC-like:**
@@ -291,6 +297,10 @@
    - [ ] Modale "Registra Dividendo" manuale (future)
    - [ ] Salvataggio nuove registrazioni in `portfolio.json → dividends[]` (future)
 
+4. **Transazioni**
+   - [x] Log automatico BUY/SELL/DIVIDEND in `portfolio.json -> transactions[]` (upsert holdings, payout dividendi)
+   - [ ] Timeline/visualizzazione flussi da transactions (future)
+
 ### **STEP 4: Database Migration (Priorità BASSA)**
 **Obiettivo:** Scalabilità e performance per produzione
 
@@ -345,7 +355,6 @@ trading-portfolio/
 │       ├── technical.php       # ✅ Vista Analisi Tecnica (8KB)
 │       ├── dividends.php       # ✅ Vista Dividendi (14KB)
 │       ├── recommendations.php # ✅ Vista Raccomandazioni (15KB)
-│       └── flows.php           # ✅ Vista Flussi (12KB)
 │
 ├── assets/
 │   ├── css/
@@ -459,6 +468,19 @@ trading-portfolio/
 ---
 
 ## 📅 **CHANGELOG**
+
+### [0.2.0-MVP] - 27 Novembre 2025
+**Miglioramento Grafici Performance:**
+- ✅ **Design System Grafici unificato** - Applicato a tutti i grafici Performance
+  - Dataset valore euro: linea viola + area con pattern a righe diagonali (Patternomaly)
+  - Dataset andamento percentuale: solo linea grigio scuro con z-index superiore
+  - Doppio asse Y (euro sx, percentuale dx) con tooltip personalizzati
+  - Legenda bottom ottimizzata per tutti i grafici
+- ✅ **Grafico "Andamento Annuale (2025)":**
+  - Aggiunto calcolo percentuale mensile in PHP
+  - Aggiunto secondo dataset (Performance %) con linea grigio scuro
+  - Implementato doppio asse Y con tooltip formattati
+- ✅ **Coerenza visiva** - Tutti i grafici Performance ora seguono lo stesso pattern design
 
 ### [0.1.0-MVP] - 26 Novembre 2025
 **Documentazione Completa:**
