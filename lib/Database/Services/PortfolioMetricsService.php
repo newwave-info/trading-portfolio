@@ -136,9 +136,9 @@ class PortfolioMetricsService
             $result[] = [
                 'month' => $monthNum,
                 'month_label' => $monthLabel,
-                'value' => $value,
-                'invested' => $invested,
-                'gain' => $gain,
+                'total_value' => $value,
+                'total_invested' => $invested,
+                'total_gain' => $gain,
                 'gain_pct' => $gainPct
             ];
         }

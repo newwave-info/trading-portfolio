@@ -107,7 +107,12 @@ try {
         $monthly_performance = array_map(function($snap) {
             return [
                 'month' => date('M', strtotime($snap['snapshot_date'])),
-                'value' => (float)$snap['total_market_value']
+                'value' => (float)$snap['total_market_value'],
+                'invested' => (float)$snap['total_invested'],
+                'gain' => (float)$snap['total_market_value'] - (float)$snap['total_invested'],
+                'gain_pct' => ($snap['total_invested'] ?? 0) > 0
+                    ? ((($snap['total_market_value'] - $snap['total_invested']) / $snap['total_invested']) * 100)
+                    : 0
             ];
         }, $yearSnapshots);
     }
@@ -116,6 +121,33 @@ try {
     // SNAPSHOTS (storico giornaliero) - per Performance tab
     // ============================================
     $snapshots = $snapshotRepo->getYearToDate($currentYear);
+
+    // Fallback: se non ci sono snapshot in DB, crea uno snapshot sintetico con i metadati correnti
+    if (empty($snapshots) && !empty($metadata)) {
+        $snapshots = [[
+            'snapshot_date' => date('Y-m-d'),
+            'total_invested' => $metadata['total_invested'] ?? 0,
+            'total_market_value' => $metadata['total_market_value'] ?? 0,
+            'total_pnl' => $metadata['total_pnl'] ?? 0,
+            'total_pnl_pct' => $metadata['total_pnl_pct'] ?? 0,
+            'total_dividends_received' => $metadata['total_dividends_received'] ?? 0,
+            'total_holdings' => $metadata['total_holdings'] ?? 0,
+        ]];
+    }
+
+    // Fallback monthly_performance se ancora vuoto: usa lo snapshot corrente/metadati
+    if (empty($monthly_performance) && !empty($snapshots)) {
+        $latest = end($snapshots);
+        $monthly_performance = [[
+            'month' => date('M'),
+            'value' => (float) $latest['total_market_value'],
+            'invested' => (float) ($latest['total_invested'] ?? $metadata['total_invested'] ?? 0),
+            'gain' => (float) $latest['total_market_value'] - (float) ($latest['total_invested'] ?? $metadata['total_invested'] ?? 0),
+            'gain_pct' => ($latest['total_invested'] ?? $metadata['total_invested'] ?? 0) > 0
+                ? ((($latest['total_market_value'] - ($latest['total_invested'] ?? $metadata['total_invested'] ?? 0)) / ($latest['total_invested'] ?? $metadata['total_invested'] ?? 0)) * 100)
+                : 0
+        ]];
+    }
 
     // ============================================
     // ALLOCAZIONE PER ASSET CLASS
