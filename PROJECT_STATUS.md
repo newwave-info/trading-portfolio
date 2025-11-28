@@ -1,8 +1,8 @@
 # 📊 ETF Portfolio Manager - Stato Avanzamento Lavori
 
-**Ultimo aggiornamento:** 27 Novembre 2025
-**Versione:** 0.3.0-MySQL ✅
-**Stato:** Produzione - Migrazione MySQL completata, Repository Pattern implementato, n8n integration attiva
+**Ultimo aggiornamento:** 28 Novembre 2025
+**Versione:** 0.3.1-MySQL ✅
+**Stato:** Produzione - Migrazione MySQL completata, Repository Pattern implementato, n8n integration attiva, viste Performance allineate a MySQL
 
 > 📋 **Documentazione:**
 > - [README.md](README.md) - Panoramica generale e setup (aggiornato 26 Nov 2025)
@@ -11,7 +11,7 @@
 
 ---
 
-## 🚀 **MIGRAZIONE MYSQL (v0.3.0) - COMPLETATA 27/11/2025**
+## 🚀 **MIGRAZIONE MYSQL (v0.3.1) - COMPLETATA 27/11/2025**
 
 ### **Architettura Database**
 - **Storage:** Migrazione completa da JSON a MySQL
@@ -98,6 +98,7 @@ lib/Database/
 2. **`GET /api/holdings.php`** - Lista holdings (usa MySQL VIEW)
 3. **`POST /api/holdings.php`** - Create/Update holding (usa Repository)
 4. **`DELETE /api/holdings.php?ticker=X`** - Soft delete holding
+5. **POST/PUT/DELETE holdings** ora triggerano ricalcolo metriche (allocazioni, snapshot giornaliero, monthly_performance) tramite `PortfolioMetricsService`
 
 ### **Data Loader**
 
@@ -108,8 +109,8 @@ lib/Database/
 - **Features:**
   - Metadata da `v_portfolio_metadata` VIEW
   - Holdings enriched da `v_holdings_enriched` VIEW
-  - Allocazioni calcolate in real-time
-  - Monthly performance da tabella o snapshots
+  - Allocazioni calcolate in real-time e ricaricate post-edit (via `PortfolioMetricsService`)
+  - Monthly performance e storico performance letti da MySQL (`monthly_performance`, `snapshots`, `snapshot_holdings`) con fallback su metadati correnti
   - Fallback graceful in caso di errore DB
 
 ### **Vantaggi Migrazione**
@@ -215,11 +216,15 @@ lib/Database/
   - 2 VIEWs per computed values real-time
   - Indexes ottimizzati per query performance
   - Transactions ACID per data integrity
-- [x] **Repository Pattern** (`lib/Database/Repositories/`):
+- [x] **Repository Pattern** (`lib/Database/Repositories/` + `Services/`):
   - 5 Repository classes (Portfolio, Holding, Transaction, Dividend, Snapshot)
   - BaseRepository con CRUD operations comuni
   - DatabaseManager singleton con connection pooling
   - Security: PDO prepared statements, no SQL injection
+- [x] **PortfolioMetricsService** (`lib/Database/Services/PortfolioMetricsService.php`):
+  - Ricalcolo derivati (allocazioni, snapshot giorno, monthly_performance) post-edit
+  - Usato da `api/holdings.php` su create/update/delete
+  - Script CLI: `scripts/recalculate-db-metrics.php` per sync manuale
 - [x] **API REST Endpoints**:
   - `GET /api/holdings.php` → Lista holdings (da VIEW)
   - `POST /api/holdings.php` → Create/Update holding
@@ -228,6 +233,7 @@ lib/Database/
 - [x] **Data Loader** (`data/portfolio_data.php`):
   - Carica dati da MySQL usando Repositories
   - Mapping compatibilità chiavi per retrocompatibilità view
+  - Performance/allocazioni ora da MySQL (`monthly_performance`, `snapshots`) con fallback metadati
   - Fallback graceful in caso di errore DB
 - [x] **Migration Script** (`scripts/migrate-to-mysql.php`):
   - Migrazione completa JSON → MySQL
@@ -387,20 +393,20 @@ lib/Database/
    - [ ] Modificare posizione esistente
    - [ ] Eliminare posizione
    - [ ] Importare CSV Fineco (`data/portafoglio-export.csv`)
-   - [ ] Verificare ricalcolo metriche automatico
+   - [x] Verificare ricalcolo metriche automatico (allocazioni/snapshot/monthly_performance) post-edit
 
 2. **Integrare API Quotazioni:**
    - [ ] Scegliere provider (Alpha Vantage gratuito 25 req/giorno, Yahoo Finance illimitato)
    - [ ] Creare endpoint `POST /api/update-prices.php`
    - [ ] Implementare fetch quotazioni per ISIN list
-   - [ ] Aggiornare `current_price` in portfolio.json
+   - [ ] Aggiornare `current_price` in DB holdings
    - [ ] Trigger ricalcolo metriche
    - [ ] Pulsante "Aggiorna Prezzi" nel frontend (Holdings header)
 
-3. **Storico Performance:**
-   - [ ] Creare `data/snapshots.json` per storico giornaliero
-   - [ ] Cron job o pulsante manuale per creare snapshot
-   - [ ] Usare snapshots per grafico "Andamento Portafoglio" dinamico
+3. **Storico Performance (DB-first):**
+   - [x] Usare `snapshots`/`monthly_performance` da MySQL per grafici Performance
+   - [ ] Cron job o pulsante manuale per creare snapshot (usa `PortfolioMetricsService`)
+   - [ ] Popolare `snapshot_holdings` con stato corrente (service già pronto)
 
 ### **STEP 2: Setup Integrazione n8n (Priorità ALTA)**
 **Obiettivo:** Automatizzare analisi e recupero dati

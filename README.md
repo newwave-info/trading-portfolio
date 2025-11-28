@@ -111,7 +111,7 @@ ETF Portfolio Manager è una **web application PHP** che funziona come centro di
 - ✅ Integrazione n8n per enrichment automatico (v2.2 attiva)
 - ✅ Storico snapshots temporali per performance tracking
 - ✅ Aggiornamento prezzi automatico giornaliero (4 provider API)
-- ✅ Grafici performance dinamici da snapshots
+- ✅ Grafici performance dinamici da snapshot DB (Performance tab ora legge da MySQL, non da JSON)
 - ✅ Sistema classificazione automatica ETF (settore/asset_class)
 - ✅ Dividendi: sincronizzazione da n8n (yield, frequenza, annual_dividend), calendario forecast 6 mesi, grafici ricevuti/previsti, tab dedicata
 - ✅ Payout automatico dividendi via script (`dividends-payout.php`) schedulabile in cron (nessun inserimento manuale)
@@ -125,6 +125,14 @@ ETF Portfolio Manager è una **web application PHP** che funziona come centro di
 - 🔄 Storico transazioni completo
 - 🔄 Multi-portafoglio per utente
 - 🔄 Tracciamento commissioni Fineco
+
+### Ricalcolo metriche & snapshot (MySQL)
+
+- Service: `lib/Database/Services/PortfolioMetricsService.php`
+  - Ricalcola allocazioni (`allocation_by_asset_class`), snapshot del giorno (`snapshots` + `snapshot_holdings`) e `monthly_performance` a partire dagli holdings correnti (VIEW `v_holdings_enriched`).
+  - Invocato automaticamente da `api/holdings.php` dopo create/update/delete.
+- Script manuale: `php scripts/recalculate-db-metrics.php` per forzare il sync (utile dopo deploy o migrazioni).
+- Cron consigliato: job giornaliero che richiama lo script per avere uno snapshot per giorno e tenere aggiornato `monthly_performance`.
 
 **Cosa NON è:**
 
