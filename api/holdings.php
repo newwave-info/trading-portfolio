@@ -14,6 +14,7 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/../lib/Database/DatabaseManager.php';
 require_once __DIR__ . '/../lib/Database/Repositories/HoldingRepository.php';
 require_once __DIR__ . '/../lib/Database/Repositories/PortfolioRepository.php';
+require_once __DIR__ . '/../lib/Database/Services/PortfolioMetricsService.php';
 
 // CORS headers (se necessario per sviluppo locale)
 header('Access-Control-Allow-Origin: *');
@@ -30,6 +31,7 @@ try {
     $db = DatabaseManager::getInstance();
     $holdingRepo = new HoldingRepository($db);
     $portfolioRepo = new PortfolioRepository($db);
+    $metricsService = new PortfolioMetricsService($db);
 
     $method = $_SERVER['REQUEST_METHOD'];
 
@@ -135,6 +137,9 @@ try {
             // Update portfolio timestamp
             $portfolioRepo->updateLastUpdate();
 
+            // Recalculate derived tables (allocations, snapshot, monthly perf)
+            $metricsService->recalculate();
+
             echo json_encode([
                 'success' => true,
                 'data' => $updated,
@@ -160,6 +165,9 @@ try {
         if ($success) {
             // Update portfolio timestamp
             $portfolioRepo->updateLastUpdate();
+
+            // Recalculate derived tables (allocations, snapshot, monthly perf)
+            $metricsService->recalculate();
 
             echo json_encode([
                 'success' => true,

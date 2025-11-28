@@ -317,4 +317,88 @@ class SnapshotRepository extends BaseRepository
 
         return $this->count(['portfolio_id' => $portfolioId]);
     }
+
+    /**
+     * Upsert snapshot for a date and replace snapshot_holdings.
+     *
+     * @param array $snapshot Snapshot data (date, totals, metadata)
+     * @param array $holdings Holdings enriched array
+     * @param int|null $portfolioId
+     * @return int Snapshot ID
+     * @throws Exception
+     */
+    public function upsertWithHoldings(array $snapshot, array $holdings, $portfolioId = null)
+    {
+        $portfolioId = $portfolioId ?: self::DEFAULT_PORTFOLIO_ID;
+        $date = $snapshot['date'] ?? date('Y-m-d');
+
+        try {
+            $this->beginTransaction();
+
+            $existing = $this->getByDate($date, $portfolioId);
+
+            if ($existing) {
+                $snapshotId = (int) $existing['id'];
+
+                // Update snapshot totals
+                $this->execute(
+                    "UPDATE snapshots
+                     SET total_invested = ?, total_market_value = ?, total_pnl = ?, total_pnl_pct = ?, total_dividends_received = ?, metadata = ?
+                     WHERE id = ?",
+                    [
+                        $snapshot['total_invested'],
+                        $snapshot['total_market_value'],
+                        $snapshot['total_pnl'],
+                        $snapshot['total_pnl_pct'],
+                        $snapshot['total_dividends_received'] ?? 0,
+                        isset($snapshot['metadata']) ? json_encode($snapshot['metadata']) : null,
+                        $snapshotId
+                    ]
+                );
+
+                // Replace holdings
+                $this->execute("DELETE FROM snapshot_holdings WHERE snapshot_id = ?", [$snapshotId]);
+            } else {
+                $snapshotData = [
+                    'portfolio_id' => $portfolioId,
+                    'snapshot_date' => $date,
+                    'total_invested' => $snapshot['total_invested'],
+                    'total_market_value' => $snapshot['total_market_value'],
+                    'total_pnl' => $snapshot['total_pnl'],
+                    'total_pnl_pct' => $snapshot['total_pnl_pct'],
+                    'total_dividends_received' => $snapshot['total_dividends_received'] ?? 0,
+                    'metadata' => isset($snapshot['metadata']) ? json_encode($snapshot['metadata']) : null
+                ];
+
+                $snapshotId = $this->create($snapshotData);
+            }
+
+            // Insert holdings for this snapshot
+            foreach ($holdings as $holding) {
+                $this->execute(
+                    "INSERT INTO snapshot_holdings
+                     (snapshot_id, ticker, quantity, avg_price, current_price, market_value, invested, pnl, pnl_pct)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    [
+                        $snapshotId,
+                        $holding['ticker'],
+                        $holding['quantity'],
+                        $holding['avg_price'],
+                        $holding['current_price'] ?? $holding['avg_price'],
+                        $holding['market_value'],
+                        $holding['invested'],
+                        $holding['pnl'],
+                        $holding['pnl_pct']
+                    ]
+                );
+            }
+
+            $this->commit();
+            return $snapshotId;
+
+        } catch (Exception $e) {
+            $this->rollback();
+            throw $e;
+        }
+    }
 }
