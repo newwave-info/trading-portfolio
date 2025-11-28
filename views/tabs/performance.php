@@ -6,25 +6,28 @@
                 <!-- Performance Metrics -->
                 <?php
                 // Calcola metriche da snapshots
-                $perf_1m = ['pct' => '-', 'value' => '-'];
-                $perf_3m = ['pct' => '-', 'value' => '-'];
-                $perf_ytd = ['pct' => '-', 'value' => '-'];
+                $perf_1m = ["pct" => "-", "value" => "-"];
+                $perf_3m = ["pct" => "-", "value" => "-"];
+                $perf_ytd = ["pct" => "-", "value" => "-"];
 
-                $snapshotsPath = __DIR__ . '/../../data/snapshots.json';
+                $snapshotsPath = __DIR__ . "/../../data/snapshots.json";
                 if (file_exists($snapshotsPath)) {
-                    $snapshotsData = json_decode(file_get_contents($snapshotsPath), true);
-                    $snapshots = $snapshotsData['snapshots'] ?? [];
+                    $snapshotsData = json_decode(
+                        file_get_contents($snapshotsPath),
+                        true
+                    );
+                    $snapshots = $snapshotsData["snapshots"] ?? [];
 
                     if (!empty($snapshots)) {
                         $first = $snapshots[0];
                         $current = end($snapshots);
-                        $currentValue = $current['metadata']['total_value'];
+                        $currentValue = $current["metadata"]["total_value"];
 
                         // 1 Mese (30 giorni fa o primo snapshot disponibile)
-                        $oneMonthAgo = date('Y-m-d', strtotime('-30 days'));
+                        $oneMonthAgo = date("Y-m-d", strtotime("-30 days"));
                         $snap1m = null;
                         foreach ($snapshots as $s) {
-                            if ($s['date'] >= $oneMonthAgo) {
+                            if ($s["date"] >= $oneMonthAgo) {
                                 $snap1m = $s;
                                 break;
                             }
@@ -34,20 +37,32 @@
                             $snap1m = $first;
                         }
                         if ($snap1m) {
-                            $value1m = $snap1m['metadata']['total_value'];
+                            $value1m = $snap1m["metadata"]["total_value"];
                             $change1m = $currentValue - $value1m;
-                            $pct1m = $value1m > 0 ? ($change1m / $value1m) * 100 : 0;
+                            $pct1m =
+                                $value1m > 0 ? ($change1m / $value1m) * 100 : 0;
                             $perf_1m = [
-                                'pct' => ($pct1m >= 0 ? '+' : '') . number_format($pct1m, 2, ',', '.') . '%',
-                                'value' => '€' . number_format($value1m / 1000, 1, ',', '.') . 'k'
+                                "pct" =>
+                                    ($pct1m >= 0 ? "+" : "") .
+                                    number_format($pct1m, 2, ",", ".") .
+                                    "%",
+                                "value" =>
+                                    "€" .
+                                    number_format(
+                                        $value1m / 1000,
+                                        1,
+                                        ",",
+                                        "."
+                                    ) .
+                                    "k",
                             ];
                         }
 
                         // 3 Mesi (90 giorni fa o primo snapshot disponibile)
-                        $threeMonthsAgo = date('Y-m-d', strtotime('-90 days'));
+                        $threeMonthsAgo = date("Y-m-d", strtotime("-90 days"));
                         $snap3m = null;
                         foreach ($snapshots as $s) {
-                            if ($s['date'] >= $threeMonthsAgo) {
+                            if ($s["date"] >= $threeMonthsAgo) {
                                 $snap3m = $s;
                                 break;
                             }
@@ -57,20 +72,32 @@
                             $snap3m = $first;
                         }
                         if ($snap3m) {
-                            $value3m = $snap3m['metadata']['total_value'];
+                            $value3m = $snap3m["metadata"]["total_value"];
                             $change3m = $currentValue - $value3m;
-                            $pct3m = $value3m > 0 ? ($change3m / $value3m) * 100 : 0;
+                            $pct3m =
+                                $value3m > 0 ? ($change3m / $value3m) * 100 : 0;
                             $perf_3m = [
-                                'pct' => ($pct3m >= 0 ? '+' : '') . number_format($pct3m, 2, ',', '.') . '%',
-                                'value' => '€' . number_format($value3m / 1000, 1, ',', '.') . 'k'
+                                "pct" =>
+                                    ($pct3m >= 0 ? "+" : "") .
+                                    number_format($pct3m, 2, ",", ".") .
+                                    "%",
+                                "value" =>
+                                    "€" .
+                                    number_format(
+                                        $value3m / 1000,
+                                        1,
+                                        ",",
+                                        "."
+                                    ) .
+                                    "k",
                             ];
                         }
 
                         // YTD (inizio anno o primo snapshot disponibile)
-                        $ytdStart = date('Y') . '-01-01';
+                        $ytdStart = date("Y") . "-01-01";
                         $snapYtd = null;
                         foreach ($snapshots as $s) {
-                            if ($s['date'] >= $ytdStart) {
+                            if ($s["date"] >= $ytdStart) {
                                 $snapYtd = $s;
                                 break;
                             }
@@ -80,12 +107,26 @@
                             $snapYtd = $first;
                         }
                         if ($snapYtd) {
-                            $valueYtd = $snapYtd['metadata']['total_value'];
+                            $valueYtd = $snapYtd["metadata"]["total_value"];
                             $changeYtd = $currentValue - $valueYtd;
-                            $pctYtd = $valueYtd > 0 ? ($changeYtd / $valueYtd) * 100 : 0;
+                            $pctYtd =
+                                $valueYtd > 0
+                                    ? ($changeYtd / $valueYtd) * 100
+                                    : 0;
                             $perf_ytd = [
-                                'pct' => ($pctYtd >= 0 ? '+' : '') . number_format($pctYtd, 2, ',', '.') . '%',
-                                'value' => '€' . number_format($valueYtd / 1000, 1, ',', '.') . 'k'
+                                "pct" =>
+                                    ($pctYtd >= 0 ? "+" : "") .
+                                    number_format($pctYtd, 2, ",", ".") .
+                                    "%",
+                                "value" =>
+                                    "€" .
+                                    number_format(
+                                        $valueYtd / 1000,
+                                        1,
+                                        ",",
+                                        "."
+                                    ) .
+                                    "k",
                             ];
                         }
                     }
@@ -97,8 +138,12 @@
                             <i class="fa-solid fa-chart-line text-purple"></i>
                             <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">1 Mese</span>
                         </div>
-                        <div class="text-2xl font-bold text-positive mb-1"><?php echo $perf_1m['pct']; ?></div>
-                        <div class="text-[11px] text-gray-500">vs <?php echo $perf_1m['value']; ?></div>
+                        <div class="text-2xl font-bold text-positive mb-1"><?php echo $perf_1m[
+                            "pct"
+                        ]; ?></div>
+                        <div class="text-[11px] text-gray-500">vs <?php echo $perf_1m[
+                            "value"
+                        ]; ?></div>
                     </div>
 
                     <div class="widget-card widget-purple p-6">
@@ -106,8 +151,12 @@
                             <i class="fa-solid fa-chart-area text-purple"></i>
                             <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">3 Mesi</span>
                         </div>
-                        <div class="text-2xl font-bold text-positive mb-1"><?php echo $perf_3m['pct']; ?></div>
-                        <div class="text-[11px] text-gray-500">vs <?php echo $perf_3m['value']; ?></div>
+                        <div class="text-2xl font-bold text-positive mb-1"><?php echo $perf_3m[
+                            "pct"
+                        ]; ?></div>
+                        <div class="text-[11px] text-gray-500">vs <?php echo $perf_3m[
+                            "value"
+                        ]; ?></div>
                     </div>
 
                     <div class="widget-card widget-purple p-6">
@@ -115,8 +164,12 @@
                             <i class="fa-solid fa-arrow-trend-up text-purple"></i>
                             <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">YTD</span>
                         </div>
-                        <div class="text-2xl font-bold text-positive mb-1"><?php echo $perf_ytd['pct']; ?></div>
-                        <div class="text-[11px] text-gray-500">vs <?php echo $perf_ytd['value']; ?></div>
+                        <div class="text-2xl font-bold text-positive mb-1"><?php echo $perf_ytd[
+                            "pct"
+                        ]; ?></div>
+                        <div class="text-[11px] text-gray-500">vs <?php echo $perf_ytd[
+                            "value"
+                        ]; ?></div>
                     </div>
 
                     <div class="widget-card widget-purple p-6">
@@ -124,8 +177,19 @@
                             <i class="fa-solid fa-trophy text-purple"></i>
                             <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Best Performer</span>
                         </div>
-                        <div class="text-xl font-bold text-primary mb-1"><?php echo $best_performer ? htmlspecialchars($best_performer['ticker']) : '-'; ?></div>
-                        <div class="text-[11px] text-positive"><?php echo $best_performer ? '+' . number_format($best_performer['pnl_percentage'], 2, ',', '.') . '%' : '-'; ?></div>
+                        <div class="text-xl font-bold text-primary mb-1"><?php echo $best_performer
+                            ? htmlspecialchars($best_performer["ticker"])
+                            : "-"; ?></div>
+                        <div class="text-[11px] text-positive"><?php echo $best_performer
+                            ? "+" .
+                                number_format(
+                                    $best_performer["pnl_percentage"],
+                                    2,
+                                    ",",
+                                    "."
+                                ) .
+                                "%"
+                            : "-"; ?></div>
                     </div>
                 </div>
 
@@ -175,9 +239,6 @@
                             <i class="fa-solid fa-table text-purple text-sm"></i>
                             <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Storico Performance Giornaliero</span>
                         </div>
-                        <button class="px-3 py-1 bg-purple text-white text-[11px] font-semibold hover:bg-purple-dark transition-colors">
-                            <i class="fa-solid fa-download mr-1"></i> Export CSV
-                        </button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm sortable-table">
@@ -196,36 +257,63 @@
                                 <?php
                                 // Carica storico performance da snapshots
                                 $history_data = [];
-                                $snapshotsPath = __DIR__ . '/../../data/snapshots.json';
+                                $snapshotsPath =
+                                    __DIR__ . "/../../data/snapshots.json";
 
                                 if (file_exists($snapshotsPath)) {
-                                    $snapshotsData = json_decode(file_get_contents($snapshotsPath), true);
-                                    $snapshots = $snapshotsData['snapshots'] ?? [];
+                                    $snapshotsData = json_decode(
+                                        file_get_contents($snapshotsPath),
+                                        true
+                                    );
+                                    $snapshots =
+                                        $snapshotsData["snapshots"] ?? [];
 
                                     // Prendi ultimi 30 giorni
                                     $snapshots = array_slice($snapshots, -30);
 
                                     // Calcola day change per ogni giorno
                                     $prevValue = null;
-                                    $prevInvested = $metadata['total_invested'];
+                                    $prevInvested = $metadata["total_invested"];
 
                                     foreach ($snapshots as $snap) {
-                                        $value = $snap['metadata']['total_value'];
-                                        $invested = $snap['metadata']['total_invested'] ?? $prevInvested;
+                                        $value =
+                                            $snap["metadata"]["total_value"];
+                                        $invested =
+                                            $snap["metadata"][
+                                                "total_invested"
+                                            ] ?? $prevInvested;
                                         $cumul_gain = $value - $invested;
-                                        $gain_pct = $invested > 0 ? ($cumul_gain / $invested) * 100 : 0;
+                                        $gain_pct =
+                                            $invested > 0
+                                                ? ($cumul_gain / $invested) *
+                                                    100
+                                                : 0;
 
-                                        $day_change = $prevValue !== null ? $value - $prevValue : 0;
-                                        $day_pct = $prevValue !== null && $prevValue > 0 ? ($day_change / $prevValue) * 100 : 0;
+                                        $day_change =
+                                            $prevValue !== null
+                                                ? $value - $prevValue
+                                                : 0;
+                                        $day_pct =
+                                            $prevValue !== null &&
+                                            $prevValue > 0
+                                                ? ($day_change / $prevValue) *
+                                                    100
+                                                : 0;
 
                                         $history_data[] = [
-                                            'date' => date('d/m/Y', strtotime($snap['date'])),
-                                            'value' => $value,
-                                            'cumul_gain' => $cumul_gain,
-                                            'gain_pct' => $gain_pct,
-                                            'open_pos' => $snap['metadata']['holdings_count'] ?? count($top_holdings),
-                                            'day_change' => $day_change,
-                                            'day_pct' => $day_pct
+                                            "date" => date(
+                                                "d/m/Y",
+                                                strtotime($snap["date"])
+                                            ),
+                                            "value" => $value,
+                                            "cumul_gain" => $cumul_gain,
+                                            "gain_pct" => $gain_pct,
+                                            "open_pos" =>
+                                                $snap["metadata"][
+                                                    "holdings_count"
+                                                ] ?? count($top_holdings),
+                                            "day_change" => $day_change,
+                                            "day_pct" => $day_pct,
                                         ];
 
                                         $prevValue = $value;
@@ -238,25 +326,65 @@
                                     echo '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Nessuno storico disponibile. Crea snapshot per visualizzare i dati.</td></tr>';
                                 } else {
                                     foreach ($history_data as $row):
-                                    $day_is_positive = $row['day_change'] >= 0;
-                                ?>
+                                        $day_is_positive =
+                                            $row["day_change"] >= 0; ?>
                                 <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                    <td class="px-4 py-3 font-medium"><?php echo $row['date']; ?></td>
-                                    <td class="px-4 py-3 text-right font-semibold">€<?php echo number_format($row['value'], 2, ',', '.'); ?></td>
-                                    <td class="px-4 py-3 text-right text-positive font-semibold">€<?php echo number_format($row['cumul_gain'], 2, ',', '.'); ?></td>
-                                    <td class="px-4 py-3 text-right text-positive font-semibold">+<?php echo number_format($row['gain_pct'], 2, ',', '.'); ?>%</td>
-                                    <td class="px-4 py-3 text-right"><?php echo $row['open_pos']; ?></td>
-                                    <td class="px-4 py-3 text-right <?php echo $day_is_positive ? 'text-positive' : 'text-negative'; ?> font-semibold">
-                                        <?php echo $day_is_positive ? '+' : ''; ?>€<?php echo number_format($row['day_change'], 2, ',', '.'); ?>
+                                    <td class="px-4 py-3 font-medium"><?php echo $row[
+                                        "date"
+                                    ]; ?></td>
+                                    <td class="px-4 py-3 text-right font-semibold">€<?php echo number_format(
+                                        $row["value"],
+                                        2,
+                                        ",",
+                                        "."
+                                    ); ?></td>
+                                    <td class="px-4 py-3 text-right text-positive font-semibold">€<?php echo number_format(
+                                        $row["cumul_gain"],
+                                        2,
+                                        ",",
+                                        "."
+                                    ); ?></td>
+                                    <td class="px-4 py-3 text-right text-positive font-semibold">+<?php echo number_format(
+                                        $row["gain_pct"],
+                                        2,
+                                        ",",
+                                        "."
+                                    ); ?>%</td>
+                                    <td class="px-4 py-3 text-right"><?php echo $row[
+                                        "open_pos"
+                                    ]; ?></td>
+                                    <td class="px-4 py-3 text-right <?php echo $day_is_positive
+                                        ? "text-positive"
+                                        : "text-negative"; ?> font-semibold">
+                                        <?php echo $day_is_positive
+                                            ? "+"
+                                            : ""; ?>€<?php echo number_format(
+    $row["day_change"],
+    2,
+    ",",
+    "."
+); ?>
                                     </td>
-                                    <td class="px-4 py-3 text-right <?php echo $day_is_positive ? 'text-positive' : 'text-negative'; ?> font-semibold">
-                                        <?php echo $day_is_positive ? '+' : ''; ?><?php echo number_format($row['day_pct'], 2, ',', '.'); ?>%
+                                    <td class="px-4 py-3 text-right <?php echo $day_is_positive
+                                        ? "text-positive"
+                                        : "text-negative"; ?> font-semibold">
+                                        <?php
+                                        echo $day_is_positive ? "+" : "";
+                                        echo number_format(
+                                            $row["day_pct"],
+                                            2,
+                                            ",",
+                                            "."
+                                        );
+                                        ?>%
                                     </td>
                                 </tr>
                                 <?php
                                     endforeach;
-                                } // end if empty
-                                ?>
+                                }
+
+// end if empty
+?>
                             </tbody>
                         </table>
                     </div>
@@ -269,7 +397,9 @@
                             <i class="fa-solid fa-clock-rotate-left text-purple text-sm"></i>
                             <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Timeline Transazioni</span>
                         </div>
-                        <span class="text-[11px] text-gray-500"><?php echo count($transactions); ?> eventi</span>
+                        <span class="text-[11px] text-gray-500"><?php echo count(
+                            $transactions
+                        ); ?> eventi</span>
                     </div>
                     <?php if (empty($transactions)): ?>
                         <div class="p-6 text-center text-gray-500 italic">
@@ -290,24 +420,50 @@
                                 </thead>
                                 <tbody>
                                     <?php foreach ($transactions as $tx):
-                                        $ts = $tx['timestamp'] ?? '';
-                                        $dateStr = $ts ? date('d/m/Y H:i', strtotime($ts)) : '-';
-                                        $amount = $tx['amount'] ?? 0;
-                                        $qty = $tx['quantity_change'] ?? 0;
-                                        $type = strtoupper($tx['type'] ?? '-');
+
+                                        $ts = $tx["timestamp"] ?? "";
+                                        $dateStr = $ts
+                                            ? date("d/m/Y H:i", strtotime($ts))
+                                            : "-";
+                                        $amount = $tx["amount"] ?? 0;
+                                        $qty = $tx["quantity_change"] ?? 0;
+                                        $type = strtoupper($tx["type"] ?? "-");
                                         $isPositive = $amount >= 0;
                                         ?>
                                         <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                            <td class="px-4 py-3 text-sm text-gray-700"><?php echo htmlspecialchars($dateStr); ?></td>
-                                            <td class="px-4 py-3 font-semibold text-primary"><?php echo htmlspecialchars($type); ?></td>
-                                            <td class="px-4 py-3 font-medium text-gray-800"><?php echo htmlspecialchars($tx['ticker'] ?? '-'); ?></td>
-                                            <td class="px-4 py-3 text-right text-gray-700"><?php echo number_format($qty, 2, ',', '.'); ?></td>
-                                            <td class="px-4 py-3 text-right font-semibold <?php echo $isPositive ? 'text-positive' : 'text-negative'; ?>">
-                                                <?php echo $isPositive ? '+' : ''; ?>€<?php echo number_format($amount, 2, ',', '.'); ?>
+                                            <td class="px-4 py-3 text-sm text-gray-700"><?php echo htmlspecialchars(
+                                                $dateStr
+                                            ); ?></td>
+                                            <td class="px-4 py-3 font-semibold text-primary"><?php echo htmlspecialchars(
+                                                $type
+                                            ); ?></td>
+                                            <td class="px-4 py-3 font-medium text-gray-800"><?php echo htmlspecialchars(
+                                                $tx["ticker"] ?? "-"
+                                            ); ?></td>
+                                            <td class="px-4 py-3 text-right text-gray-700"><?php echo number_format(
+                                                $qty,
+                                                2,
+                                                ",",
+                                                "."
+                                            ); ?></td>
+                                            <td class="px-4 py-3 text-right font-semibold <?php echo $isPositive
+                                                ? "text-positive"
+                                                : "text-negative"; ?>">
+                                                <?php echo $isPositive
+                                                    ? "+"
+                                                    : ""; ?>€<?php echo number_format(
+    $amount,
+    2,
+    ",",
+    "."
+); ?>
                                             </td>
-                                            <td class="px-4 py-3 text-left text-[11px] text-gray-600"><?php echo htmlspecialchars($tx['note'] ?? '-'); ?></td>
+                                            <td class="px-4 py-3 text-left text-[11px] text-gray-600"><?php echo htmlspecialchars(
+                                                $tx["note"] ?? "-"
+                                            ); ?></td>
                                         </tr>
-                                    <?php endforeach; ?>
+                                    <?php
+                                    endforeach; ?>
                                 </tbody>
                             </table>
                         </div>
@@ -327,45 +483,66 @@
                 $chart_monthly_gain_pct = [];
 
                 if (!empty($history_data)) {
-                    $chart_labels = array_column($history_data, 'date');
-                    $chart_values = array_column($history_data, 'value');
-                    $chart_cumul_gain = array_column($history_data, 'cumul_gain');
-                    $chart_gain_pct = array_column($history_data, 'gain_pct');
+                    $chart_labels = array_column($history_data, "date");
+                    $chart_values = array_column($history_data, "value");
+                    $chart_cumul_gain = array_column(
+                        $history_data,
+                        "cumul_gain"
+                    );
+                    $chart_gain_pct = array_column($history_data, "gain_pct");
                 }
 
                 // Dati mensili per performanceDetailChart da snapshots
                 if (file_exists($snapshotsPath)) {
-                    $snapshotsData = json_decode(file_get_contents($snapshotsPath), true);
-                    $snapshots = $snapshotsData['snapshots'] ?? [];
+                    $snapshotsData = json_decode(
+                        file_get_contents($snapshotsPath),
+                        true
+                    );
+                    $snapshots = $snapshotsData["snapshots"] ?? [];
 
                     if (!empty($snapshots)) {
                         // Raggruppa per mese
                         $byMonth = [];
                         foreach ($snapshots as $snap) {
-                            $monthKey = date('Y-m', strtotime($snap['date']));
-                            $month = date('M', strtotime($snap['date']));
+                            $monthKey = date("Y-m", strtotime($snap["date"]));
+                            $month = date("M", strtotime($snap["date"]));
 
                             // Prendi l'ultimo snapshot di ogni mese
-                            if (!isset($byMonth[$monthKey]) || $snap['date'] > $byMonth[$monthKey]['date']) {
-                                $value = $snap['metadata']['total_value'];
-                                $invested = $snap['metadata']['total_invested'] ?? $metadata['total_invested'];
-                                $gain_pct = $invested > 0 ? (($value - $invested) / $invested) * 100 : 0;
+                            if (
+                                !isset($byMonth[$monthKey]) ||
+                                $snap["date"] > $byMonth[$monthKey]["date"]
+                            ) {
+                                $value = $snap["metadata"]["total_value"];
+                                $invested =
+                                    $snap["metadata"]["total_invested"] ??
+                                    $metadata["total_invested"];
+                                $gain_pct =
+                                    $invested > 0
+                                        ? (($value - $invested) / $invested) *
+                                            100
+                                        : 0;
 
                                 $byMonth[$monthKey] = [
-                                    'month' => $month,
-                                    'value' => $value,
-                                    'gain_pct' => $gain_pct,
-                                    'date' => $snap['date']
+                                    "month" => $month,
+                                    "value" => $value,
+                                    "gain_pct" => $gain_pct,
+                                    "date" => $snap["date"],
                                 ];
                             }
                         }
 
                         // Ordina e prendi ultimi 12 mesi
-                        usort($byMonth, fn($a, $b) => $a['date'] <=> $b['date']);
+                        usort(
+                            $byMonth,
+                            fn($a, $b) => $a["date"] <=> $b["date"]
+                        );
                         $last12 = array_slice($byMonth, -12);
-                        $chart_monthly_labels = array_column($last12, 'month');
-                        $chart_monthly_values = array_column($last12, 'value');
-                        $chart_monthly_gain_pct = array_column($last12, 'gain_pct');
+                        $chart_monthly_labels = array_column($last12, "month");
+                        $chart_monthly_values = array_column($last12, "value");
+                        $chart_monthly_gain_pct = array_column(
+                            $last12,
+                            "gain_pct"
+                        );
                     }
                 }
                 ?>

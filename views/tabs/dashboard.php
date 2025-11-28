@@ -182,9 +182,9 @@
             </div>
         </div>
 
-        <!-- Top 5 & Bottom 5 Performers -->
+        <!-- Top 5 Performers, Bottom 5 Performers & Breakdown per Tipo -->
         <div class="mb-8">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Top 5 Performers -->
                 <div class="widget-card widget-purple p-6">
                     <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
@@ -263,61 +263,59 @@
                         </table>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Breakdown per Tipo Strumento -->
-        <div class="mb-8">
-            <div class="widget-card widget-purple p-6">
-                <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-chart-pie text-purple text-sm"></i>
-                        <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Breakdown per Tipo</span>
-                        <div class="tooltip-container">
-                            <i class="fa-solid fa-circle-info text-gray-400 text-[9px] cursor-help"></i>
-                            <div class="tooltip-content">Distribuzione del portafoglio per tipologia di strumento finanziario</div>
+                <!-- Breakdown per Tipo Strumento -->
+                <div class="widget-card widget-purple p-6">
+                    <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-chart-pie text-purple text-sm"></i>
+                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Breakdown per Tipo</span>
+                            <div class="tooltip-container">
+                                <i class="fa-solid fa-circle-info text-gray-400 text-[9px] cursor-help"></i>
+                                <div class="tooltip-content">Distribuzione del portafoglio per tipologia di strumento finanziario</div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm sortable-table">
-                        <thead class="bg-gray-50 border-b border-gray-200">
-                            <tr>
-                                <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Tipo</th>
-                                <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Valore €</th>
-                                <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Percentuale</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            // Raggruppa holdings per tipo
-                            $breakdown_by_type = [];
-                            foreach ($top_holdings as $holding) {
-                                // Per ora assumiamo tutti ETF, in futuro questa logica andrà nel backend
-                                $type = 'ETF';
-                                if (!isset($breakdown_by_type[$type])) {
-                                    $breakdown_by_type[$type] = ['value' => 0, 'percentage' => 0];
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm sortable-table">
+                            <thead class="bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Tipo</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Valore €</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase cursor-pointer" role="button">Percentuale</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                // Raggruppa holdings per tipo
+                                $breakdown_by_type = [];
+                                foreach ($top_holdings as $holding) {
+                                    // Per ora assumiamo tutti ETF, in futuro questa logica andrà nel backend
+                                    $type = 'ETF';
+                                    if (!isset($breakdown_by_type[$type])) {
+                                        $breakdown_by_type[$type] = ['value' => 0, 'percentage' => 0];
+                                    }
+                                    $breakdown_by_type[$type]['value'] += $holding['market_value'];
                                 }
-                                $breakdown_by_type[$type]['value'] += $holding['market_value'];
-                            }
-                            // Calcola percentuali
-                            foreach ($breakdown_by_type as $type => &$data) {
-                                $data['percentage'] = ($data['value'] / $metadata['total_value']) * 100;
-                            }
-                            foreach ($breakdown_by_type as $type => $data):
-                            ?>
-                            <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                <td class="px-4 py-3 font-semibold"><?php echo htmlspecialchars($type); ?></td>
-                                <td class="px-4 py-3 text-right font-semibold">€<?php echo number_format($data['value'], 2, ',', '.'); ?></td>
-                                <td class="px-4 py-3 text-right">
-                                    <span class="px-2 py-1 text-[11px] bg-purple-100 text-purple-700 font-semibold">
-                                        <?php echo number_format($data['percentage'], 2, ',', '.'); ?>%
-                                    </span>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                                // Calcola percentuali
+                                foreach ($breakdown_by_type as $type => &$data) {
+                                    $data['percentage'] = ($data['value'] / $metadata['total_value']) * 100;
+                                }
+                                foreach ($breakdown_by_type as $type => $data):
+                                ?>
+                                <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                    <td class="px-4 py-3 font-semibold"><?php echo htmlspecialchars($type); ?></td>
+                                    <td class="px-4 py-3 text-right font-semibold">€<?php echo number_format($data['value'], 2, ',', '.'); ?></td>
+                                    <td class="px-4 py-3 text-right">
+                                        <span class="px-2 py-1 text-[11px] bg-purple-100 text-purple-700 font-semibold">
+                                            <?php echo number_format($data['percentage'], 2, ',', '.'); ?>%
+                                        </span>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
