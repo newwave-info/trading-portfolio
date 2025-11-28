@@ -9,6 +9,7 @@ require_once __DIR__ . '/../lib/Database/DatabaseManager.php';
 require_once __DIR__ . '/../lib/Database/Repositories/PortfolioRepository.php';
 require_once __DIR__ . '/../lib/Database/Repositories/HoldingRepository.php';
 require_once __DIR__ . '/../lib/Database/Repositories/DividendRepository.php';
+require_once __DIR__ . '/../lib/Database/Repositories/DividendEnrichedRepository.php';
 require_once __DIR__ . '/../lib/Database/Repositories/SnapshotRepository.php';
 require_once __DIR__ . '/../lib/Database/Repositories/TransactionRepository.php';
 
@@ -18,6 +19,7 @@ try {
     $portfolioRepo = new PortfolioRepository($db);
     $holdingRepo = new HoldingRepository($db);
     $dividendRepo = new DividendRepository($db);
+    $dividendEnrichedRepo = new DividendEnrichedRepository($db);
     $snapshotRepo = new SnapshotRepository($db);
     $transactionRepo = new TransactionRepository($db);
 
@@ -157,7 +159,164 @@ try {
     // ============================================
     // DIVIDENDI
     // ============================================
-    $dividends = $dividendRepo->getAll();
+    // Dividendi (storico + forecast) normalizzati per compatibilità vista
+    $dividends_raw = $dividendEnrichedRepo->findAll();
+    $dividends = array_map(function($div) {
+        $payDate = $div['payment_date'] ?? $div['ex_date'];
+        return [
+            'id' => $div['id'],
+            'ticker' => $div['ticker'],
+            'status' => $div['status'],
+            'ex_date' => $div['ex_date'],
+            'payment_date' => $div['payment_date'],
+            'date' => $payDate, // compatibilità legacy
+            'amount_per_share' => (float)$div['amount_per_share'],
+            'quantity' => (float)$div['quantity_at_ex_date'],
+            'amount' => (float)$div['paid_amount'],
+            'pay_date' => $payDate, // compatibilità legacy
+            'owned_on_snapshot' => (int)$div['owned_on_snapshot'],
+            'snapshot_date_used' => $div['snapshot_date_used']
+        ];
+    }, $dividends_raw);
+
+    // ==========================
+    // DIVIDENDS CALENDAR (DB-first)
+    // ==========================
+    $dividends_calendar_data = [
+        'forecast_6m' => ['total_amount' => null, 'period' => '-'], // user-facing: 12 mesi ma manteniamo la chiave per compatibilità
+        'portfolio_yield' => null,
+        'next_dividend' => ['date' => '-', 'ticker' => '-', 'amount' => null],
+        'monthly_forecast' => [],
+        'distributing_assets' => [],
+        'ai_insight' => '-' // lasciato a JSON esterno per ora
+    ];
+
+    $today = date('Y-m-d');
+    $forecastHorizonEnd = date('Y-m-d', strtotime('+12 months'));
+    $twelveMonthsLater = date('Y-m-d', strtotime('+12 months'));
+    $twelveMonthsAgo = date('Y-m-d', strtotime('-12 months'));
+
+    // Forecast prossimi 12 mesi
+    $forecast = $dividendRepo->getForecast($today, $forecastHorizonEnd);
+    if (!empty($forecast)) {
+        $sum = array_sum(array_column($forecast, 'total_amount'));
+
+        // Periodo es: "12/2025 - 11/2026"
+        $months = array_map(function($div) {
+            $date = $div['payment_date'] ?? $div['ex_date'];
+            return date('m/Y', strtotime($date));
+        }, $forecast);
+        $period = reset($months) . ' - ' . end($months);
+
+        $dividends_calendar_data['forecast_6m'] = [ // manteniamo la chiave ma è 12 mesi
+            'total_amount' => (float) $sum,
+            'period' => $period
+        ];
+    }
+
+    // Next dividend (FORECAST più vicino, solo date future)
+    $nextDividend = null;
+    foreach ($forecast as $div) {
+        $date = $div['payment_date'] ?? $div['ex_date'];
+        if ($date >= $today && ($nextDividend === null || $date < $nextDividend['date'])) {
+            $nextDividend = [
+                'date' => $date,
+                'ticker' => $div['ticker'],
+                'amount' => (float) $div['total_amount']
+            ];
+        }
+    }
+    if ($nextDividend) {
+        $dividends_calendar_data['next_dividend'] = $nextDividend;
+    }
+
+    // Monthly forecast (prossimi 12 mesi, raggruppo per mese con anno)
+    if (!empty($forecast)) {
+        $byMonth = [];
+        foreach ($forecast as $div) {
+            $date = $div['payment_date'] ?? $div['ex_date'];
+            $monthKey = date('Y-m', strtotime($date));
+            if (!isset($byMonth[$monthKey])) {
+                // Nomi mese in italiano
+                $italianMonths = [
+                    'January' => 'Gennaio', 'February' => 'Febbraio', 'March' => 'Marzo',
+                    'April' => 'Aprile', 'May' => 'Maggio', 'June' => 'Giugno',
+                    'July' => 'Luglio', 'August' => 'Agosto', 'September' => 'Settembre',
+                    'October' => 'Ottobre', 'November' => 'Novembre', 'December' => 'Dicembre'
+                ];
+                $monthEn = date('F', strtotime($date));
+                $monthIt = $italianMonths[$monthEn] ?? $monthEn;
+
+                $byMonth[$monthKey] = [
+                    'month' => $monthIt, // mese esteso italiano
+                    'year' => date('Y', strtotime($date)),
+                    'month_year' => $monthKey,
+                    'label' => $monthIt . ' ' . date('Y', strtotime($date)),
+                    'amount' => 0
+                ];
+            }
+            $byMonth[$monthKey]['amount'] += (float) $div['total_amount'];
+        }
+        // Ordina per mese
+        ksort($byMonth);
+        $dividends_calendar_data['monthly_forecast'] = array_values($byMonth);
+    }
+
+    // Portfolio yield (ultimi 12 mesi ricevuti / valore portafoglio)
+    $received12m = $dividendRepo->getReceived($twelveMonthsAgo, $today);
+    $receivedTotal = array_sum(array_column($received12m, 'total_amount'));
+    if (($metadata['total_market_value'] ?? 0) > 0) {
+        $dividends_calendar_data['portfolio_yield'] = ($receivedTotal / $metadata['total_market_value']) * 100;
+    }
+
+    // Distributing assets: per ticker, annual_amount (forecast 12m) e yield calcolato sul market_value
+    if (!empty($holdings_raw)) {
+        // Mappa holdings per ticker per recuperare market_value e name
+        $holdingMap = [];
+        foreach ($holdings_raw as $h) {
+            $holdingMap[$h['ticker']] = $h;
+        }
+
+        // Forecast 12 mesi per ticker
+        $forecast12m = $dividendRepo->getForecast($today, $twelveMonthsLater);
+        $byTicker = [];
+        foreach ($forecast12m as $div) {
+            $ticker = $div['ticker'];
+            if (!isset($byTicker[$ticker])) {
+                $byTicker[$ticker] = [
+                    'ticker' => $ticker,
+                    'annual_amount' => 0,
+                    'next_div_date' => null
+                ];
+            }
+            $byTicker[$ticker]['annual_amount'] += (float) $div['total_amount'];
+
+            $date = $div['payment_date'] ?? $div['ex_date'];
+            if ($byTicker[$ticker]['next_div_date'] === null || $date < $byTicker[$ticker]['next_div_date']) {
+                $byTicker[$ticker]['next_div_date'] = $date;
+            }
+        }
+
+        // Costruisci lista con yield
+        foreach ($byTicker as $ticker => $info) {
+            $holding = $holdingMap[$ticker] ?? null;
+            if (!$holding) {
+                continue;
+            }
+            $marketValue = $holding['market_value'] ?? 0;
+            $yieldPct = $marketValue > 0 ? ($info['annual_amount'] / $marketValue) * 100 : null;
+
+            $dividends_calendar_data['distributing_assets'][] = [
+                'ticker' => $ticker,
+                'name' => $holding['name'] ?? $ticker,
+                'dividend_yield' => $yieldPct,
+                'annual_amount' => $info['annual_amount'],
+                'frequency' => 'N/A',
+                'last_div_date' => null,
+                'next_div_date' => $info['next_div_date']
+            ];
+        }
+    }
 
     // ============================================
     // TRANSAZIONI (BUY/SELL/DIVIDEND)
@@ -225,25 +384,14 @@ try {
     }
 
     // ============================================
-    // DIVIDENDS CALENDAR - Caricata da JSON (from API or n8n)
-    // ============================================
-    $dividends_calendar_data = [
-        'forecast_6m' => ['total_amount' => null, 'period' => '-'],
-        'portfolio_yield' => null,
-        'next_dividend' => ['date' => '-', 'ticker' => '-', 'amount' => null],
-        'monthly_forecast' => [],
-        'distributing_assets' => [],
-        'ai_insight' => '-'
-    ];
+    // DIVIDENDS CALENDAR - AI insight ancora da JSON (solo ai_insight fallback)
+    // Se presente un file con ai_insight, lo innestiamo
     $dividendsCalendarPath = __DIR__ . '/dividends_calendar.json';
     if (file_exists($dividendsCalendarPath)) {
         $data = json_decode(file_get_contents($dividendsCalendarPath), true);
-        $dividends_calendar_data['forecast_6m'] = $data['forecast_6m'] ?? $dividends_calendar_data['forecast_6m'];
-        $dividends_calendar_data['portfolio_yield'] = $data['portfolio_yield'] ?? null;
-        $dividends_calendar_data['next_dividend'] = $data['next_dividend'] ?? $dividends_calendar_data['next_dividend'];
-        $dividends_calendar_data['monthly_forecast'] = $data['monthly_forecast'] ?? [];
-        $dividends_calendar_data['distributing_assets'] = $data['distributing_assets'] ?? [];
-        $dividends_calendar_data['ai_insight'] = $data['ai_insight'] ?? '-';
+        if (isset($data['ai_insight'])) {
+            $dividends_calendar_data['ai_insight'] = $data['ai_insight'];
+        }
     }
 
     // ============================================

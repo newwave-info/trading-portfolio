@@ -359,6 +359,8 @@ const ChartManager = {
             backgroundColor: this.getPattern(this.colors.purple),
             borderColor: this.colors.purple,
             borderRadius: 0,
+            categoryPercentage: 0.6,
+            barPercentage: 0.9,
           },
           {
             label: "Previsti",
@@ -368,6 +370,8 @@ const ChartManager = {
             borderWidth: 1,
             borderDash: [5, 5],
             borderRadius: 0,
+            categoryPercentage: 0.6,
+            barPercentage: 0.9,
           },
         ],
       },
@@ -383,9 +387,12 @@ const ChartManager = {
           },
         },
         scales: {
-          x: { stacked: true },
+          x: {
+            stacked: false,
+            ticks: { autoSkip: false, maxRotation: 45, minRotation: 45 },
+          },
           y: {
-            stacked: true,
+            stacked: false,
             beginAtZero: true,
             ticks: { callback: (v) => this.formatEuro(v, 0) },
           },

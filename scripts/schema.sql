@@ -225,6 +225,40 @@ CREATE TABLE IF NOT EXISTS cron_logs (
 COMMENT='Cron job execution history';
 
 -- ============================================================================
+-- VIEW 3: v_dividends_enriched
+-- Dividendi con quantità effettive alla data di stacco (se disponibile snapshot)
+-- ============================================================================
+CREATE OR REPLACE VIEW v_dividends_enriched AS
+WITH ranked AS (
+    SELECT
+        dp.id AS dp_id,
+        dp.portfolio_id,
+        dp.ticker,
+        dp.ex_date,
+        sh.quantity,
+        s.snapshot_date,
+        ROW_NUMBER() OVER (PARTITION BY dp.id ORDER BY s.snapshot_date DESC) AS rn
+    FROM dividend_payments dp
+    JOIN snapshots s
+        ON s.portfolio_id = dp.portfolio_id
+        AND s.snapshot_date <= dp.ex_date
+    JOIN snapshot_holdings sh
+        ON sh.snapshot_id = s.id
+        AND sh.ticker = dp.ticker
+)
+SELECT
+    dp.*,
+    r.snapshot_date AS snapshot_date_used,
+    CASE WHEN r.rn = 1 THEN r.quantity ELSE NULL END AS snapshot_quantity,
+    COALESCE(CASE WHEN r.rn = 1 THEN r.quantity END, dp.quantity) AS quantity_at_ex_date,
+    dp.amount_per_share * COALESCE(CASE WHEN r.rn = 1 THEN r.quantity END, dp.quantity) AS paid_amount,
+    CASE WHEN r.rn = 1 THEN 1 ELSE 0 END AS owned_on_snapshot
+FROM dividend_payments dp
+LEFT JOIN ranked r
+    ON r.dp_id = dp.id
+    AND r.rn = 1;
+
+-- ============================================================================
 -- VIEW 1: v_holdings_enriched
 -- Real-time computed values for current holdings
 -- ============================================================================

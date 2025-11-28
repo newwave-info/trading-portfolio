@@ -134,6 +134,12 @@ ETF Portfolio Manager è una **web application PHP** che funziona come centro di
 - Script manuale: `php scripts/recalculate-db-metrics.php` per forzare il sync (utile dopo deploy o migrazioni).
 - Cron consigliato: job giornaliero che richiama lo script per avere uno snapshot per giorno e tenere aggiornato `monthly_performance`.
 
+### Dividendi (DB-first)
+- Tabella `dividend_payments` popolata da n8n via `POST /api/dividends.php` (upsert su ticker+ex_date+status).
+- Vista `v_dividends_enriched`: calcola importi effettivi usando la quantità dagli snapshot holdings alla ex_date (fallback quantità corrente).
+- API diventa permissiva: se mancano quantità/total_amount, li calcola (RECEIVED usa snapshot, FORECAST usa quantità corrente).
+- Calendario/grafici Dividendi leggono solo dal DB; forecast rolling 12 mesi con mesi in italiano.
+
 **Cosa NON è:**
 
 - ❌ Non esegue ordini automatici (tutti manualmente su Fineco)

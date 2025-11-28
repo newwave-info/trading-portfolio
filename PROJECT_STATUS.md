@@ -1,8 +1,8 @@
 # 📊 ETF Portfolio Manager - Stato Avanzamento Lavori
 
 **Ultimo aggiornamento:** 28 Novembre 2025
-**Versione:** 0.3.1-MySQL ✅
-**Stato:** Produzione - Migrazione MySQL completata, Repository Pattern implementato, n8n integration attiva, viste Performance allineate a MySQL
+**Versione:** 0.3.2-MySQL ✅
+**Stato:** Produzione - Migrazione MySQL completata, Repository Pattern implementato, n8n integration attiva, viste Performance/Dividendi allineate a MySQL
 
 > 📋 **Documentazione:**
 > - [README.md](README.md) - Panoramica generale e setup (aggiornato 26 Nov 2025)
@@ -230,10 +230,15 @@ lib/Database/
   - `POST /api/holdings.php` → Create/Update holding
   - `DELETE /api/holdings.php?ticker=X` → Soft delete holding
   - `POST /api/update.php` → Webhook n8n bulk price update
+- [x] **Dividendi DB-first**:
+  - Tabella `dividend_payments` popolata da n8n (`/api/dividends.php`) con forecast/received
+  - Vista `v_dividends_enriched`: importi effettivi in base agli snapshot holdings alla ex_date
+  - Repository `DividendEnrichedRepository` per lettura vista
 - [x] **Data Loader** (`data/portfolio_data.php`):
   - Carica dati da MySQL usando Repositories
   - Mapping compatibilità chiavi per retrocompatibilità view
   - Performance/allocazioni ora da MySQL (`monthly_performance`, `snapshots`) con fallback metadati
+  - Dividendi: storico da `dividend_payments`; forecast/calendar ora calcolati dal DB (FORECAST) con solo `ai_insight` in fallback JSON
   - Fallback graceful in caso di errore DB
 - [x] **Migration Script** (`scripts/migrate-to-mysql.php`):
   - Migrazione completa JSON → MySQL
@@ -421,14 +426,19 @@ lib/Database/
      - Riceve lista ISIN via webhook
      - Fetch quotazioni da Yahoo Finance/Alpha Vantage
      - Restituisce JSON `{ "IE00B3RBWM25": 89.45, ... }`
-   - [ ] Testare chiamata da PHP `PortfolioManager->prepareN8nPayload()`
-   - [ ] Ricevere risultati in `PortfolioManager->receiveN8nResults()`
+   - [ ] Ricevere risultati direttamente in DB (aggiorna holdings + ricalcolo metriche), deprecando `PortfolioManager`
 
 3. **Workflow Analisi Tecnica:**
    - [ ] Implementare calcolo indicatori (EMA, MACD, RSI, Bollinger)
    - [ ] Logica generazione segnali BUY/SELL/HOLD/WATCH
-   - [ ] Storage risultati in `data/technical_analysis.json`
+   - [ ] Storage risultati in DB (tabella `technical_analysis`) invece di `data/technical_analysis.json`
    - [ ] Mostrare in vista "Analisi Tecnica"
+
+4. **Workflow Dividendi (attivo):**
+   - [x] n8n genera forecast (media ultimi 4, rolling 4 future), status FORECAST
+   - [x] Quando ex_date arriva, status → RECEIVED; quantità correnti inviate (API calcola qty snapshot se esiste)
+   - [x] Invio a `/api/dividends.php` (upsert ticker+ex_date+status), totale calcolato da API se manca
+   - [ ] Aggiungere snapshot giornalieri per migliorare accuratezza quantità a ex_date
 
 ### **STEP 3: Miglioramenti UX (Priorità MEDIA)**
 **Obiettivo:** Rendere il sistema più usabile quotidianamente

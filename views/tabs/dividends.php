@@ -18,7 +18,7 @@
                         ); ?> pagamenti</div>
                     </div>
                     <div class="widget-card widget-purple p-6">
-                        <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Previsto 6 Mesi</div>
+                        <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Previsto 12 Mesi</div>
                         <div class="text-xl font-bold text-primary">
                             <?php echo $dividends_calendar_data["forecast_6m"][
                                 "total_amount"
@@ -58,9 +58,12 @@
                     </div>
                     <div class="widget-card widget-purple p-6">
                         <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Prossimo Stacco</div>
-                        <div class="text-xl font-bold text-primary"><?php echo htmlspecialchars(
-                            $dividends_calendar_data["next_dividend"]["date"]
-                        ); ?></div>
+                        <div class="text-xl font-bold text-primary">
+                            <?php
+                            $nd = $dividends_calendar_data["next_dividend"];
+                            echo $nd["date"] !== '-' ? date("d/m/Y", strtotime($nd["date"])) : "-";
+                            ?>
+                        </div>
                         <div class="text-[11px] text-gray-500 mt-1">
                             <?php
                             $nextDiv =
@@ -106,7 +109,7 @@
                         <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
                             <div class="flex items-center gap-2">
                                 <i class="fa-solid fa-calendar-days text-purple text-sm"></i>
-                                <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Calendario Prossimi 6 Mesi</span>
+                                <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Calendario Prossimi 12 Mesi</span>
                             </div>
                         </div>
                         <?php if (
@@ -121,42 +124,19 @@
                             else: ?>
                             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                                 <?php
-                                $currentMonth = (int) date("n");
-                                $currentYear = (int) date("Y");
-                                $monthIndex = 0;
                                 foreach (
                                     $dividends_calendar_data["monthly_forecast"]
                                     as $month
                                 ):
-
                                     $has_events = ($month["amount"] ?? 0) > 0;
-                                    $monthNum =
-                                        array_search($month["month"], [
-                                            "Jan",
-                                            "Feb",
-                                            "Mar",
-                                            "Apr",
-                                            "May",
-                                            "Jun",
-                                            "Jul",
-                                            "Aug",
-                                            "Sep",
-                                            "Oct",
-                                            "Nov",
-                                            "Dec",
-                                        ]) + 1;
-                                    $forecastYear =
-                                        $monthNum < $currentMonth &&
-                                        $monthIndex > 0
-                                            ? $currentYear + 1
-                                            : $currentYear;
-                                    $monthIndex++;
                                     ?>
                                 <div class="p-4 bg-white border border-gray-200">
                                     <div class="font-semibold text-primary text-sm"><?php echo htmlspecialchars(
                                         $month["month"]
                                     ); ?></div>
-                                    <div class="text-[10px] text-gray-500 mb-2"><?php echo $forecastYear; ?></div>
+                                    <div class="text-[10px] text-gray-500 mb-2"><?php echo htmlspecialchars(
+                                        $month["year"] ?? "-"
+                                    ); ?></div>
                                     <?php if ($has_events): ?>
                                         <div class="text-xs text-gray-600 mb-1">
                                             <span class="px-2 py-0.5 bg-purple-100 text-purple-700 font-semibold">Dividendo</span>
@@ -342,16 +322,24 @@
                             </div>
                         </div>
                         <div class="space-y-3">
-                            <?php foreach ($dividends as $div): ?>
+                            <?php
+                            // Ordina ricevuti per data pagamento decrescente
+                            usort($dividends, function($a, $b) {
+                                $da = $a['pay_date'] ?? '';
+                                $db = $b['pay_date'] ?? '';
+                                return strcmp($db, $da);
+                            });
+                            foreach ($dividends as $div):
+                                if ($div['status'] !== 'RECEIVED') continue;
+                                ?>
                             <div class="flex justify-between items-center p-3 bg-gray-50 border border-gray-200">
                                 <div>
                                     <div class="font-semibold text-primary text-sm"><?php echo htmlspecialchars(
                                         $div["ticker"]
                                     ); ?></div>
-                                    <div class="text-[11px] text-gray-500"><?php echo date(
-                                        "d/m/Y",
-                                        strtotime($div["pay_date"])
-                                    ); ?></div>
+                                    <div class="text-[11px] text-gray-500"><?php echo $div["pay_date"]
+                                        ? date("d/m/Y", strtotime($div["pay_date"]))
+                                        : "-"; ?></div>
                                 </div>
                                 <div class="text-right">
                                     <div class="font-bold text-positive">€<?php echo number_format(
@@ -371,63 +359,46 @@
                 <script>
                 // Prepare dividends data for charts
                 <?php
-                // Crea array mensili per i grafici
-                $months_labels = [
-                    "Gen",
-                    "Feb",
-                    "Mar",
-                    "Apr",
-                    "Mag",
-                    "Giu",
-                    "Lug",
-                    "Ago",
-                    "Set",
-                    "Ott",
-                    "Nov",
-                    "Dic",
-                ];
-                $months_map = [
-                    "Jan" => 0,
-                    "Feb" => 1,
-                    "Mar" => 2,
-                    "Apr" => 3,
-                    "May" => 4,
-                    "Jun" => 5,
-                    "Jul" => 6,
-                    "Aug" => 7,
-                    "Sep" => 8,
-                    "Oct" => 9,
-                    "Nov" => 10,
-                    "Dec" => 11,
-                ];
+                // Crea array mensili per i grafici (rolling 12 mesi con anno)
+                $monthKeys = [];
+                $months_labels = [];
+                $monthly_received = [];
+                $monthly_forecast = [];
 
-                // Array per dividendi RICEVUTI (storico)
-                $monthly_received = array_fill(0, 12, 0);
-
-                // Array per dividendi PREVISTI (forecast)
-                $monthly_forecast = array_fill(0, 12, 0);
-
-                // Popola array RICEVUTI con dati reali da $dividends (storico)
-                foreach ($dividends as $div) {
-                    $month_num =
-                        (int) date("n", strtotime($div["pay_date"])) - 1; // 0-11
-                    $monthly_received[$month_num] += $div["amount"];
+                $start = new DateTime('first day of this month');
+                for ($i = 0; $i < 12; $i++) {
+                    $key = $start->format('Y-m');
+                    $monthKeys[] = $key;
+                    $months_labels[] = $start->format('m/Y');
+                    $monthly_received[$key] = 0;
+                    $monthly_forecast[$key] = 0;
+                    $start->modify('+1 month');
                 }
 
-                // Popola array PREVISTI con dati dal calendario dividendi
+                $today = date('Y-m-d');
+
+                // Popola array RICEVUTI con dati reali da $dividends (storico, status RECEIVED e data <= oggi)
+                foreach ($dividends as $div) {
+                    if (empty($div["pay_date"])) {
+                        continue;
+                    }
+                    $payDate = $div["pay_date"];
+                    if ($div["status"] !== "RECEIVED" || $payDate > $today) {
+                        continue;
+                    }
+                    $key = date("Y-m", strtotime($payDate));
+                    if (isset($monthly_received[$key])) {
+                        $monthly_received[$key] += $div["amount"];
+                    }
+                }
+
+                // Popola array PREVISTI con dati dal calendario dividendi (12 mesi, solo status FORECAST o date future)
                 if (!empty($dividends_calendar_data["monthly_forecast"])) {
-                    foreach (
-                        $dividends_calendar_data["monthly_forecast"]
-                        as $forecast
-                    ) {
-                        $monthName = $forecast["month"] ?? "";
+                    foreach ($dividends_calendar_data["monthly_forecast"] as $forecast) {
+                        $key = $forecast["month_year"] ?? null;
                         $amount = $forecast["amount"] ?? 0;
-                        if (isset($months_map[$monthName]) && $amount > 0) {
-                            $monthIdx = $months_map[$monthName];
-                            // Solo se non abbiamo già ricevuto dividendi in quel mese
-                            if ($monthly_received[$monthIdx] == 0) {
-                                $monthly_forecast[$monthIdx] = $amount;
-                            }
+                        if ($key && isset($monthly_forecast[$key]) && $amount > 0) {
+                            $monthly_forecast[$key] += $amount;
                         }
                     }
                 } else {
@@ -438,39 +409,39 @@
                         "Semi-Annual" => 2,
                         "Annual" => 1,
                     ];
+                    $monthKeysCount = count($monthKeys);
                     foreach ($top_holdings as $h) {
-                        if (
-                            empty($h["has_dividends"]) ||
-                            empty($h["annual_dividend"])
-                        ) {
+                        if (empty($h["has_dividends"]) || empty($h["annual_dividend"])) {
                             continue;
                         }
-                        $paymentsPerYear =
-                            $freqMap[$h["dividend_frequency"] ?? ""] ?? 0;
+                        $paymentsPerYear = $freqMap[$h["dividend_frequency"] ?? ""] ?? 0;
                         if ($paymentsPerYear === 0) {
                             continue;
                         }
-                        $paymentAmount =
-                            (($h["annual_dividend"] ?? 0) *
-                                ($h["quantity"] ?? 0)) /
-                            $paymentsPerYear;
-                        // distribuisci equidistante nei 12 mesi partendo da mese corrente
+                        $paymentAmount = (($h["annual_dividend"] ?? 0) * ($h["quantity"] ?? 0)) / $paymentsPerYear;
                         $step = (int) floor(12 / $paymentsPerYear);
-                        $monthIndex = (int) date("n") - 1;
+                        $startIdx = 0; // mese corrente (index 0)
                         for ($i = 0; $i < $paymentsPerYear; $i++) {
-                            $idx = ($monthIndex + $i * $step) % 12;
-                            if ($monthly_received[$idx] == 0) {
-                                $monthly_forecast[$idx] += $paymentAmount;
-                            }
+                            $idx = ($startIdx + $i * $step) % $monthKeysCount;
+                            $key = $monthKeys[$idx];
+                            $monthly_forecast[$key] += $paymentAmount;
                         }
                     }
+                }
+
+                // Converte in array ordinati secondo monthKeys
+                $monthly_received_values = [];
+                $monthly_forecast_values = [];
+                foreach ($monthKeys as $key) {
+                    $monthly_received_values[] = $monthly_received[$key];
+                    $monthly_forecast_values[] = $monthly_forecast[$key];
                 }
 
                 // Calcola cumulativo RICEVUTI
                 $cumulative_received = array_fill(0, 12, 0);
                 $cumul = 0;
                 for ($i = 0; $i < 12; $i++) {
-                    $cumul += $monthly_received[$i];
+                    $cumul += $monthly_received_values[$i];
                     $cumulative_received[$i] = $cumul;
                 }
 
@@ -478,38 +449,27 @@
                 $cumulative_total = array_fill(0, 12, 0);
                 $cumul = 0;
                 for ($i = 0; $i < 12; $i++) {
-                    $cumul += $monthly_received[$i] + $monthly_forecast[$i];
+                    $cumul += $monthly_received_values[$i] + $monthly_forecast_values[$i];
                     $cumulative_total[$i] = $cumul;
                 }
                 ?>
 
                 // DEBUG: Log data to console
                 console.log('=== DIVIDENDS DEBUG ===');
-                console.log('Monthly Received:', <?php echo json_encode(
-                    array_values($monthly_received)
-                ); ?>);
-                console.log('Monthly Forecast:', <?php echo json_encode(
-                    array_values($monthly_forecast)
-                ); ?>);
-                console.log('Cumulative Received:', <?php echo json_encode(
-                    array_values($cumulative_received)
-                ); ?>);
-                console.log('Cumulative Total:', <?php echo json_encode(
-                    array_values($cumulative_total)
-                ); ?>);
+                console.log('Month labels:', <?php echo json_encode($months_labels); ?>);
+                console.log('Monthly Received:', <?php echo json_encode($monthly_received_values); ?>);
+                console.log('Monthly Forecast:', <?php echo json_encode($monthly_forecast_values); ?>);
+                console.log('Cumulative Received:', <?php echo json_encode($cumulative_received); ?>);
+                console.log('Cumulative Total:', <?php echo json_encode($cumulative_total); ?>);
 
                 // Dividends Monthly Chart - Usando ChartManager
                 if (document.getElementById('dividendsMonthlyChart')) {
                     try {
-                        window.ChartManager.createDividendsMonthlyChart(
-                            'dividendsMonthlyChart',
-                            <?php echo json_encode($months_labels); ?>,
-                            <?php echo json_encode(
-                                array_values($monthly_received)
-                            ); ?>,
-                            <?php echo json_encode(
-                                array_values($monthly_forecast)
-                            ); ?>
+                            window.ChartManager.createDividendsMonthlyChart(
+                                'dividendsMonthlyChart',
+                                <?php echo json_encode($months_labels); ?>,
+                                <?php echo json_encode($monthly_received_values); ?>,
+                                <?php echo json_encode($monthly_forecast_values); ?>
                         );
                         initializedCharts.add('dividendsMonthlyChart');
                         console.log('✅ Dividends Monthly Chart created');
@@ -521,16 +481,12 @@
                 // Dividends Cumulative Chart - Usando ChartManager
                 if (document.getElementById('dividendsCumulativeChart')) {
                     try {
-                        window.ChartManager.createDividendsCumulativeChart(
-                            'dividendsCumulativeChart',
-                            <?php echo json_encode($months_labels); ?>,
-                            <?php echo json_encode(
-                                array_values($cumulative_received)
-                            ); ?>,
-                            <?php echo json_encode(
-                                array_values($cumulative_total)
-                            ); ?>
-                        );
+                            window.ChartManager.createDividendsCumulativeChart(
+                                'dividendsCumulativeChart',
+                                <?php echo json_encode($months_labels); ?>,
+                                <?php echo json_encode($cumulative_received); ?>,
+                                <?php echo json_encode($cumulative_total); ?>
+                            );
                         initializedCharts.add('dividendsCumulativeChart');
                         console.log('✅ Dividends Cumulative Chart created');
                     } catch (error) {

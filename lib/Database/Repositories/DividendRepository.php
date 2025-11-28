@@ -30,7 +30,7 @@ class DividendRepository extends BaseRepository
     {
         $portfolioId = $portfolioId ?: self::DEFAULT_PORTFOLIO_ID;
 
-        // Initialize months array
+        // Inizializza mesi
         $months = [];
         for ($m = 1; $m <= 12; $m++) {
             $months[$m] = [
@@ -42,31 +42,31 @@ class DividendRepository extends BaseRepository
             ];
         }
 
-        // Get received dividends
-        $received = $this->getReceived(
-            "$year-01-01",
-            "$year-12-31",
-            $portfolioId
-        );
-
+        // Usa la view v_dividends_enriched per importi effettivi
+        $sqlReceived = "
+            SELECT paid_amount, payment_date, ex_date
+            FROM v_dividends_enriched
+            WHERE portfolio_id = ? AND status = 'RECEIVED' AND ex_date BETWEEN ? AND ?
+        ";
+        $received = $this->fetchAll($sqlReceived, [$portfolioId, "$year-01-01", "$year-12-31"]);
         foreach ($received as $div) {
-            $month = (int)date('n', strtotime($div['ex_date']));
-            $months[$month]['received'] += (float)$div['total_amount'];
+            $date = $div['payment_date'] ?: $div['ex_date'];
+            $month = (int)date('n', strtotime($date));
+            $months[$month]['received'] += (float)$div['paid_amount'];
         }
 
-        // Get forecast dividends
-        $forecast = $this->getForecast(
-            "$year-01-01",
-            "$year-12-31",
-            $portfolioId
-        );
-
+        $sqlForecast = "
+            SELECT total_amount, payment_date, ex_date
+            FROM dividend_payments
+            WHERE portfolio_id = ? AND status = 'FORECAST' AND ex_date BETWEEN ? AND ?
+        ";
+        $forecast = $this->fetchAll($sqlForecast, [$portfolioId, "$year-01-01", "$year-12-31"]);
         foreach ($forecast as $div) {
-            $month = (int)date('n', strtotime($div['ex_date']));
+            $date = $div['payment_date'] ?: $div['ex_date'];
+            $month = (int)date('n', strtotime($date));
             $months[$month]['forecast'] += (float)$div['total_amount'];
         }
 
-        // Calculate totals
         foreach ($months as $m => $data) {
             $months[$m]['total'] = $data['received'] + $data['forecast'];
         }
@@ -88,7 +88,7 @@ class DividendRepository extends BaseRepository
 
         $sql = "
             SELECT *
-            FROM dividend_payments
+            FROM v_dividends_enriched
             WHERE portfolio_id = ?
               AND status = 'RECEIVED'
               AND ex_date BETWEEN ? AND ?
@@ -135,7 +135,7 @@ class DividendRepository extends BaseRepository
 
         $sql = "
             SELECT *
-            FROM dividend_payments
+            FROM v_dividends_enriched
             WHERE portfolio_id = ?
             ORDER BY ex_date DESC
         ";
