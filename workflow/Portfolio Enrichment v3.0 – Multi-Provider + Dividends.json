@@ -28,7 +28,7 @@
       "typeVersion": 3.2,
       "position": [
         -1328,
-        1440
+        1672
       ],
       "id": "e4c46d2b-09dd-4f5a-95df-5002b74756bd",
       "notes": "IMPORTANTE: Configura WEBHOOK_SECRET (obbligatorio). API keys opzionali (lascia vuoto se non hai)"
@@ -52,7 +52,7 @@
       "typeVersion": 4.1,
       "position": [
         -1104,
-        1440
+        1672
       ],
       "id": "46f0c7ec-cff7-4fc2-be90-95a04f4273e6",
       "notes": "Recupera holdings da PHP (HMAC opzionale)"
@@ -66,7 +66,7 @@
       "typeVersion": 2,
       "position": [
         -880,
-        1440
+        1672
       ],
       "id": "3968ebd7-d299-4886-817d-8e15e98f6bcb"
     },
@@ -79,7 +79,7 @@
       "typeVersion": 3,
       "position": [
         -656,
-        1440
+        1672
       ],
       "id": "3c6ba4ab-1973-49f1-a350-3a86fc3336e6",
       "notes": "Processa 3 holdings per volta per evitare rate limiting"
@@ -93,7 +93,7 @@
       "typeVersion": 2,
       "position": [
         -432,
-        1152
+        1288
       ],
       "id": "eb9b9305-41ab-4dce-b88a-f123cd8bd855"
     },
@@ -118,24 +118,11 @@
       "typeVersion": 4.1,
       "position": [
         -208,
-        1152
+        1288
       ],
       "id": "622aac05-2077-491e-8044-53be23d470de",
       "continueOnFail": true,
       "notes": "Provider 3: Yahoo Finance (gratuito, sempre attivo)"
-    },
-    {
-      "parameters": {
-        "jsCode": "// Parse Yahoo Finance v8 chart response - COMPLETE DATA EXTRACTION\nconst holding = $node['Preprocess Symbols'].json;\nconst yahooResponse = $json;\n\nlet meta = {};\nlet dividends = {};\nlet priceHistory = {};\n\ntry {\n  const result = yahooResponse.chart.result[0];\n  meta = result.meta || {};\n  dividends = result.events?.dividends || {};\n  priceHistory = {\n    timestamps: result.timestamp || [],\n    quotes: result.indicators?.quote?.[0] || {}\n  };\n} catch (e) {\n  return []; // Trigger fallback\n}\n\n// Get current price\nconst currentPrice = meta.regularMarketPrice || 0;\n\nif (!currentPrice || currentPrice === 0) {\n  return [];\n}\n\n// Calculate dividend yield from historical dividends (last 12 months)\nlet annualDividend = 0;\nconst today = Date.now() / 1000; // Unix timestamp\nconst oneYearAgo = today - (365 * 24 * 60 * 60);\n\nObject.keys(dividends).forEach(timestamp => {\n  if (parseInt(timestamp) >= oneYearAgo) {\n    annualDividend += dividends[timestamp].amount;\n  }\n});\n\nconst dividendYield = currentPrice > 0 ? (annualDividend / currentPrice) * 100 : 0;\n\n// Calculate price change percentage (YTD, 1M, 3M, 1Y)\nconst closePrices = priceHistory.quotes.close || [];\nconst timestamps = priceHistory.timestamps || [];\n\nlet changeData = {\n  ytd_change: 0,\n  one_month_change: 0,\n  three_month_change: 0,\n  one_year_change: 0\n};\n\nif (closePrices.length > 0 && timestamps.length > 0) {\n  const latestPrice = closePrices[closePrices.length - 1];\n  \n  // YTD (from Jan 1st this year)\n  const yearStart = new Date(new Date().getFullYear(), 0, 1).getTime() / 1000;\n  const ytdIndex = timestamps.findIndex(t => t >= yearStart);\n  if (ytdIndex !== -1) {\n    const ytdPrice = closePrices[ytdIndex];\n    changeData.ytd_change = ((latestPrice - ytdPrice) / ytdPrice * 100).toFixed(2);\n  }\n  \n  // 1 Month ago\n  const oneMonthAgo = today - (30 * 24 * 60 * 60);\n  const monthIndex = timestamps.findIndex(t => t >= oneMonthAgo);\n  if (monthIndex !== -1) {\n    const monthPrice = closePrices[monthIndex];\n    changeData.one_month_change = ((latestPrice - monthPrice) / monthPrice * 100).toFixed(2);\n  }\n  \n  // 3 Months ago\n  const threeMonthsAgo = today - (90 * 24 * 60 * 60);\n  const threeMonthIndex = timestamps.findIndex(t => t >= threeMonthsAgo);\n  if (threeMonthIndex !== -1) {\n    const threeMonthPrice = closePrices[threeMonthIndex];\n    changeData.three_month_change = ((latestPrice - threeMonthPrice) / threeMonthPrice * 100).toFixed(2);\n  }\n  \n  // 1 Year ago\n  const yearIndex = timestamps.findIndex(t => t >= oneYearAgo);\n  if (yearIndex !== -1) {\n    const yearPrice = closePrices[yearIndex];\n    changeData.one_year_change = ((latestPrice - yearPrice) / yearPrice * 100).toFixed(2);\n  }\n}\n\n// Classification\nconst name = holding.name.toLowerCase();\nconst instrumentType = meta.instrumentType || holding.instrument_type;\n\nlet asset_class = 'Unknown';\nlet sector = 'Unknown';\n\nif (name.includes('gold') || name.includes('silver') || instrumentType === 'ETC') {\n  asset_class = 'Commodity';\n  sector = name.includes('gold') ? 'Gold' : 'Precious Metals';\n} else if (instrumentType === 'ETF') {\n  asset_class = 'Equity';\n  if (name.includes('dividend') || name.includes('aristocrat')) {\n    sector = 'Dividend';\n  } else if (name.includes('world') || name.includes('global')) {\n    sector = 'Global';\n  } else if (name.includes('u.s.') || name.includes('s&p')) {\n    sector = 'USA';\n  } else if (name.includes('developed')) {\n    sector = 'Developed Markets';\n  } else {\n    sector = 'Mixed';\n  }\n} else if (instrumentType === 'Fondo' || instrumentType === 'MUTUALFUND') {\n  asset_class = 'Equity';\n  if (name.includes('biotech')) sector = 'Healthcare';\n  else if (name.includes('robot') || name.includes('tech')) sector = 'Technology';\n  else if (name.includes('dividend')) sector = 'Dividend';\n  else sector = 'Active Fund';\n}\n\n// Count dividends in last 12 months for frequency detection\nconst dividendCount = Object.keys(dividends).filter(ts => parseInt(ts) >= oneYearAgo).length;\nlet dividendFrequency = 'None';\nif (dividendCount >= 4) dividendFrequency = 'Quarterly';\nelse if (dividendCount >= 2) dividendFrequency = 'Semi-Annual';\nelse if (dividendCount === 1) dividendFrequency = 'Annual';\n\nconst output = {\n  isin: holding.isin,\n  ticker: holding.ticker,\n  name: meta.longName || holding.name,\n  short_name: meta.shortName || '',\n  current_price: currentPrice,\n  currency: meta.currency || 'EUR',\n  price_source: 'YahooFinance_v8',\n  \n  // Classification\n  asset_class: asset_class,\n  sector: sector,\n  instrument_type: instrumentType,\n  exchange: meta.exchangeName || '',\n  \n  // Financial metrics\n  dividend_yield: parseFloat(dividendYield.toFixed(2)),\n  annual_dividend: parseFloat(annualDividend.toFixed(4)),\n  dividend_frequency: dividendFrequency,\n  \n  // Price ranges\n  fifty_two_week_high: meta.fiftyTwoWeekHigh || 0,\n  fifty_two_week_low: meta.fiftyTwoWeekLow || 0,\n  day_high: meta.regularMarketDayHigh || 0,\n  day_low: meta.regularMarketDayLow || 0,\n  \n  // Performance\n  ytd_change_percent: parseFloat(changeData.ytd_change) || 0,\n  one_month_change_percent: parseFloat(changeData.one_month_change) || 0,\n  three_month_change_percent: parseFloat(changeData.three_month_change) || 0,\n  one_year_change_percent: parseFloat(changeData.one_year_change) || 0,\n  \n  // Volume & market\n  volume: meta.regularMarketVolume || 0,\n  previous_close: meta.chartPreviousClose || 0,\n  \n  // Metadata\n  has_dividends: Object.keys(dividends).length > 0,\n  total_dividends_5y: Object.keys(dividends).length,\n  first_trade_date: meta.firstTradeDate || 0,\n  \n  APP_BASE_URL: holding.APP_BASE_URL,\n  WEBHOOK_SECRET: holding.WEBHOOK_SECRET\n};\n\nreturn [{ json: output }];\n"
-      },
-      "name": "Yahoo Success?",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -1552,
-        736
-      ],
-      "id": "11921e85-28f1-4052-ae59-4a6a9abf2e69"
     },
     {
       "parameters": {
@@ -158,24 +145,11 @@
       "typeVersion": 4.1,
       "position": [
         240,
-        1248
+        1480
       ],
       "id": "8ae934a7-41f9-47d2-9797-d639a18ccc17",
       "continueOnFail": true,
       "notes": "Provider 4: JustETF (gratuito, per ETF europei)"
-    },
-    {
-      "parameters": {
-        "jsCode": "// Parse JustETF response - ENHANCED & COMPLETE\nconst holding = $node['Preprocess Symbols'].json;\nconst justETFResponse = $json;\n\nlet price = 0;\nlet fiftyTwoWeekHigh = 0;\nlet fiftyTwoWeekLow = 0;\nlet previousClose = 0;\nlet dayChange = 0;\n\ntry {\n  const data = typeof justETFResponse === 'string' ? JSON.parse(justETFResponse) : justETFResponse;\n  price = data.latestQuote?.raw || 0;\n  fiftyTwoWeekHigh = data.quoteLowHigh?.high?.raw || 0;\n  fiftyTwoWeekLow = data.quoteLowHigh?.low?.raw || 0;\n  previousClose = data.previousQuote?.raw || 0;\n  dayChange = data.dtdPrc?.raw || 0;\n} catch (e) {\n  return [];\n}\n\nif (!price || price === 0) {\n  return [];\n}\n\n// Local classification\nconst name = holding.name.toLowerCase();\nconst instrumentType = holding.instrument_type;\n\nlet asset_class = 'Unknown';\nlet sector = 'Unknown';\n\nif (name.includes('gold') || name.includes('silver') || instrumentType === 'ETC') {\n  asset_class = 'Commodity';\n  sector = name.includes('gold') ? 'Gold' : 'Precious Metals';\n} else if (instrumentType === 'ETF') {\n  asset_class = 'Equity';\n  if (name.includes('dividend')) sector = 'Dividend';\n  else if (name.includes('world') || name.includes('global')) sector = 'Global';\n  else if (name.includes('u.s.') || name.includes('s&p')) sector = 'USA';\n  else if (name.includes('developed')) sector = 'Developed Markets';\n  else sector = 'Mixed';\n} else if (instrumentType === 'Fondo' || instrumentType === 'MUTUALFUND') {\n  asset_class = 'Equity';\n  if (name.includes('biotech')) sector = 'Healthcare';\n  else if (name.includes('robot') || name.includes('tech')) sector = 'Technology';\n  else if (name.includes('dividend')) sector = 'Dividend';\n  else sector = 'Active Fund';\n}\n\nreturn [{\n  json: {\n    isin: holding.isin,\n    ticker: holding.ticker,\n    name: holding.name,\n    short_name: '',\n    current_price: price,\n    currency: 'EUR',\n    price_source: 'JustETF',\n    \n    // Classification\n    asset_class: asset_class,\n    sector: sector,\n    instrument_type: instrumentType,\n    exchange: '',\n    \n    // Financial metrics\n    dividend_yield: 0,\n    annual_dividend: 0,\n    dividend_frequency: 'None',\n    \n    // Price ranges (from JustETF)\n    fifty_two_week_high: fiftyTwoWeekHigh,\n    fifty_two_week_low: fiftyTwoWeekLow,\n    day_high: 0,\n    day_low: 0,\n    \n    // Performance\n    ytd_change_percent: dayChange, // Use day change as best approximation\n    one_month_change_percent: 0,\n    three_month_change_percent: 0,\n    one_year_change_percent: 0,\n    \n    // Volume & market\n    volume: 0,\n    previous_close: previousClose,\n    \n    // Metadata\n    has_dividends: false,\n    total_dividends_5y: 0,\n    first_trade_date: 0,\n    \n    APP_BASE_URL: holding.APP_BASE_URL,\n    WEBHOOK_SECRET: holding.WEBHOOK_SECRET\n  }\n}];\n"
-      },
-      "name": "JustETF Success?",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -1552,
-        512
-      ],
-      "id": "dda404cb-20fd-4c7d-a887-80bf62c75823"
     },
     {
       "parameters": {
@@ -186,7 +160,7 @@
       "typeVersion": 2,
       "position": [
         688,
-        1344
+        1576
       ],
       "id": "00cc6430-5eaf-4026-bc61-3291881aa225",
       "notes": "Se tutti i provider falliscono, mantiene prezzo esistente + classificazione locale"
@@ -200,7 +174,7 @@
       "typeVersion": 1.1,
       "position": [
         912,
-        1152
+        1384
       ],
       "id": "5b760eac-0c08-40d6-88b1-920d2867ecb2",
       "webhookId": "cc8e4552-2a30-45e3-9a66-10228e2ad5d5",
@@ -213,7 +187,7 @@
       "typeVersion": 1,
       "position": [
         1136,
-        1416
+        1648
       ],
       "id": "a9fc6144-db9c-482d-b2cc-daca6b78eafe"
     },
@@ -226,7 +200,7 @@
       "typeVersion": 2,
       "position": [
         -432,
-        1440
+        1672
       ],
       "id": "0abcf404-c6bd-433d-9b23-2234ab98b86b"
     },
@@ -261,7 +235,7 @@
       "typeVersion": 4.1,
       "position": [
         -208,
-        1440
+        1672
       ],
       "id": "4a31af76-0bb7-4e4e-b229-79f4695b9627"
     },
@@ -288,21 +262,10 @@
       "typeVersion": 1.3,
       "position": [
         -1552,
-        1440
+        1672
       ],
       "id": "ed1e6389-c02a-4b8c-abda-586f00e9b9f6",
       "name": "Schedule Trigger"
-    },
-    {
-      "parameters": {},
-      "type": "n8n-nodes-base.manualTrigger",
-      "typeVersion": 1,
-      "position": [
-        -1552,
-        288
-      ],
-      "id": "ed3c2cd5-ab15-4d41-8c44-2e3baec4187b",
-      "name": "When clicking ‘Execute workflow’"
     },
     {
       "parameters": {
@@ -332,7 +295,7 @@
       "typeVersion": 2.2,
       "position": [
         16,
-        1152
+        1384
       ],
       "id": "d364dede-0278-41b2-b98c-12f856ce80ef",
       "name": "If"
@@ -345,7 +308,7 @@
       "typeVersion": 2,
       "position": [
         688,
-        960
+        1192
       ],
       "id": "a5032df5-3de2-4825-be8c-c84aaa719c00",
       "name": "Parse Yahoo"
@@ -378,7 +341,7 @@
       "typeVersion": 2.2,
       "position": [
         464,
-        1248
+        1480
       ],
       "id": "b6b29d74-d8b1-40b8-ae3f-303fd4658988",
       "name": "If1"
@@ -391,10 +354,58 @@
       "typeVersion": 2,
       "position": [
         688,
-        1152
+        1384
       ],
       "id": "ca5a8d18-92a6-4e90-9ab1-742febaa1ac1",
       "name": "Parse JustETF"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract dividends from Yahoo Finance response for single holding\nconst holding = $node['Preprocess Symbols'].json;\nconst yahooResponse = $node['Yahoo Finance Price'].json;\n\nlet dividends = [];\n\ntry {\n  const result = yahooResponse.chart.result[0];\n  const divData = result.events?.dividends || {};\n  const ticker = holding.ticker;\n  const quantity = holding.quantity || 0;\n  \n  const today = Date.now() / 1000;\n  \n  // Process each dividend event\n  Object.keys(divData).forEach(timestamp => {\n    const ts = parseInt(timestamp);\n    const divEvent = divData[timestamp];\n    const amountPerShare = divEvent.amount || 0;\n    \n    const oneWeekAgo = today - (7 * 24 * 60 * 60);\n    const status = ts < oneWeekAgo ? 'RECEIVED' : 'FORECAST';\n    \n    const exDate = new Date(ts * 1000).toISOString().split('T')[0];\n    const paymentDate = new Date((ts + 30 * 24 * 60 * 60) * 1000).toISOString().split('T')[0];\n    \n    dividends.push({\n      ticker: ticker,\n      status: status,\n      ex_date: exDate,\n      payment_date: paymentDate,\n      amount_per_share: parseFloat(amountPerShare.toFixed(4)),\n      quantity: quantity,\n      total_amount: parseFloat((amountPerShare * quantity).toFixed(2))\n    });\n  });\n  \n} catch (e) {\n  // Error\n}\n\nif (dividends.length === 0) {\n  return [];\n}\n\n// Return in API format\nreturn [{\n  json: {\n    dividends: dividends\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        1024
+      ],
+      "id": "b5c71476-946e-4a61-8c8d-3a3e1edcf9e7",
+      "name": "Extract Dividends",
+      "notes": "Estrae dividendi storici da Yahoo per singolo holding"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://portfolio.newwave-media.it/api/dividends.php",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (n8n-dividend-sync/1.0)"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        240,
+        1024
+      ],
+      "id": "0b4ec097-61c7-4fbc-b6de-0492d9d868d0",
+      "name": "Push Dividends to DB",
+      "notes": "POST dividendi verso /api/dividends.php"
     }
   ],
   "pinData": {},
@@ -468,13 +479,13 @@
             "node": "If",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Extract Dividends",
+            "type": "main",
+            "index": 0
           }
         ]
-      ]
-    },
-    "Yahoo Success?": {
-      "main": [
-        []
       ]
     },
     "JustETF Price": {
@@ -486,11 +497,6 @@
             "index": 0
           }
         ]
-      ]
-    },
-    "JustETF Success?": {
-      "main": [
-        []
       ]
     },
     "Fallback - Keep Existing": {
@@ -605,13 +611,24 @@
           }
         ]
       ]
+    },
+    "Extract Dividends": {
+      "main": [
+        [
+          {
+            "node": "Push Dividends to DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "131be63f-3657-49c4-a80a-902c1467b06a",
+  "versionId": "165eac74-a16f-4100-89f5-68193c0b8b28",
   "meta": {
     "instanceId": "fe117d56aad4346ee596609bb8c3079d6edd34e383a675201472f524674346cc"
   },
