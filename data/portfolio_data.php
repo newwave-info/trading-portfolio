@@ -113,6 +113,11 @@ try {
     }
 
     // ============================================
+    // SNAPSHOTS (storico giornaliero) - per Performance tab
+    // ============================================
+    $snapshots = $snapshotRepo->getYearToDate($currentYear);
+
+    // ============================================
     // ALLOCAZIONE PER ASSET CLASS
     // ============================================
     $allocation_by_asset_class = $portfolioRepo->getAllocations();

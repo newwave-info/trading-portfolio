@@ -10,125 +10,76 @@
                 $perf_3m = ["pct" => "-", "value" => "-"];
                 $perf_ytd = ["pct" => "-", "value" => "-"];
 
-                $snapshotsPath = __DIR__ . "/../../data/snapshots.json";
-                if (file_exists($snapshotsPath)) {
-                    $snapshotsData = json_decode(
-                        file_get_contents($snapshotsPath),
-                        true
-                    );
-                    $snapshots = $snapshotsData["snapshots"] ?? [];
+                // Snapshots dal DB (YTD) caricati in data/portfolio_data.php
+                $snapshots = $snapshots ?? [];
 
-                    if (!empty($snapshots)) {
-                        $first = $snapshots[0];
-                        $current = end($snapshots);
-                        $currentValue = $current["metadata"]["total_value"];
+                if (!empty($snapshots)) {
+                    // Ordina per data crescente per sicurezza
+                    usort($snapshots, fn($a, $b) => strcmp($a["snapshot_date"], $b["snapshot_date"]));
 
-                        // 1 Mese (30 giorni fa o primo snapshot disponibile)
-                        $oneMonthAgo = date("Y-m-d", strtotime("-30 days"));
-                        $snap1m = null;
-                        foreach ($snapshots as $s) {
-                            if ($s["date"] >= $oneMonthAgo) {
-                                $snap1m = $s;
-                                break;
-                            }
-                        }
-                        // Fallback al primo snapshot se non ci sono dati storici
-                        if (!$snap1m) {
-                            $snap1m = $first;
-                        }
-                        if ($snap1m) {
-                            $value1m = $snap1m["metadata"]["total_value"];
-                            $change1m = $currentValue - $value1m;
-                            $pct1m =
-                                $value1m > 0 ? ($change1m / $value1m) * 100 : 0;
-                            $perf_1m = [
-                                "pct" =>
-                                    ($pct1m >= 0 ? "+" : "") .
-                                    number_format($pct1m, 2, ",", ".") .
-                                    "%",
-                                "value" =>
-                                    "€" .
-                                    number_format(
-                                        $value1m / 1000,
-                                        1,
-                                        ",",
-                                        "."
-                                    ) .
-                                    "k",
-                            ];
-                        }
+                    $first = $snapshots[0];
+                    $current = end($snapshots);
+                    $currentValue = (float) $current["total_market_value"];
 
-                        // 3 Mesi (90 giorni fa o primo snapshot disponibile)
-                        $threeMonthsAgo = date("Y-m-d", strtotime("-90 days"));
-                        $snap3m = null;
-                        foreach ($snapshots as $s) {
-                            if ($s["date"] >= $threeMonthsAgo) {
-                                $snap3m = $s;
-                                break;
-                            }
-                        }
-                        // Fallback al primo snapshot
-                        if (!$snap3m) {
-                            $snap3m = $first;
-                        }
-                        if ($snap3m) {
-                            $value3m = $snap3m["metadata"]["total_value"];
-                            $change3m = $currentValue - $value3m;
-                            $pct3m =
-                                $value3m > 0 ? ($change3m / $value3m) * 100 : 0;
-                            $perf_3m = [
-                                "pct" =>
-                                    ($pct3m >= 0 ? "+" : "") .
-                                    number_format($pct3m, 2, ",", ".") .
-                                    "%",
-                                "value" =>
-                                    "€" .
-                                    number_format(
-                                        $value3m / 1000,
-                                        1,
-                                        ",",
-                                        "."
-                                    ) .
-                                    "k",
-                            ];
-                        }
+                    // Helper per formattazione
+                    $formatPerf = function($fromValue) use ($currentValue) {
+                        $change = $currentValue - $fromValue;
+                        $pct = $fromValue > 0 ? ($change / $fromValue) * 100 : 0;
+                        return [
+                            "pct" => ($pct >= 0 ? "+" : "") . number_format($pct, 2, ",", ".") . "%",
+                            "value" => "€" . number_format($fromValue / 1000, 1, ",", ".") . "k",
+                        ];
+                    };
 
-                        // YTD (inizio anno o primo snapshot disponibile)
-                        $ytdStart = date("Y") . "-01-01";
-                        $snapYtd = null;
-                        foreach ($snapshots as $s) {
-                            if ($s["date"] >= $ytdStart) {
-                                $snapYtd = $s;
-                                break;
-                            }
+                    // 1 Mese (30 giorni fa o primo snapshot)
+                    $oneMonthAgo = date("Y-m-d", strtotime("-30 days"));
+                    $snap1m = null;
+                    foreach ($snapshots as $s) {
+                        if ($s["snapshot_date"] >= $oneMonthAgo) {
+                            $snap1m = $s;
+                            break;
                         }
-                        // Fallback al primo snapshot
-                        if (!$snapYtd) {
-                            $snapYtd = $first;
+                    }
+                    if (!$snap1m) {
+                        $snap1m = $first;
+                    }
+                    if ($snap1m) {
+                        $value1m = (float) $snap1m["total_market_value"];
+                        $perf_1m = $formatPerf($value1m);
+                    }
+
+                    // 3 Mesi (90 giorni fa o primo snapshot)
+                    $threeMonthsAgo = date("Y-m-d", strtotime("-90 days"));
+                    $snap3m = null;
+                    foreach ($snapshots as $s) {
+                        if ($s["snapshot_date"] >= $threeMonthsAgo) {
+                            $snap3m = $s;
+                            break;
                         }
-                        if ($snapYtd) {
-                            $valueYtd = $snapYtd["metadata"]["total_value"];
-                            $changeYtd = $currentValue - $valueYtd;
-                            $pctYtd =
-                                $valueYtd > 0
-                                    ? ($changeYtd / $valueYtd) * 100
-                                    : 0;
-                            $perf_ytd = [
-                                "pct" =>
-                                    ($pctYtd >= 0 ? "+" : "") .
-                                    number_format($pctYtd, 2, ",", ".") .
-                                    "%",
-                                "value" =>
-                                    "€" .
-                                    number_format(
-                                        $valueYtd / 1000,
-                                        1,
-                                        ",",
-                                        "."
-                                    ) .
-                                    "k",
-                            ];
+                    }
+                    if (!$snap3m) {
+                        $snap3m = $first;
+                    }
+                    if ($snap3m) {
+                        $value3m = (float) $snap3m["total_market_value"];
+                        $perf_3m = $formatPerf($value3m);
+                    }
+
+                    // YTD (inizio anno o primo snapshot)
+                    $ytdStart = date("Y") . "-01-01";
+                    $snapYtd = null;
+                    foreach ($snapshots as $s) {
+                        if ($s["snapshot_date"] >= $ytdStart) {
+                            $snapYtd = $s;
+                            break;
                         }
+                    }
+                    if (!$snapYtd) {
+                        $snapYtd = $first;
+                    }
+                    if ($snapYtd) {
+                        $valueYtd = (float) $snapYtd["total_market_value"];
+                        $perf_ytd = $formatPerf($valueYtd);
                     }
                 }
                 ?>
@@ -255,63 +206,35 @@
                             </thead>
                             <tbody>
                                 <?php
-                                // Carica storico performance da snapshots
+                                // Carica storico performance dagli snapshot DB (ultimi 30)
                                 $history_data = [];
-                                $snapshotsPath =
-                                    __DIR__ . "/../../data/snapshots.json";
+                                $snapshotsDb = $snapshots ?? [];
 
-                                if (file_exists($snapshotsPath)) {
-                                    $snapshotsData = json_decode(
-                                        file_get_contents($snapshotsPath),
-                                        true
-                                    );
-                                    $snapshots =
-                                        $snapshotsData["snapshots"] ?? [];
+                                if (!empty($snapshotsDb)) {
+                                    // Ordina per data e prendi ultimi 30
+                                    usort($snapshotsDb, fn($a, $b) => strcmp($a["snapshot_date"], $b["snapshot_date"]));
+                                    $snapshotsDb = array_slice($snapshotsDb, -30);
 
-                                    // Prendi ultimi 30 giorni
-                                    $snapshots = array_slice($snapshots, -30);
-
-                                    // Calcola day change per ogni giorno
                                     $prevValue = null;
                                     $prevInvested = $metadata["total_invested"];
 
-                                    foreach ($snapshots as $snap) {
-                                        $value =
-                                            $snap["metadata"]["total_value"];
-                                        $invested =
-                                            $snap["metadata"][
-                                                "total_invested"
-                                            ] ?? $prevInvested;
+                                    foreach ($snapshotsDb as $snap) {
+                                        $value = (float) $snap["total_market_value"];
+                                        $invested = (float) ($snap["total_invested"] ?? $prevInvested);
                                         $cumul_gain = $value - $invested;
-                                        $gain_pct =
-                                            $invested > 0
-                                                ? ($cumul_gain / $invested) *
-                                                    100
-                                                : 0;
+                                        $gain_pct = $invested > 0 ? ($cumul_gain / $invested) * 100 : 0;
 
-                                        $day_change =
-                                            $prevValue !== null
-                                                ? $value - $prevValue
-                                                : 0;
-                                        $day_pct =
-                                            $prevValue !== null &&
-                                            $prevValue > 0
-                                                ? ($day_change / $prevValue) *
-                                                    100
-                                                : 0;
+                                        $day_change = $prevValue !== null ? $value - $prevValue : 0;
+                                        $day_pct = ($prevValue !== null && $prevValue > 0)
+                                            ? ($day_change / $prevValue) * 100
+                                            : 0;
 
                                         $history_data[] = [
-                                            "date" => date(
-                                                "d/m/Y",
-                                                strtotime($snap["date"])
-                                            ),
+                                            "date" => date("d/m/Y", strtotime($snap["snapshot_date"])),
                                             "value" => $value,
                                             "cumul_gain" => $cumul_gain,
                                             "gain_pct" => $gain_pct,
-                                            "open_pos" =>
-                                                $snap["metadata"][
-                                                    "holdings_count"
-                                                ] ?? count($top_holdings),
+                                            "open_pos" => $snap["total_holdings"] ?? $metadata["total_holdings"] ?? count($top_holdings),
                                             "day_change" => $day_change,
                                             "day_pct" => $day_pct,
                                         ];
@@ -492,58 +415,22 @@
                     $chart_gain_pct = array_column($history_data, "gain_pct");
                 }
 
-                // Dati mensili per performanceDetailChart da snapshots
-                if (file_exists($snapshotsPath)) {
-                    $snapshotsData = json_decode(
-                        file_get_contents($snapshotsPath),
-                        true
-                    );
-                    $snapshots = $snapshotsData["snapshots"] ?? [];
-
-                    if (!empty($snapshots)) {
-                        // Raggruppa per mese
-                        $byMonth = [];
-                        foreach ($snapshots as $snap) {
-                            $monthKey = date("Y-m", strtotime($snap["date"]));
-                            $month = date("M", strtotime($snap["date"]));
-
-                            // Prendi l'ultimo snapshot di ogni mese
-                            if (
-                                !isset($byMonth[$monthKey]) ||
-                                $snap["date"] > $byMonth[$monthKey]["date"]
-                            ) {
-                                $value = $snap["metadata"]["total_value"];
-                                $invested =
-                                    $snap["metadata"]["total_invested"] ??
-                                    $metadata["total_invested"];
-                                $gain_pct =
-                                    $invested > 0
-                                        ? (($value - $invested) / $invested) *
-                                            100
-                                        : 0;
-
-                                $byMonth[$monthKey] = [
-                                    "month" => $month,
-                                    "value" => $value,
-                                    "gain_pct" => $gain_pct,
-                                    "date" => $snap["date"],
-                                ];
-                            }
+                // Dati mensili per performanceDetailChart da monthly_performance (DB)
+                if (!empty($monthly_performance)) {
+                    // Prendi ultimi 12 mesi ordinati
+                    $mp = $monthly_performance;
+                    // monthly_performance già formattato come ['month' => 'Nov', 'value' => ..., 'gain_pct' => ...]
+                    $chart_monthly_labels = array_column($mp, "month");
+                    $chart_monthly_values = array_column($mp, "value");
+                    $chart_monthly_gain_pct = array_map(function($item) {
+                        // Se gain_pct non esiste, calcola da value e metadata (fallback)
+                        if (isset($item["gain_pct"])) {
+                            return (float) $item["gain_pct"];
                         }
-
-                        // Ordina e prendi ultimi 12 mesi
-                        usort(
-                            $byMonth,
-                            fn($a, $b) => $a["date"] <=> $b["date"]
-                        );
-                        $last12 = array_slice($byMonth, -12);
-                        $chart_monthly_labels = array_column($last12, "month");
-                        $chart_monthly_values = array_column($last12, "value");
-                        $chart_monthly_gain_pct = array_column(
-                            $last12,
-                            "gain_pct"
-                        );
-                    }
+                        $invested = $item["invested"] ?? ($item["total_invested"] ?? 0);
+                        $value = $item["value"] ?? 0;
+                        return $invested > 0 ? (($value - $invested) / $invested) * 100 : 0;
+                    }, $mp);
                 }
                 ?>
 
