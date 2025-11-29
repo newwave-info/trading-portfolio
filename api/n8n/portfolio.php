@@ -10,7 +10,9 @@
  */
 
 header('Content-Type: application/json');
-require_once __DIR__ . '/../../lib/PortfolioManager.php';
+require_once __DIR__ . '/../../lib/Database/DatabaseManager.php';
+require_once __DIR__ . '/../../lib/Database/Repositories/HoldingRepository.php';
+require_once __DIR__ . '/../../lib/Database/Repositories/PortfolioRepository.php';
 require_once __DIR__ . '/../../lib/HMACValidator.php';
 
 // CORS headers for n8n (if needed)
@@ -31,6 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 try {
+    // TODO: multi-portafoglio - per ora assumiamo portfolio_id=1
+    $portfolioId = PortfolioRepository::DEFAULT_PORTFOLIO_ID;
+
     // Optional HMAC validation for GET requests
     // Note: For GET requests, we use empty payload since there's no body
     // This is less secure than POST with body validation, but simpler for read-only operations
@@ -55,39 +60,46 @@ try {
         error_log("[n8n/portfolio] No HMAC signature provided, allowing access (simple mode)");
     }
 
-    // Load portfolio
-    $portfolioManager = new PortfolioManager();
-    $data = $portfolioManager->getData();
+    // DB-first: load holdings and metadata from MySQL (source of truth)
+    $db = DatabaseManager::getInstance();
+    $holdingRepo = new HoldingRepository($db);
+    $portfolioRepo = new PortfolioRepository($db);
+
+    // Holdings (raw, non-enriched) for n8n enrichment input
+    $holdingsRaw = $holdingRepo->getActiveHoldings($portfolioId);
+
+    $holdings = array_map(function (array $holding): array {
+        return [
+            'isin' => $holding['isin'] ?? '',
+            'ticker' => $holding['ticker'] ?? '',
+            'name' => $holding['name'] ?? '',
+            'quantity' => isset($holding['quantity']) ? (float)$holding['quantity'] : 0,
+            'avg_price' => isset($holding['avg_price']) ? (float)$holding['avg_price'] : 0,
+            'current_price' => isset($holding['current_price']) ? (float)$holding['current_price'] : 0,
+            'asset_class' => $holding['asset_class'] ?? 'Unknown',
+            'sector' => $holding['sector'] ?? 'Unknown',
+            'instrument_type' => $holding['instrument_type'] ?? ($holding['asset_class'] ?? 'Unknown'),
+            'market' => $holding['market'] ?? '',
+            // TODO: aggiungere currency per-holding quando si gestiscono strumenti in valute diverse
+            'currency' => 'EUR',
+        ];
+    }, $holdingsRaw ?? []);
+
+    // Metadata from v_portfolio_metadata
+    $metadataDb = $portfolioRepo->getMetadata($portfolioId);
 
     // Prepare response
     $response = [
         'success' => true,
         'metadata' => [
-            'portfolio_name' => $data['metadata']['portfolio_name'] ?? 'Portfolio',
-            'base_currency' => $data['metadata']['base_currency'] ?? 'EUR',
-            'total_value' => $data['metadata']['total_value'] ?? 0,
-            'last_update' => $data['metadata']['last_update'] ?? date('c'),
-            'holdings_count' => count($data['holdings'])
+            'portfolio_name' => $metadataDb['portfolio_name'] ?? 'Portfolio',
+            'base_currency' => $metadataDb['base_currency'] ?? 'EUR',
+            'total_value' => $metadataDb['total_market_value'] ?? 0,
+            'last_update' => $metadataDb['last_update'] ?? date('c'),
+            'holdings_count' => count($holdings)
         ],
-        'holdings' => []
+        'holdings' => $holdings
     ];
-
-    // Format holdings for n8n
-    foreach ($data['holdings'] as $holding) {
-        $response['holdings'][] = [
-            'isin' => $holding['isin'],
-            'ticker' => $holding['ticker'] ?? '',
-            'name' => $holding['name'] ?? '',
-            'quantity' => $holding['quantity'] ?? 0,
-            'avg_price' => $holding['avg_price'] ?? 0,
-            'current_price' => $holding['current_price'] ?? 0,
-            'asset_class' => $holding['asset_class'] ?? 'Unknown',
-            'sector' => $holding['sector'] ?? 'Unknown',
-            'instrument_type' => $holding['instrument_type'] ?? 'Unknown',
-            'market' => $holding['market'] ?? '',
-            'currency' => $holding['currency'] ?? 'EUR'
-        ];
-    }
 
     http_response_code(200);
     echo json_encode($response, JSON_PRETTY_PRINT);

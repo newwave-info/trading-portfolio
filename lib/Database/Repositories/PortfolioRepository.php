@@ -51,6 +51,7 @@ class PortfolioRepository extends BaseRepository
         return [
             'portfolio_name' => $metadata['name'],
             'owner' => $metadata['owner'],
+            'base_currency' => $metadata['base_currency'] ?? 'EUR',
             'total_holdings' => (int)$metadata['total_holdings'],
             'total_invested' => (float)$metadata['total_invested'],
             'total_market_value' => (float)$metadata['total_market_value'],

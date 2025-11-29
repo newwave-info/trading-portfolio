@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS portfolios (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     owner VARCHAR(255) NOT NULL,
+    base_currency CHAR(3) NOT NULL DEFAULT 'EUR',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_name (name)
@@ -295,6 +296,7 @@ SELECT
     p.id AS portfolio_id,
     p.name,
     p.owner,
+    p.base_currency,
     COUNT(DISTINCT h.ticker) AS total_holdings,
     COALESCE(SUM(h.quantity * h.avg_price), 0) AS total_invested,
     COALESCE(SUM(h.quantity * COALESCE(h.current_price, h.avg_price)), 0) AS total_market_value,
@@ -313,7 +315,7 @@ SELECT
     p.updated_at AS last_update
 FROM portfolios p
 LEFT JOIN holdings h ON h.portfolio_id = p.id AND h.is_active = TRUE
-GROUP BY p.id, p.name, p.owner, p.updated_at;
+GROUP BY p.id, p.name, p.owner, p.base_currency, p.updated_at;
 
 -- ============================================================================
 -- MySQL User Setup (execute separately with appropriate privileges)
