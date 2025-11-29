@@ -81,6 +81,17 @@ class PortfolioMetricsService
         ];
     }
 
+    /**
+     * Public helper to recalc everything for a portfolio
+     *
+     * @param int $portfolioId
+     * @return array
+     */
+    public function recalculateAllForPortfolio(int $portfolioId): array
+    {
+        return $this->recalculate($portfolioId);
+    }
+
     private function buildAllocations(array $holdings, float $totalMarket): array
     {
         $agg = [];

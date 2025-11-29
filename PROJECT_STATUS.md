@@ -1,8 +1,13 @@
 # 📊 ETF Portfolio Manager - Stato Avanzamento Lavori
 
-**Ultimo aggiornamento:** 28 Novembre 2025
-**Versione:** 0.3.2-MySQL ✅
+**Ultimo aggiornamento:** 29 Novembre 2025
+**Versione:** 0.3.3-MySQL ✅
 **Stato:** Produzione - Migrazione MySQL completata, Repository Pattern implementato, n8n integration attiva, viste Performance/Dividendi allineate a MySQL
+
+**Aggiornamenti recenti**
+- n8n DB-first: `/api/n8n/portfolio.php` e `/api/n8n/enrich.php` leggono/scrivono solo MySQL (niente JSON).
+- Ricalcolo metriche/snapshot su DB via `PortfolioMetricsService` dopo ogni enrichment.
+- Aggiunta `base_currency` su `portfolios` + vista `v_portfolio_metadata` aggiornata (migrazione `docs/migrations/2025_11_29_add_base_currency.sql`).
 
 > 📋 **Documentazione:**
 > - [README.md](README.md) - Panoramica generale e setup (aggiornato 26 Nov 2025)

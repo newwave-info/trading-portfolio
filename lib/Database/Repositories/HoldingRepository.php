@@ -92,6 +92,58 @@ class HoldingRepository extends BaseRepository
     }
 
     /**
+     * Find holding by ISIN for a given portfolio
+     *
+     * @param string $isin
+     * @param int|null $portfolioId
+     * @return array|null
+     */
+    public function findByIsin(string $isin, $portfolioId = null): ?array
+    {
+        $portfolioId = $portfolioId ?: self::DEFAULT_PORTFOLIO_ID;
+
+        $sql = "
+            SELECT *
+            FROM holdings
+            WHERE portfolio_id = ? AND isin = ? AND is_active = 1
+            LIMIT 1
+        ";
+
+        return $this->fetchOne($sql, [$portfolioId, $isin]);
+    }
+
+    /**
+     * Update arbitrary fields on a holding (by ISIN)
+     *
+     * @param int $portfolioId
+     * @param string $isin
+     * @param array $fields
+     * @return bool
+     */
+    public function updateFieldsByIsin(int $portfolioId, string $isin, array $fields): bool
+    {
+        if (empty($fields)) {
+            return true;
+        }
+
+        $setParts = [];
+        $params = [];
+        foreach ($fields as $column => $value) {
+            $setParts[] = "{$column} = ?";
+            $params[] = $value;
+        }
+        $params[] = $portfolioId;
+        $params[] = $isin;
+
+        $sql = sprintf(
+            "UPDATE holdings SET %s, updated_at = NOW() WHERE portfolio_id = ? AND isin = ? AND is_active = 1",
+            implode(', ', $setParts)
+        );
+
+        return $this->execute($sql, $params) > 0;
+    }
+
+    /**
      * Find holding by ticker
      *
      * @param string $ticker

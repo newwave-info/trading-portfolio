@@ -240,37 +240,13 @@ ChartManager.pointStyle    // Stile punti: quadrati 6px con bordo bianco 2px
 - Coerenza visiva garantita su tutti i grafici
 - Facile estensione per nuovi tipi di grafici
 
-### 🤖 Automazione n8n
+### 🤖 Automazione n8n (DB-first)
 
-Sistema di enrichment automatico del portafoglio con workflow n8n:
+Sistema di enrichment automatico del portafoglio con workflow n8n, ora completamente DB-first:
 
-**Workflow "Portfolio Enrichment v2.2"** (daily @ 22:00):
-- **Aggiornamento prezzi** da 4 provider API con fallback chain:
-  1. TwelveData (primario)
-  2. Financial Modeling Prep (secondario)
-  3. Yahoo Finance (terziario)
-  4. JustETF web scraping (ultimo tentativo)
-- **Classificazione automatica** settore e asset_class da nome ETF
-- **Creazione snapshot giornaliero** per tracking performance storica
-- **Aggiornamento monthly_performance** da snapshots aggregati
-- **Autenticazione HMAC-SHA256** per webhook sicuro
-- **Gestione rate limits** con batch processing (5 holdings/batch, 10s delay)
-
-**Configurazione** in `portfolio.json`:
-```json
-{
-  "n8n_config": {
-    "webhook_url": "https://n8n.domain.com/webhook/...",
-    "hmac_secret": "your-secret-key",
-    "sync_frequency": "daily"
-  }
-}
-```
-
-**Script di gestione**:
-- `initialize-snapshots.php` - Inizializza primo snapshot
-- `add-snapshot.php` - Crea snapshot manuale
-- `recalculate-metrics.php` - Ricalcola allocation_by_asset_class
+- `GET /api/n8n/portfolio.php` → legge holdings da MySQL (Portfolio/Holding Repository) e restituisce `base_currency` dal DB.
+- `POST /api/n8n/enrich.php` → aggiorna solo i campi di enrichment holdings in MySQL e invoca `PortfolioMetricsService` per allocazioni/snapshot/monthly performance (nessun JSON in `/data`).
+- Autenticazione HMAC-SHA256 per webhook sicuro; workflow schedulato (es. daily 22:00) con batch per rate limit.
 
 ### 🔍 Analisi Tecnica
 
