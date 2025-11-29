@@ -320,6 +320,56 @@ class HoldingRepository extends BaseRepository
     }
 
     /**
+     * Soft delete holding by ISIN
+     *
+     * @param string $isin
+     * @param int|null $portfolioId
+     * @return bool
+     */
+    public function softDeleteByIsin(string $isin, $portfolioId = null): bool
+    {
+        $portfolioId = $portfolioId ?: self::DEFAULT_PORTFOLIO_ID;
+
+        $sql = "
+            UPDATE holdings
+            SET is_active = 0, updated_at = NOW()
+            WHERE portfolio_id = ? AND isin = ?
+        ";
+
+        return $this->execute($sql, [$portfolioId, $isin]) > 0;
+    }
+
+    /**
+     * Hard delete holding by ticker
+     *
+     * @param string $ticker
+     * @param int|null $portfolioId
+     * @return bool
+     */
+    public function hardDeleteByTicker(string $ticker, $portfolioId = null): bool
+    {
+        $portfolioId = $portfolioId ?: self::DEFAULT_PORTFOLIO_ID;
+
+        $sql = "DELETE FROM holdings WHERE portfolio_id = ? AND ticker = ? LIMIT 1";
+        return $this->execute($sql, [$portfolioId, $ticker]) > 0;
+    }
+
+    /**
+     * Hard delete holding by ISIN
+     *
+     * @param string $isin
+     * @param int|null $portfolioId
+     * @return bool
+     */
+    public function hardDeleteByIsin(string $isin, $portfolioId = null): bool
+    {
+        $portfolioId = $portfolioId ?: self::DEFAULT_PORTFOLIO_ID;
+
+        $sql = "DELETE FROM holdings WHERE portfolio_id = ? AND isin = ? LIMIT 1";
+        return $this->execute($sql, [$portfolioId, $isin]) > 0;
+    }
+
+    /**
      * Restore soft-deleted holding
      *
      * @param string $ticker

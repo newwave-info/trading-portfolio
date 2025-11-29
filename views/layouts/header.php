@@ -85,7 +85,13 @@
         </div>
         <div class="flex items-center gap-4">
             <div class="text-[11px] text-gray-500 hidden sm:block">
-                Ultimo aggiornamento: <strong class="text-gray-700"><?php echo htmlspecialchars($metadata['last_update']); ?></strong>
+                <?php
+                    $lastUpdateRaw = $metadata['last_update'] ?? '';
+                    $lastUpdateDate = $lastUpdateRaw ? date('d/m/Y', strtotime($lastUpdateRaw)) : '-';
+                    $lastUpdateTime = $lastUpdateRaw ? date('H:i', strtotime($lastUpdateRaw)) : '';
+                    $lastUpdateFmt = trim($lastUpdateDate . ($lastUpdateTime ? ' ' . $lastUpdateTime : ''));
+                ?>
+                Ultimo aggiornamento: <strong class="text-gray-700"><?php echo htmlspecialchars($lastUpdateFmt); ?></strong>
             </div>
             <button id="themeToggle" class="text-gray-500 hover:text-purple text-lg transition-colors" onclick="toggleTheme()">
                 <div class="tooltip-container inline-flex">

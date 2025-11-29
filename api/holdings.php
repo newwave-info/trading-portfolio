@@ -73,8 +73,96 @@ try {
                 throw new Exception('Il file deve essere in formato CSV');
             }
 
-            // TODO: Implementa import CSV per MySQL
-            throw new Exception('Import CSV non ancora implementato per MySQL');
+            // Parse CSV e upsert holdings nel DB (DB-first)
+            $csvPath = $file['tmp_name'];
+            if (!file_exists($csvPath)) {
+                throw new Exception('File CSV non trovato');
+            }
+
+            // Normalizza numeri (formato IT)
+            $normalizeNumber = function (string $value): float {
+                $value = trim($value);
+                if ($value === '' || $value === '-') {
+                    return 0.0;
+                }
+                $normalized = str_replace(['.', ' '], '', $value);
+                $normalized = str_replace(',', '.', $normalized);
+                return (float) $normalized;
+            };
+
+            $handle = fopen($csvPath, 'r');
+            if (!$handle) {
+                throw new Exception('Impossibile aprire il CSV');
+            }
+
+            // Salta le prime 3 righe di header Fineco
+            for ($i = 0; $i < 3; $i++) {
+                if (fgetcsv($handle, 0, ';') === false) {
+                    break;
+                }
+            }
+
+            $imported = 0;
+            $errors = [];
+            $portfolioId = PortfolioRepository::DEFAULT_PORTFOLIO_ID;
+
+            // Transaction per upsert batch
+            $db->beginTransaction();
+            try {
+                while (($row = fgetcsv($handle, 0, ';')) !== false) {
+                    // Aspettati almeno 8 campi (Fineco: nome, ISIN, ticker, mercato, strumento, valuta, qty, avg_price, ...)
+                    if (count($row) < 8) {
+                        $errors[] = 'Riga ignorata (campi insufficienti): ' . implode(';', $row);
+                        continue;
+                    }
+
+                    $name = trim($row[0]);
+                    $ticker = strtoupper(trim($row[2] ?: $row[1]));
+                    if (empty($ticker)) {
+                        $errors[] = 'Riga ignorata (ticker mancante): ' . implode(';', array_slice($row, 0, 3));
+                        continue;
+                    }
+
+                    $quantity = $normalizeNumber($row[6]);
+                    $avgPrice = $normalizeNumber($row[7]);
+
+                    // Upsert su ticker per il portfolio
+                    $existing = $holdingRepo->findByTicker($ticker, $portfolioId);
+                    if ($existing) {
+                        $holdingRepo->updateQuantityAndPrice($ticker, $quantity, $avgPrice, $portfolioId);
+                    } else {
+                        $holdingRepo->createHolding([
+                            'ticker' => $ticker,
+                            'name' => $name ?: $ticker,
+                            'asset_class' => 'ETF',
+                            'quantity' => $quantity,
+                            'avg_price' => $avgPrice,
+                            'current_price' => $avgPrice,
+                            'price_source' => 'CSV Import'
+                        ], $portfolioId);
+                    }
+
+                    $imported++;
+                }
+
+                $db->commit();
+            } catch (Exception $e) {
+                $db->rollback();
+                fclose($handle);
+                throw $e;
+            }
+
+            fclose($handle);
+
+            // Ricalcola metriche/allocazioni/snapshot
+            $metricsService->recalculate($portfolioId);
+
+            echo json_encode([
+                'success' => true,
+                'imported' => $imported,
+                'errors' => $errors
+            ]);
+            exit;
         }
 
         // Altrimenti è un upsert holding normale
@@ -155,12 +243,19 @@ try {
     // DELETE - Elimina holding (soft delete)
     // ============================================
     if ($method === 'DELETE') {
-        if (!isset($_GET['ticker'])) {
-            throw new Exception('Ticker non specificato');
+        $ticker = isset($_GET['ticker']) ? strtoupper(trim($_GET['ticker'])) : null;
+        $isin = isset($_GET['isin']) ? strtoupper(trim($_GET['isin'])) : null;
+
+        if (!$ticker && !$isin) {
+            throw new Exception('Ticker o ISIN non specificato');
         }
 
-        $ticker = strtoupper(trim($_GET['ticker']));
-        $success = $holdingRepo->softDelete($ticker);
+        $success = false;
+        if ($ticker) {
+            $success = $holdingRepo->hardDeleteByTicker($ticker);
+        } elseif ($isin) {
+            $success = $holdingRepo->hardDeleteByIsin($isin);
+        }
 
         if ($success) {
             // Update portfolio timestamp

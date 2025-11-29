@@ -150,15 +150,13 @@ ETF Portfolio Manager è una **web application PHP** che funziona come centro di
 
 ## Funzionalità principali
 
-### 📊 Dashboard Portafoglio
+### 📊 Dashboard Portafoglio (essenziale)
 
-La dashboard fornisce una visione completa e immediata dello stato del portafoglio:
+La dashboard mostra un riepilogo alto livello:
 
-- **Metriche principali**: Valore totale, capitale investito, P&L (realizzato e non realizzato)
-- **Score portfolio**: Valutazione sintetica della qualità del portafoglio
-- **Allocazioni**: Visualizzazione grafica della distribuzione per asset class e settori
-- **Drift indicator**: Scostamento dall'allocazione target per facilitare il ribilanciamento
-- **Widget interattivi**: Holdings principali, performance recenti, alert e notifiche
+- **Salute portafoglio**: score sintetico e indicatori (diversificazione, performance, rischio)
+- **Andamento mensile**: grafico dell'anno in corso
+- **AI Insight**: riepilogo automatico (workflow/JSON `dashboard_insights`)
 
 ### 💼 Gestione Holdings
 

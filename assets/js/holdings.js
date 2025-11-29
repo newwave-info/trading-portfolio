@@ -244,8 +244,17 @@ async function deleteHolding(isin, ticker) {
         return;
     }
 
+    // Se l'ISIN non è disponibile (es. dati DB senza colonna), usa il ticker per la delete
+    const hasIsin = Boolean(isin);
+    const identifier = hasIsin ? `isin=${encodeURIComponent(isin)}` : (ticker ? `ticker=${encodeURIComponent(ticker)}` : '');
+
+    if (!identifier) {
+        showNotification('error', 'Nessun identificatore valido per la posizione da eliminare');
+        return;
+    }
+
     try {
-        const response = await fetch(`/api/holdings.php?isin=${encodeURIComponent(isin)}`, {
+        const response = await fetch(`/api/holdings.php?${identifier}`, {
             method: 'DELETE'
         });
 

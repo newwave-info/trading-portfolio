@@ -12,12 +12,6 @@
             {
               "name": "WEBHOOK_SECRET",
               "stringValue": "a1b2c3d4e5f7349012345678901234567890abcdef1234567890abcdef123456"
-            },
-            {
-              "name": "TWELVE_DATA_KEY"
-            },
-            {
-              "name": "FMP_KEY"
             }
           ]
         },
@@ -59,7 +53,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Extract holdings array from API response\nconst holdings = $input.first().json.holdings || [];\nconst config = $input.all()[0].json;\n\nreturn holdings.map(h => ({\n  json: {\n    ...h,\n    APP_BASE_URL: config.APP_BASE_URL,\n    WEBHOOK_SECRET: config.WEBHOOK_SECRET,\n    TWELVE_DATA_KEY: config.TWELVE_DATA_KEY,\n    FMP_KEY: config.FMP_KEY\n  }\n}));"
+        "jsCode": "// Extract holdings array from API response\nconst holdings = $input.first().json.holdings || [];\nconst config = $input.all()[0].json;\n\nreturn holdings.map(h => ({\n  json: {\n    ...h,\n    APP_BASE_URL: config.APP_BASE_URL,\n    WEBHOOK_SECRET: config.WEBHOOK_SECRET,\n  }\n}));"
       },
       "name": "Extract Holdings",
       "type": "n8n-nodes-base.code",
@@ -86,7 +80,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Preprocess: normalize symbols for various providers\nconst h = $json;\n\n// Normalize ticker for different providers\nconst ticker = h.ticker || '';\nconst twdSymbol = ticker.replace('.FRA', '.MI').replace('.DE', '.MI');\nconst fmpSymbol = ticker.replace('.MI', '.DE').replace('.FRA', '.DE');\nconst yahooSymbol = ticker;\n\nreturn [{\n  json: {\n    isin: h.isin,\n    ticker: ticker,\n    name: h.name,\n    quantity: h.quantity,\n    avg_price: h.avg_price,\n    current_price: h.current_price,\n    instrument_type: h.instrument_type,\n    asset_class: h.asset_class,\n    sector: h.sector,\n    // Provider-specific symbols\n    twd_symbol: twdSymbol,\n    fmp_symbol: fmpSymbol,\n    yahoo_symbol: yahooSymbol,\n    justetf_isin: h.isin,\n    // Config\n    APP_BASE_URL: h.APP_BASE_URL,\n    WEBHOOK_SECRET: h.WEBHOOK_SECRET,\n    TWELVE_DATA_KEY: h.TWELVE_DATA_KEY,\n    FMP_KEY: h.FMP_KEY\n  }\n}];"
+        "jsCode": "// Preprocess: normalize symbols for various providers\nconst h = $json;\n\n// Normalize ticker for different providers\nconst ticker = h.ticker || '';\nconst yahooSymbol = ticker;\n\nreturn [{\n  json: {\n    isin: h.isin,\n    ticker: ticker,\n    name: h.name,\n    quantity: h.quantity,\n    avg_price: h.avg_price,\n    current_price: h.current_price,\n    instrument_type: h.instrument_type,\n    asset_class: h.asset_class,\n    sector: h.sector,\n    // Provider-specific symbols\n    yahoo_symbol: yahooSymbol,\n    justetf_isin: h.isin,\n    // Config\n    APP_BASE_URL: h.APP_BASE_URL,\n    WEBHOOK_SECRET: h.WEBHOOK_SECRET,\n  }\n}];"
       },
       "name": "Preprocess Symbols",
       "type": "n8n-nodes-base.code",
@@ -193,7 +187,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Aggregate all enriched holdings - Pass object not string\nconst items = $input.all();\n\n// Get config from first item\nconst firstItem = items[0].json;\nconst appBaseUrl = firstItem.APP_BASE_URL;\n\n// Extract enrichment data (remove config fields)\nconst holdings = items.map(item => {\n  const { APP_BASE_URL, WEBHOOK_SECRET, TWELVE_DATA_KEY, FMP_KEY, ...enrichment } = item.json;\n  return enrichment;\n});\n\nconst payload = {\n  workflow_id: 'portfolio_enrichment_v3.1',\n  timestamp: new Date().toISOString(),\n  holdings: holdings\n};\n\nreturn [{\n  json: {\n    APP_BASE_URL: appBaseUrl,\n    payload: payload,  // Oggetto, non stringa\n    signature: 'HMAC_DISABLED'\n  }\n}];\n"
+        "jsCode": "// Aggregate all enriched holdings - Pass object not string\n\n// Prende tutti gli item in ingresso dal ramo \"Done\" di Split In Batches\nconst items = $input.all();\n\n// Se qualcosa è andato storto e non arriva nulla, esci\nif (!items.length) {\n  return [];\n}\n\n// Config dal primo item (APP_BASE_URL ecc.)\nconst firstJson = items[0].json || {};\nconst appBaseUrl = firstJson.APP_BASE_URL || 'https://portfolio.newwave-media.it';\n\n// Rimuovi i campi di config e tieni solo l'enrichment per ciascuna holding\nconst holdings = items.map(item => {\n  const {\n    APP_BASE_URL,\n    WEBHOOK_SECRET,\n    TWELVE_DATA_KEY,\n    FMP_KEY,\n    ...enrichment\n  } = item.json;\n\n  return enrichment;\n});\n\n// Payload per l'API PHP\nconst payload = {\n  workflow_id: 'portfolio_enrichment_v3.1',\n  timestamp: new Date().toISOString(),\n  holdings\n};\n\n// Per ora usiamo HMAC_DISABLED (validato lato PHP)\nreturn [{\n  json: {\n    APP_BASE_URL: appBaseUrl,\n    payload,          // oggetto, non stringa\n    signature: 'HMAC_DISABLED'\n  }\n}];\n"
       },
       "name": "Aggregate & Sign",
       "type": "n8n-nodes-base.code",
@@ -387,6 +381,10 @@
             {
               "name": "User-Agent",
               "value": "Mozilla/5.0 (n8n-dividend-sync/1.0)"
+            },
+            {
+              "name": "X-Webhook-Signature",
+              "value": "HMAC_DISABLED"
             }
           ]
         },
@@ -624,11 +622,11 @@
       ]
     }
   },
-  "active": true,
+  "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "b2e16e97-8492-46db-89c4-be04f695be7a",
+  "versionId": "38bd8d74-2140-49b2-9b2e-b691e65262e5",
   "meta": {
     "instanceId": "fe117d56aad4346ee596609bb8c3079d6edd34e383a675201472f524674346cc"
   },

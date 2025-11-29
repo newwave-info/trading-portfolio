@@ -196,14 +196,28 @@ try {
     $twelveMonthsLater = date('Y-m-d', strtotime('+12 months'));
     $twelveMonthsAgo = date('Y-m-d', strtotime('-12 months'));
 
-    // Forecast prossimi 12 mesi
+    // Helper per calcolare total_amount se mancante
+    $computeTotalAmount = function(array $div): float {
+        $total = $div['total_amount'] ?? null;
+        if ($total !== null) {
+            return (float) $total;
+        }
+        $qty = $div['quantity_at_ex_date'] ?? $div['quantity'] ?? 0;
+        $aps = $div['amount_per_share'] ?? 0;
+        return (float) ($qty * $aps);
+    };
+
+    // Forecast prossimi 12 mesi (chiave primaria: ex_date, payment_date dato secondario)
     $forecast = $dividendRepo->getForecast($today, $forecastHorizonEnd);
     if (!empty($forecast)) {
-        $sum = array_sum(array_column($forecast, 'total_amount'));
+        $sum = 0;
+        foreach ($forecast as $div) {
+            $sum += $computeTotalAmount($div);
+        }
 
         // Periodo es: "12/2025 - 11/2026"
         $months = array_map(function($div) {
-            $date = $div['payment_date'] ?? $div['ex_date'];
+            $date = $div['ex_date'] ?? $div['payment_date'];
             return date('m/Y', strtotime($date));
         }, $forecast);
         $period = reset($months) . ' - ' . end($months);
@@ -214,15 +228,15 @@ try {
         ];
     }
 
-    // Next dividend (FORECAST più vicino, solo date future)
+    // Next dividend (FORECAST più vicino, solo date future) basato su ex_date
     $nextDividend = null;
     foreach ($forecast as $div) {
-        $date = $div['payment_date'] ?? $div['ex_date'];
+        $date = $div['ex_date'] ?? $div['payment_date'];
         if ($date >= $today && ($nextDividend === null || $date < $nextDividend['date'])) {
             $nextDividend = [
                 'date' => $date,
                 'ticker' => $div['ticker'],
-                'amount' => (float) $div['total_amount']
+                'amount' => $computeTotalAmount($div)
             ];
         }
     }
@@ -230,11 +244,12 @@ try {
         $dividends_calendar_data['next_dividend'] = $nextDividend;
     }
 
-    // Monthly forecast (prossimi 12 mesi, raggruppo per mese con anno)
+    // Monthly forecast (prossimi 12 mesi, raggruppo per mese con anno, includo pay_date)
     if (!empty($forecast)) {
         $byMonth = [];
         foreach ($forecast as $div) {
-            $date = $div['payment_date'] ?? $div['ex_date'];
+            $date = $div['ex_date'] ?? $div['payment_date'];
+            $payDate = $div['payment_date'] ?? $div['ex_date'];
             $monthKey = date('Y-m', strtotime($date));
             if (!isset($byMonth[$monthKey])) {
                 // Nomi mese in italiano
@@ -247,26 +262,31 @@ try {
                 $monthEn = date('F', strtotime($date));
                 $monthIt = $italianMonths[$monthEn] ?? $monthEn;
 
-                $byMonth[$monthKey] = [
-                    'month' => $monthIt, // mese esteso italiano
-                    'year' => date('Y', strtotime($date)),
-                    'month_year' => $monthKey,
-                    'label' => $monthIt . ' ' . date('Y', strtotime($date)),
-                    'amount' => 0
-                ];
-            }
-            $byMonth[$monthKey]['amount'] += (float) $div['total_amount'];
+            $byMonth[$monthKey] = [
+                'month' => $monthIt, // mese esteso italiano
+                'year' => date('Y', strtotime($date)),
+                'month_year' => $monthKey,
+                'label' => $monthIt . ' ' . date('Y', strtotime($date)),
+                'amount' => 0,
+                'payment_dates' => []
+            ];
         }
-        // Ordina per mese
+        $byMonth[$monthKey]['amount'] += $computeTotalAmount($div);
+        if ($payDate) {
+            $byMonth[$monthKey]['payment_dates'][] = $payDate;
+        }
+    }
+    // Ordina per mese
         ksort($byMonth);
         $dividends_calendar_data['monthly_forecast'] = array_values($byMonth);
     }
 
     // Portfolio yield (ultimi 12 mesi ricevuti / valore portafoglio)
     $received12m = $dividendRepo->getReceived($twelveMonthsAgo, $today);
-    $receivedTotal = array_sum(array_column($received12m, 'total_amount'));
-    if (($metadata['total_market_value'] ?? 0) > 0) {
-        $dividends_calendar_data['portfolio_yield'] = ($receivedTotal / $metadata['total_market_value']) * 100;
+    $receivedTotal = array_sum(array_column($received12m, 'paid_amount'));
+    $totalMarketValue = $metadata['total_market_value'] ?? 0;
+    if ($totalMarketValue > 0) {
+        $dividends_calendar_data['portfolio_yield'] = ($receivedTotal / $totalMarketValue) * 100;
     }
 
     // Distributing assets: per ticker, annual_amount (forecast 12m) e yield calcolato sul market_value
@@ -286,18 +306,39 @@ try {
                 $byTicker[$ticker] = [
                     'ticker' => $ticker,
                     'annual_amount' => 0,
-                    'next_div_date' => null
+                    'next_div_date' => null,
+                    'next_payment_date' => null,
+                    'last_payment_date' => null,
+                    'next_amount' => null
                 ];
             }
-            $byTicker[$ticker]['annual_amount'] += (float) $div['total_amount'];
+            $amount = $computeTotalAmount($div);
+            $byTicker[$ticker]['annual_amount'] += $amount;
 
-            $date = $div['payment_date'] ?? $div['ex_date'];
+            $date = $div['ex_date'] ?? $div['payment_date'];
             if ($byTicker[$ticker]['next_div_date'] === null || $date < $byTicker[$ticker]['next_div_date']) {
                 $byTicker[$ticker]['next_div_date'] = $date;
+                $byTicker[$ticker]['next_amount'] = $amount;
+            }
+
+            // Payment date tracking
+            $payDate = $div['payment_date'] ?? null;
+            if ($payDate) {
+                if ($byTicker[$ticker]['next_payment_date'] === null || $payDate < $byTicker[$ticker]['next_payment_date']) {
+                    $byTicker[$ticker]['next_payment_date'] = $payDate;
+                }
+                // Last payment (most recent past)
+                $today = date('Y-m-d');
+                if ($payDate <= $today) {
+                    if ($byTicker[$ticker]['last_payment_date'] === null || $payDate > $byTicker[$ticker]['last_payment_date']) {
+                        $byTicker[$ticker]['last_payment_date'] = $payDate;
+                    }
+                }
             }
         }
 
         // Costruisci lista con yield
+        $totalAnnualAll = 0;
         foreach ($byTicker as $ticker => $info) {
             $holding = $holdingMap[$ticker] ?? null;
             if (!$holding) {
@@ -305,6 +346,7 @@ try {
             }
             $marketValue = $holding['market_value'] ?? 0;
             $yieldPct = $marketValue > 0 ? ($info['annual_amount'] / $marketValue) * 100 : null;
+            $totalAnnualAll += $info['annual_amount'];
 
             $dividends_calendar_data['distributing_assets'][] = [
                 'ticker' => $ticker,
@@ -312,9 +354,17 @@ try {
                 'dividend_yield' => $yieldPct,
                 'annual_amount' => $info['annual_amount'],
                 'frequency' => 'N/A',
-                'last_div_date' => null,
-                'next_div_date' => $info['next_div_date']
+                'last_div_date' => null, // manteniamo per compatibilità, ma non usato
+                'last_payment_date' => $info['last_payment_date'],
+                'next_div_date' => $info['next_div_date'],
+                'next_payment_date' => $info['next_payment_date'],
+                'next_amount' => $info['next_amount']
             ];
+        }
+
+        // Yield di portafoglio stimato su base annuale (forecast 12 mesi)
+        if (($metadata['total_market_value'] ?? 0) > 0 && $totalAnnualAll > 0) {
+            $dividends_calendar_data['portfolio_yield'] = ($totalAnnualAll / $metadata['total_market_value']) * 100;
         }
     }
 

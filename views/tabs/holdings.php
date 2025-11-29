@@ -13,6 +13,116 @@
                     </div>
                 </div>
 
+                <!-- Portfolio Overview Widgets -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+                    <div class="widget-card widget-purple p-4 sm:p-6">
+                        <div class="text-[11px] text-gray-500 uppercase tracking-wider">Valore Totale</div>
+                        <div class="text-2xl font-bold text-primary">€<?php echo number_format($metadata['total_market_value'] ?? 0, 2, ',', '.'); ?></div>
+                        <div class="text-[11px] text-gray-500 mt-1">Base: <?php echo htmlspecialchars($metadata['base_currency'] ?? 'EUR'); ?></div>
+                    </div>
+                    <div class="widget-card widget-purple p-4 sm:p-6">
+                        <div class="text-[11px] text-gray-500 uppercase tracking-wider">P&L Non Realizzato</div>
+                        <div class="text-2xl font-bold <?php echo ($metadata['total_pnl'] ?? 0) >= 0 ? 'text-positive' : 'text-negative'; ?>">
+                            €<?php echo number_format($metadata['total_pnl'] ?? 0, 2, ',', '.'); ?>
+                        </div>
+                        <div class="text-[11px] text-gray-500 mt-1"><?php echo ($metadata['total_pnl_pct'] ?? 0) >= 0 ? '+' : ''; ?><?php echo number_format($metadata['total_pnl_pct'] ?? 0, 2, ',', '.'); ?>%</div>
+                    </div>
+                    <div class="widget-card widget-purple p-4 sm:p-6">
+                        <div class="text-[11px] text-gray-500 uppercase tracking-wider">Posizioni Attive</div>
+                        <div class="text-2xl font-bold text-primary"><?php echo $metadata['total_holdings'] ?? count($top_holdings); ?></div>
+                        <div class="text-[11px] text-gray-500 mt-1">Agg. <?php echo isset($metadata['last_update']) ? date('d/m H:i', strtotime($metadata['last_update'])) : '-'; ?></div>
+                    </div>
+                    <div class="widget-card widget-purple p-4 sm:p-6">
+                        <div class="text-[11px] text-gray-500 uppercase tracking-wider">Allocazione per Asset Class</div>
+                        <div class="text-xl font-semibold text-primary"><?php echo !empty($allocation_by_asset_class) ? htmlspecialchars($allocation_by_asset_class[0]['asset_class']) : '-'; ?></div>
+                        <div class="text-[11px] text-gray-500 mt-1"><?php echo !empty($allocation_by_asset_class) ? number_format($allocation_by_asset_class[0]['percentage'], 2, ',', '.') . '%' : 'N/A'; ?></div>
+                    </div>
+                </div>
+
+                <!-- Top/Bottom Performer & Breakdown -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="widget-card widget-purple p-6">
+                        <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-arrow-trend-up text-purple"></i>
+                                <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Top 5 Performer (YTD)</span>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <?php
+                            $sortedByYtd = $top_holdings;
+                            usort($sortedByYtd, fn($a, $b) => ($b['ytd_change_percent'] ?? 0) <=> ($a['ytd_change_percent'] ?? 0));
+                            $topFive = array_slice($sortedByYtd, 0, 5);
+                            foreach ($topFive as $h): ?>
+                            <div class="flex justify-between items-center p-3 bg-gray-50 border border-gray-200">
+                                <div>
+                                    <div class="font-semibold text-primary text-sm"><?php echo htmlspecialchars($h['ticker']); ?></div>
+                                    <div class="text-[11px] text-gray-500"><?php echo htmlspecialchars($h['name']); ?></div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-bold text-positive"><?php echo ($h['ytd_change_percent'] ?? 0) >= 0 ? '+' : ''; ?><?php echo number_format($h['ytd_change_percent'] ?? 0, 2, ',', '.'); ?>%</div>
+                                    <div class="text-[10px] text-gray-500">Val: €<?php echo number_format($h['market_value'], 0, ',', '.'); ?></div>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                            <?php if (empty($topFive)): ?>
+                                <div class="p-3 text-gray-500 text-sm italic bg-gray-50 border border-gray-200">Nessun dato disponibile.</div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div class="widget-card widget-purple p-6">
+                        <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-arrow-trend-down text-purple"></i>
+                                <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Bottom 5 Performer (YTD)</span>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <?php
+                            $bottomFive = array_slice(array_reverse($sortedByYtd), 0, 5);
+                            foreach ($bottomFive as $h): ?>
+                            <div class="flex justify-between items-center p-3 bg-gray-50 border border-gray-200">
+                                <div>
+                                    <div class="font-semibold text-primary text-sm"><?php echo htmlspecialchars($h['ticker']); ?></div>
+                                    <div class="text-[11px] text-gray-500"><?php echo htmlspecialchars($h['name']); ?></div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-bold text-negative"><?php echo ($h['ytd_change_percent'] ?? 0) >= 0 ? '+' : ''; ?><?php echo number_format($h['ytd_change_percent'] ?? 0, 2, ',', '.'); ?>%</div>
+                                    <div class="text-[10px] text-gray-500">Val: €<?php echo number_format($h['market_value'], 0, ',', '.'); ?></div>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                            <?php if (empty($bottomFive)): ?>
+                                <div class="p-3 text-gray-500 text-sm italic bg-gray-50 border border-gray-200">Nessun dato disponibile.</div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div class="widget-card widget-purple p-6">
+                        <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-chart-pie text-purple"></i>
+                                <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Allocazione per Asset Class</span>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <?php foreach ($allocation_by_asset_class as $alloc): ?>
+                                <div class="flex justify-between items-center">
+                                    <div class="text-sm text-gray-700"><?php echo htmlspecialchars($alloc['asset_class']); ?></div>
+                                    <div class="text-sm font-semibold text-primary"><?php echo number_format($alloc['percentage'], 2, ',', '.'); ?>%</div>
+                                </div>
+                                <div class="w-full h-1.5 bg-gray-100 rounded-full">
+                                    <div class="h-1.5 bg-purple rounded-full" style="width: <?php echo min(100, max(0, $alloc['percentage'])); ?>%;"></div>
+                                </div>
+                            <?php endforeach; ?>
+                            <?php if (empty($allocation_by_asset_class)): ?>
+                                <div class="text-sm text-gray-500 italic">Nessun dato disponibile.</div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Holdings Table -->
                 <div class="widget-card widget-purple p-6">
                     <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">

@@ -8,6 +8,8 @@
 - n8n DB-first: `/api/n8n/portfolio.php` e `/api/n8n/enrich.php` leggono/scrivono solo MySQL (niente JSON).
 - Ricalcolo metriche/snapshot su DB via `PortfolioMetricsService` dopo ogni enrichment.
 - Aggiunta `base_currency` su `portfolios` + vista `v_portfolio_metadata` aggiornata (migrazione `docs/migrations/2025_11_29_add_base_currency.sql`).
+- Dashboard snellita: rimangono Salute Portafoglio, AI Insight, Andamento Mensile; i widget operativi (Top/Bottom/Allocazioni/Dividendi ricevuti/Opportunità) sono ora nella vista Holdings.
+- Vista Dividendi allineata al DB: ex-date come metrica base, pay-date secondario, conteggi RECEIVED ultimi 12 mesi, calendario e forecast solo da MySQL.
 
 > 📋 **Documentazione:**
 > - [README.md](README.md) - Panoramica generale e setup (aggiornato 26 Nov 2025)
