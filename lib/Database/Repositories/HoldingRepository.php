@@ -29,39 +29,79 @@ class HoldingRepository extends BaseRepository
     {
         $portfolioId = $portfolioId ?: self::DEFAULT_PORTFOLIO_ID;
 
+        // Usa i prezzi correnti dalla tabella holdings (fonte nativa)
         $sql = "
             SELECT
                 id,
                 ticker,
                 name,
                 asset_class,
+                sector,
                 quantity,
                 avg_price,
                 current_price,
                 price_source,
-                invested,
-                market_value,
-                pnl,
-                pnl_pct,
+                dividend_yield,
+                annual_dividend,
+                dividend_frequency,
+                has_dividends,
+                total_dividends_5y,
+                fifty_two_week_high,
+                fifty_two_week_low,
+                ytd_change_percent,
+                one_month_change_percent,
+                three_month_change_percent,
+                one_year_change_percent,
+                previous_close,
+                day_high,
+                day_low,
+                volume,
+                exchange,
+                first_trade_date,
+                (quantity * avg_price) AS invested,
+                (quantity * COALESCE(current_price, avg_price)) AS market_value,
+                (quantity * COALESCE(current_price, avg_price)) - (quantity * avg_price) AS pnl,
+                CASE
+                    WHEN avg_price > 0 THEN
+                        ((COALESCE(current_price, avg_price) - avg_price) / avg_price) * 100
+                    ELSE 0
+                END AS pnl_pct,
                 updated_at
-            FROM v_holdings_enriched
-            WHERE portfolio_id = ?
+            FROM holdings
+            WHERE portfolio_id = ? AND is_active = 1
             ORDER BY market_value DESC
         ";
 
         $holdings = $this->fetchAll($sql, [$portfolioId]);
 
-        // Format for compatibility with current application
         return array_map(function($holding) {
             return [
                 'id' => (int)$holding['id'],
                 'ticker' => $holding['ticker'],
                 'name' => $holding['name'],
                 'asset_class' => $holding['asset_class'],
+                'sector' => $holding['sector'],
                 'quantity' => (float)$holding['quantity'],
                 'avg_price' => (float)$holding['avg_price'],
-                'current_price' => $holding['current_price'] ? (float)$holding['current_price'] : null,
+                'current_price' => $holding['current_price'] !== null ? (float)$holding['current_price'] : null,
                 'price_source' => $holding['price_source'],
+                'dividend_yield' => $holding['dividend_yield'] !== null ? (float)$holding['dividend_yield'] : null,
+                'annual_dividend' => $holding['annual_dividend'] !== null ? (float)$holding['annual_dividend'] : null,
+                'dividend_frequency' => $holding['dividend_frequency'],
+                'has_dividends' => (bool)$holding['has_dividends'],
+                'total_dividends_5y' => $holding['total_dividends_5y'] !== null ? (int)$holding['total_dividends_5y'] : null,
+                'fifty_two_week_high' => $holding['fifty_two_week_high'] !== null ? (float)$holding['fifty_two_week_high'] : null,
+                'fifty_two_week_low' => $holding['fifty_two_week_low'] !== null ? (float)$holding['fifty_two_week_low'] : null,
+                'ytd_change_percent' => $holding['ytd_change_percent'] !== null ? (float)$holding['ytd_change_percent'] : 0,
+                'one_month_change_percent' => $holding['one_month_change_percent'] !== null ? (float)$holding['one_month_change_percent'] : 0,
+                'three_month_change_percent' => $holding['three_month_change_percent'] !== null ? (float)$holding['three_month_change_percent'] : 0,
+                'one_year_change_percent' => $holding['one_year_change_percent'] !== null ? (float)$holding['one_year_change_percent'] : 0,
+                'previous_close' => $holding['previous_close'] !== null ? (float)$holding['previous_close'] : null,
+                'day_high' => $holding['day_high'] !== null ? (float)$holding['day_high'] : null,
+                'day_low' => $holding['day_low'] !== null ? (float)$holding['day_low'] : null,
+                'volume' => $holding['volume'] !== null ? (int)$holding['volume'] : null,
+                'exchange' => $holding['exchange'],
+                'first_trade_date' => $holding['first_trade_date'] !== null ? (int)$holding['first_trade_date'] : null,
                 'invested' => (float)$holding['invested'],
                 'market_value' => (float)$holding['market_value'],
                 'pnl' => (float)$holding['pnl'],
@@ -265,6 +305,7 @@ class HoldingRepository extends BaseRepository
         $holdingData = [
             'portfolio_id' => $portfolioId,
             'ticker' => $data['ticker'],
+            'isin' => $data['isin'] ?? null,
             'name' => $data['name'],
             'asset_class' => $data['asset_class'] ?? 'ETF',
             'quantity' => $data['quantity'],

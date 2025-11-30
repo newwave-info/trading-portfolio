@@ -118,6 +118,7 @@ try {
 
                     $name = trim($row[0]);
                     $ticker = strtoupper(trim($row[2] ?: $row[1]));
+                    $isin = strtoupper(trim($row[1]));
                     if (empty($ticker)) {
                         $errors[] = 'Riga ignorata (ticker mancante): ' . implode(';', array_slice($row, 0, 3));
                         continue;
@@ -133,6 +134,7 @@ try {
                     } else {
                         $holdingRepo->createHolding([
                             'ticker' => $ticker,
+                            'isin' => $isin ?: null,
                             'name' => $name ?: $ticker,
                             'asset_class' => 'ETF',
                             'quantity' => $quantity,
@@ -173,7 +175,7 @@ try {
         }
 
         // Validazione campi obbligatori
-        $required = ['ticker', 'name', 'quantity', 'avg_price'];
+        $required = ['ticker', 'name', 'quantity', 'avg_price', 'isin'];
         foreach ($required as $field) {
             if (!isset($input[$field]) || $input[$field] === '') {
                 throw new Exception("Campo obbligatorio mancante: {$field}");
@@ -181,6 +183,7 @@ try {
         }
 
         $ticker = strtoupper(trim($input['ticker']));
+        $isin = strtoupper(trim($input['isin']));
         $isUpdate = isset($input['is_update']) ? (bool) $input['is_update'] : false;
 
         // Check duplicati se non è update
@@ -191,6 +194,7 @@ try {
         // Prepara dati holding
         $holdingData = [
             'ticker' => $ticker,
+            'isin' => $isin,
             'name' => trim($input['name']),
             'asset_class' => isset($input['asset_class']) ? trim($input['asset_class']) : 'ETF',
             'quantity' => (float) $input['quantity'],

@@ -69,6 +69,7 @@ try {
             'isin' => '', // Non disponibile nel DB, campo opzionale
             'name' => $holding['name'],
             'asset_class' => $holding['asset_class'],
+            'sector' => $holding['sector'] ?? '',
             'quantity' => $holding['quantity'],
             'avg_price' => $holding['avg_price'],
             'current_price' => $holding['current_price'],
@@ -81,12 +82,30 @@ try {
             'target_allocation' => 0, // TODO: aggiungere campo al DB
             'drift' => $current_allocation - 0, // drift = current - target
             'updated_at' => $holding['updated_at'],
+            // Range prezzi (52w, giornalieri)
+            'fifty_two_week_high' => $holding['fifty_two_week_high'] ?? 0,
+            'fifty_two_week_low' => $holding['fifty_two_week_low'] ?? 0,
+            'day_high' => $holding['day_high'] ?? 0,
+            'day_low' => $holding['day_low'] ?? 0,
+            // Performance percentuali
+            'ytd_change_percent' => $holding['ytd_change_percent'] ?? 0,
+            'one_month_change_percent' => $holding['one_month_change_percent'] ?? 0,
+            'three_month_change_percent' => $holding['three_month_change_percent'] ?? 0,
+            'one_year_change_percent' => $holding['one_year_change_percent'] ?? 0,
+            // Dividendi
+            'dividend_yield' => $holding['dividend_yield'] ?? 0,
+            'annual_dividend' => $holding['annual_dividend'] ?? 0,
+            'dividend_frequency' => $holding['dividend_frequency'] ?? '-',
+            'has_dividends' => $holding['has_dividends'] ?? false,
+            'total_dividends_5y' => $holding['total_dividends_5y'] ?? 0,
+            // Volume e mercato
+            'volume' => $holding['volume'] ?? 0,
+            'exchange' => $holding['exchange'] ?? '',
+            'first_trade_date' => $holding['first_trade_date'] ?? 0,
             // Campi extra per compatibilità
-            'sector' => '',
-            'market' => '',
+            'market' => $holding['exchange'] ?? '',
             'instrument_type' => $holding['asset_class'],
             'currency' => 'EUR',
-            'dividend_yield' => 0,
             'expense_ratio' => 0,
             'distributor' => '',
             'notes' => ''

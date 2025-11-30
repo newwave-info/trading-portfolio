@@ -168,6 +168,9 @@
                                     <td class="px-4 py-3">
                                         <div class="font-medium text-gray-800"><?php echo htmlspecialchars($holding['name']); ?></div>
                                         <div class="text-[11px] text-gray-500 whitespace-nowrap"><?php echo htmlspecialchars($holding['asset_class']); ?></div>
+                                        <?php if (!empty($holding['sector'])): ?>
+                                        <div class="text-[10px] text-gray-400 whitespace-nowrap"><?php echo htmlspecialchars($holding['sector']); ?></div>
+                                        <?php endif; ?>
                                     </td>
                                     <td class="px-4 py-3 text-right whitespace-nowrap"><?php echo number_format($holding['quantity'], 2, ',', '.'); ?></td>
                                     <td class="px-4 py-3 text-right whitespace-nowrap">€<?php echo number_format($holding['avg_price'], 2, ',', '.'); ?></td>
