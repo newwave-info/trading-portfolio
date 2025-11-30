@@ -142,10 +142,12 @@ class TransactionRepository extends BaseRepository
                 type,
                 ticker,
                 quantity,
+                quantity as quantity_change,
                 price,
                 amount,
                 fees,
-                notes
+                notes,
+                created_at as timestamp
             FROM transactions
             WHERE portfolio_id = ?
             ORDER BY transaction_date DESC, id DESC
@@ -178,6 +180,63 @@ class TransactionRepository extends BaseRepository
         ];
 
         return $this->create($transactionData);
+    }
+
+    /**
+     * Log BUY/SELL transaction
+     *
+     * @param string $ticker
+     * @param string $isin
+     * @param float $quantity
+     * @param float $price
+     * @param string $type BUY|SELL
+     * @param int|null $portfolioId
+     * @return int
+     */
+    public function logTrade(string $ticker, float $quantity, float $price, string $type, $portfolioId = null)
+    {
+        $portfolioId = $portfolioId ?: self::DEFAULT_PORTFOLIO_ID;
+
+        $amount = $quantity * $price;
+
+        return $this->create([
+            'portfolio_id' => $portfolioId,
+            'ticker' => $ticker,
+            'transaction_date' => date('Y-m-d'),
+            'type' => strtoupper($type),
+            'quantity' => $quantity,
+            'price' => $price,
+            'amount' => $amount,
+            'fees' => 0,
+            'notes' => 'Auto-log holdings update'
+        ]);
+    }
+
+    /**
+     * Log DIVIDEND transaction
+     *
+     * @param string $ticker
+     * @param string $isin
+     * @param float $amount
+     * @param string|null $date
+     * @param int|null $portfolioId
+     * @return int
+     */
+    public function logDividend(string $ticker, float $amount, ?string $date = null, $portfolioId = null)
+    {
+        $portfolioId = $portfolioId ?: self::DEFAULT_PORTFOLIO_ID;
+
+        return $this->create([
+            'portfolio_id' => $portfolioId,
+            'ticker' => $ticker,
+            'transaction_date' => $date ?? date('Y-m-d'),
+            'type' => 'DIVIDEND',
+            'quantity' => null,
+            'price' => null,
+            'amount' => $amount,
+            'fees' => 0,
+            'notes' => 'Auto-log dividend'
+        ]);
     }
 
     /**

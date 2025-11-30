@@ -15,6 +15,7 @@ require_once __DIR__ . '/../lib/Database/DatabaseManager.php';
 require_once __DIR__ . '/../lib/Database/Repositories/HoldingRepository.php';
 require_once __DIR__ . '/../lib/Database/Repositories/PortfolioRepository.php';
 require_once __DIR__ . '/../lib/Database/Services/PortfolioMetricsService.php';
+require_once __DIR__ . '/../lib/Database/Repositories/TransactionRepository.php';
 
 // CORS headers (se necessario per sviluppo locale)
 header('Access-Control-Allow-Origin: *');
@@ -32,6 +33,7 @@ try {
     $holdingRepo = new HoldingRepository($db);
     $portfolioRepo = new PortfolioRepository($db);
     $metricsService = new PortfolioMetricsService($db);
+    $transactionRepo = new TransactionRepository($db);
 
     $method = $_SERVER['REQUEST_METHOD'];
 
@@ -220,12 +222,34 @@ try {
         ];
 
         if ($isUpdate) {
+            // Preleva dati correnti per calcolare delta quantità (prima dell'update)
+            $existingHolding = $holdingRepo->findByTicker($ticker);
+            if (!$existingHolding) {
+                throw new Exception('Posizione non trovata per update');
+            }
+            $prevQty = (float) $existingHolding['quantity'];
+
             // Update existing holding
             $success = $holdingRepo->updateQuantityAndPrice(
                 $ticker,
                 $holdingData['quantity'],
                 $holdingData['avg_price']
             );
+
+            // Log transazione BUY/SELL in base al delta quantità
+            $deltaQty = $holdingData['quantity'] - $prevQty;
+            if ($deltaQty !== 0) {
+                $type = $deltaQty > 0 ? 'BUY' : 'SELL';
+                $transactionRepo->createTransaction([
+                    'type' => $type,
+                    'ticker' => $ticker,
+                    'amount' => abs($deltaQty) * $holdingData['avg_price'],
+                    'quantity' => abs($deltaQty),
+                    'price' => $holdingData['avg_price'],
+                    'notes' => 'Update holding',
+                    'date' => date('Y-m-d')
+                ]);
+            }
 
             if ($holdingData['current_price']) {
                 $holdingRepo->updatePrice(
@@ -237,6 +261,15 @@ try {
         } else {
             // Create new holding
             $success = $holdingRepo->createHolding($holdingData);
+            $transactionRepo->createTransaction([
+                'type' => 'BUY',
+                'ticker' => $ticker,
+                'amount' => $holdingData['quantity'] * $holdingData['avg_price'],
+                'quantity' => $holdingData['quantity'],
+                'price' => $holdingData['avg_price'],
+                'notes' => 'Nuova posizione',
+                'date' => date('Y-m-d')
+            ]);
         }
 
         if ($success) {
@@ -260,7 +293,7 @@ try {
     }
 
     // ============================================
-    // DELETE - Elimina holding (soft delete)
+    // DELETE - Elimina holding (hard delete + log transazione)
     // ============================================
     if ($method === 'DELETE') {
         $ticker = isset($_GET['ticker']) ? strtoupper(trim($_GET['ticker'])) : null;
@@ -271,13 +304,43 @@ try {
         }
 
         $success = false;
+        $deletedQty = null;
+        $deletedPrice = null;
+        $resolvedTicker = $ticker;
+
         if ($ticker) {
+            $existing = $holdingRepo->findByTicker($ticker);
+            if ($existing) {
+                $deletedQty = (float) $existing['quantity'];
+                $deletedPrice = (float) $existing['avg_price'];
+                $resolvedTicker = $existing['ticker'];
+                $isin = $existing['isin'] ?? $isin;
+            }
             $success = $holdingRepo->hardDeleteByTicker($ticker);
         } elseif ($isin) {
+            $existing = $holdingRepo->findByIsin($isin);
+            if ($existing) {
+                $deletedQty = (float) $existing['quantity'];
+                $deletedPrice = (float) $existing['avg_price'];
+                $resolvedTicker = $existing['ticker'] ?? $resolvedTicker;
+            }
             $success = $holdingRepo->hardDeleteByIsin($isin);
         }
 
         if ($success) {
+            // Log sell per chiusura posizione
+            if ($deletedQty !== null && $deletedQty > 0) {
+                $transactionRepo->createTransaction([
+                    'type' => 'SELL',
+                    'ticker' => $resolvedTicker ?? ($isin ?? ''),
+                    'amount' => $deletedQty * $deletedPrice,
+                    'quantity' => $deletedQty,
+                    'price' => $deletedPrice,
+                    'notes' => 'Chiusura posizione',
+                    'date' => date('Y-m-d')
+                ]);
+            }
+
             // Update portfolio timestamp
             $portfolioRepo->updateLastUpdate();
 

@@ -115,7 +115,7 @@ ETF Portfolio Manager è una **web application PHP** che funziona come centro di
 - ✅ Sistema classificazione automatica ETF (settore/asset_class)
 - ✅ Dividendi: sincronizzazione da n8n (yield, frequenza, annual_dividend), calendario forecast 6 mesi, grafici ricevuti/previsti, tab dedicata
 - ✅ Payout automatico dividendi via script (`dividends-payout.php`) schedulabile in cron (nessun inserimento manuale)
-- ✅ Log transazioni base (BUY/SELL/DIVIDEND) in `portfolio.json` per timeline e report futuri
+- ✅ Log transazioni base (BUY/SELL/DIVIDEND/FEE/DEPOSIT/WITHDRAWAL) su tabella `transactions` MySQL, usate nella timeline Performance/Flussi
 
 **In roadmap (prossime iterazioni):**
 
@@ -288,6 +288,12 @@ Funzionalità per gestire i dati del portafoglio:
 - **Backup JSON**: Copia semplice della cartella `/data` per backup completo
 - **Export reports**: Possibilità di esportare viste e analisi
 - **Portabilità**: Dati in formato leggibile e trasferibile
+
+### 🧾 Transazioni (Roadmap immediata)
+
+- Tabella `transactions` (BUY/SELL/DIVIDEND/FEE/DEPOSIT/WITHDRAWAL) già presente nello schema MySQL.
+- Da implementare il logging automatico in `/api/holdings.php` (create/update/delete) e `/api/dividends.php` (RECEIVED) per alimentare la Timeline “Performance & Flussi”.
+- Frontend: la timeline userà i dati DB (non JSON) per mostrare storico operazioni e P&L realizzato.
 
 ---
 

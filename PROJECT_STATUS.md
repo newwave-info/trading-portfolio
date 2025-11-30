@@ -1,7 +1,7 @@
 # 📊 ETF Portfolio Manager - Stato Avanzamento Lavori
 
-**Ultimo aggiornamento:** 29 Novembre 2025
-**Versione:** 0.3.3-MySQL ✅
+**Ultimo aggiornamento:** 30 Novembre 2025
+**Versione:** 0.3.4-MySQL ✅
 **Stato:** Produzione - Migrazione MySQL completata, Repository Pattern implementato, n8n integration attiva, viste Performance/Dividendi allineate a MySQL
 
 **Aggiornamenti recenti**
@@ -10,6 +10,9 @@
 - Aggiunta `base_currency` su `portfolios` + vista `v_portfolio_metadata` aggiornata (migrazione `docs/migrations/2025_11_29_add_base_currency.sql`).
 - Dashboard snellita: rimangono Salute Portafoglio, AI Insight, Andamento Mensile; i widget operativi (Top/Bottom/Allocazioni/Dividendi ricevuti/Opportunità) sono ora nella vista Holdings.
 - Vista Dividendi allineata al DB: ex-date come metrica base, pay-date secondario, conteggi RECEIVED ultimi 12 mesi, calendario e forecast solo da MySQL.
+- Holdings allineate a DB con ISIN (migrazione 2025_11_30) e arricchimento n8n funzionante (current_price, performance %, 52w, volumi).
+- Timeline transazioni aggiornata: lettura quantità/segno importo da `transactions` con rendering coerente (BUY/SELL/WITHDRAWAL/FEE).
+- TODO transazioni: loggare BUY/SELL/DIVIDEND/FEE/DEPOSIT/WITHDRAWAL in tabella `transactions` e usarle per la timeline “Performance & Flussi”.
 
 > 📋 **Documentazione:**
 > - [README.md](README.md) - Panoramica generale e setup (aggiornato 26 Nov 2025)

@@ -128,6 +128,8 @@ INDEX idx_active (is_active)
 
 #### 3.1.4 Tabella `transactions`
 
+> Uso: log operazioni BUY/SELL/DIVIDEND/FEE/DEPOSIT/WITHDRAWAL per timeline e P&L realizzato.
+
 CREATE TABLE transactions (
 id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 portfolio_id INT UNSIGNED NOT NULL,

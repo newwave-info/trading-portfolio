@@ -344,14 +344,15 @@
                                 <tbody>
                                     <?php foreach ($transactions as $tx):
 
-                                        $ts = $tx["timestamp"] ?? "";
-                                        $dateStr = $ts
-                                            ? date("d/m/Y H:i", strtotime($ts))
-                                            : "-";
+                                        $dateValue = $tx["date"] ?? $tx["transaction_date"] ?? $tx["timestamp"] ?? null;
+                                        $dateStr = $dateValue ? date("d/m/Y", strtotime($dateValue)) : "-";
                                         $amount = $tx["amount"] ?? 0;
-                                        $qty = $tx["quantity_change"] ?? 0;
+                                        $qty = $tx["quantity"] ?? $tx["quantity_change"] ?? 0;
                                         $type = strtoupper($tx["type"] ?? "-");
-                                        $isPositive = $amount >= 0;
+                                        // Importo: forza segno negativo per operazioni uscita (SELL/WITHDRAWAL/FEE)
+                                        $isOutflow = in_array($type, ["SELL", "WITHDRAWAL", "FEE"], true);
+                                        $displayAmount = $isOutflow ? -abs($amount) : abs($amount);
+                                        $isPositive = $displayAmount >= 0;
                                         ?>
                                         <tr class="border-b border-gray-200 hover:bg-gray-50">
                                             <td class="px-4 py-3 text-sm text-gray-700"><?php echo htmlspecialchars(
@@ -372,17 +373,15 @@
                                             <td class="px-4 py-3 text-right font-semibold <?php echo $isPositive
                                                 ? "text-positive"
                                                 : "text-negative"; ?>">
-                                                <?php echo $isPositive
-                                                    ? "+"
-                                                    : ""; ?>€<?php echo number_format(
-    $amount,
+                                                <?php echo $isPositive ? "+" : ""; ?>€<?php echo number_format(
+    $displayAmount,
     2,
     ",",
     "."
 ); ?>
                                             </td>
                                             <td class="px-4 py-3 text-left text-[11px] text-gray-600"><?php echo htmlspecialchars(
-                                                $tx["note"] ?? "-"
+                                                $tx["notes"] ?? $tx["note"] ?? "-"
                                             ); ?></td>
                                         </tr>
                                     <?php

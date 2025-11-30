@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Creato il: Nov 30, 2025 alle 08:54
+-- Creato il: Nov 30, 2025 alle 16:31
 -- Versione del server: 10.5.29-MariaDB-0+deb11u1
 -- Versione PHP: 8.4.12
 
@@ -41,7 +41,7 @@ CREATE TABLE `allocation_by_asset_class` (
 --
 
 INSERT INTO `allocation_by_asset_class` (`id`, `portfolio_id`, `asset_class`, `market_value`, `percentage`, `updated_at`) VALUES
-(75, 1, 'ETF', 6452.27, 100.0000, '2025-11-29 16:32:10');
+(105, 1, '', 46285.60, 100.0000, '2025-11-30 15:30:56');
 
 -- --------------------------------------------------------
 
@@ -102,6 +102,7 @@ CREATE TABLE `holdings` (
   `id` int(10) UNSIGNED NOT NULL,
   `portfolio_id` int(10) UNSIGNED NOT NULL,
   `ticker` varchar(20) NOT NULL,
+  `isin` varchar(20) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `asset_class` enum('ETF','Stock','Bond','Cash','Other') NOT NULL,
   `sector` varchar(100) DEFAULT NULL,
@@ -135,10 +136,11 @@ CREATE TABLE `holdings` (
 -- Dump dei dati per la tabella `holdings`
 --
 
-INSERT INTO `holdings` (`id`, `portfolio_id`, `ticker`, `name`, `asset_class`, `sector`, `quantity`, `avg_price`, `current_price`, `dividend_yield`, `annual_dividend`, `dividend_frequency`, `has_dividends`, `total_dividends_5y`, `fifty_two_week_high`, `fifty_two_week_low`, `ytd_change_percent`, `one_month_change_percent`, `three_month_change_percent`, `one_year_change_percent`, `previous_close`, `day_high`, `day_low`, `volume`, `price_source`, `exchange`, `first_trade_date`, `is_active`, `created_at`, `updated_at`) VALUES
-(5, 1, 'SGLD.MI', 'Invesco Physical Gold ETC', 'ETF', NULL, 10.000000, 272.5530, 344.0000, 1.0000, 10.000000, '12', 0, NULL, NULL, NULL, 43.0000, 2.0000, 4.0000, 23.0000, 243.0000, NULL, NULL, NULL, 'CSV Import', NULL, NULL, 1, '2025-11-29 16:22:16', '2025-11-29 19:40:59'),
-(6, 1, 'VHYL.MI', 'Vanguard FTSE All-World High Div. Yield UCITS ETF Dis', 'ETF', NULL, 21.000000, 67.9400, 67.9400, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'CSV Import', NULL, NULL, 1, '2025-11-29 16:22:16', '2025-11-29 16:22:16'),
-(7, 1, 'TDIV.MI', 'VanEck Morn. Dev. Mkts Div Lead. UCITS ETF', 'ETF', NULL, 50.000000, 46.0000, 46.0000, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'CSV Import', NULL, NULL, 1, '2025-11-29 16:22:16', '2025-11-29 16:22:16');
+INSERT INTO `holdings` (`id`, `portfolio_id`, `ticker`, `isin`, `name`, `asset_class`, `sector`, `quantity`, `avg_price`, `current_price`, `dividend_yield`, `annual_dividend`, `dividend_frequency`, `has_dividends`, `total_dividends_5y`, `fifty_two_week_high`, `fifty_two_week_low`, `ytd_change_percent`, `one_month_change_percent`, `three_month_change_percent`, `one_year_change_percent`, `previous_close`, `day_high`, `day_low`, `volume`, `price_source`, `exchange`, `first_trade_date`, `is_active`, `created_at`, `updated_at`) VALUES
+(10, 1, 'SGLD.MI', 'IE00B579F325', 'Invesco Physical Gold ETC', '', 'Gold', 10.000000, 272.5500, 349.4800, 0.0000, 0.000000, 'None', 0, 0, 359.6700, 239.2600, 40.0400, 4.6700, 20.3400, 43.9800, 144.6800, 350.0000, 344.8500, 73310, 'YahooFinance_v8', 'MIL', 1417161600, 1, '2025-11-30 08:10:13', '2025-11-30 15:30:56'),
+(11, 1, 'VHYL.MI', 'IE00B8GKDB10', 'Vanguard FTSE All-World High Div. Yield UCITS ETF Dis', '', 'Global', 21.000000, 67.9400, 69.0500, 2.9000, 2.001600, 'Quarterly', 1, 20, 69.5000, 55.7600, 6.4900, 1.8000, 4.9900, 4.1500, 45.9150, 69.0800, 68.7500, 7993, 'YahooFinance_v8', 'MIL', 1547798400, 1, '2025-11-30 08:10:13', '2025-11-30 12:31:39'),
+(12, 1, 'TDIV.MI', 'NL0011683594', 'VanEck Morn. Dev. Mkts Div Lead. UCITS ETF', '', 'Mixed', 50.000000, 46.0000, 46.8050, 3.8200, 1.790000, 'Quarterly', 1, 20, 47.0000, 36.7950, 12.9500, 3.8600, 6.5700, 14.1200, 25.7250, 47.0000, 46.6900, 24097, 'YahooFinance_v8', 'MIL', 1556002800, 1, '2025-11-30 08:10:13', '2025-11-30 12:31:39'),
+(15, 1, 'SWDA.MI', 'IE00B4L5Y983', 'iShares Core MSCI World UCITS ETF USD (Acc)', '', 'Global', 350.000000, 111.5400, 111.4300, 0.0000, 0.000000, 'None', 0, 0, 112.5500, 82.7000, 5.8200, -0.4600, 7.4400, 5.4100, 59.2400, 111.6300, 111.2300, 48028, 'YahooFinance_v8', 'MIL', 1253862000, 1, '2025-11-30 08:14:43', '2025-11-30 15:25:21');
 
 -- --------------------------------------------------------
 
@@ -179,7 +181,7 @@ CREATE TABLE `monthly_performance` (
 --
 
 INSERT INTO `monthly_performance` (`id`, `portfolio_id`, `year`, `month`, `month_label`, `total_value`, `total_invested`, `total_gain`, `gain_pct`) VALUES
-(1, 1, 2025, 11, 'Nov', 6452.27, 6452.27, 0.00, 0.0000);
+(1, 1, 2025, 11, 'Nov', 46285.60, 45491.24, 794.36, 1.7462);
 
 -- --------------------------------------------------------
 
@@ -201,7 +203,7 @@ CREATE TABLE `portfolios` (
 --
 
 INSERT INTO `portfolios` (`id`, `name`, `owner`, `base_currency`, `created_at`, `updated_at`) VALUES
-(1, 'Portafoglio ETF Personale', 'User', 'EUR', '2025-11-27 21:39:10', '2025-11-29 16:30:32');
+(1, 'Portafoglio ETF Personale', 'User', 'EUR', '2025-11-27 21:39:10', '2025-11-30 15:30:56');
 
 -- --------------------------------------------------------
 
@@ -229,7 +231,8 @@ CREATE TABLE `snapshots` (
 INSERT INTO `snapshots` (`id`, `portfolio_id`, `snapshot_date`, `total_invested`, `total_market_value`, `total_pnl`, `total_pnl_pct`, `total_dividends_received`, `metadata`, `created_at`) VALUES
 (1, 1, '2025-11-27', 0.00, 0.00, 0.00, 0.0000, 0.00, NULL, '2025-11-27 21:39:10'),
 (2, 1, '2025-11-28', 43273.90, 44587.20, 1313.30, 3.0349, 0.00, '{\"holdings_count\":4}', '2025-11-28 07:26:52'),
-(3, 1, '2025-11-29', 6452.27, 6452.27, 0.00, 0.0000, 0.00, '{\"holdings_count\":3}', '2025-11-29 13:07:51');
+(3, 1, '2025-11-29', 6452.27, 6452.27, 0.00, 0.0000, 0.00, '{\"holdings_count\":3}', '2025-11-29 13:07:51'),
+(4, 1, '2025-11-30', 45491.24, 46285.60, 794.36, 1.7462, 0.00, '{\"holdings_count\":4}', '2025-11-30 08:00:40');
 
 -- --------------------------------------------------------
 
@@ -261,7 +264,11 @@ INSERT INTO `snapshot_holdings` (`id`, `snapshot_id`, `ticker`, `quantity`, `avg
 (208, 2, 'SPYD.FRA', 50.000000, 65.6200, 66.8100, 3340.50, 3281.00, 59.50, 1.8135),
 (288, 3, 'SGLD.MI', 10.000000, 272.5530, 272.5530, 2725.53, 2725.53, 0.00, 0.0000),
 (289, 3, 'TDIV.MI', 50.000000, 46.0000, 46.0000, 2300.00, 2300.00, 0.00, 0.0000),
-(290, 3, 'VHYL.MI', 21.000000, 67.9400, 67.9400, 1426.74, 1426.74, 0.00, 0.0000);
+(290, 3, 'VHYL.MI', 21.000000, 67.9400, 67.9400, 1426.74, 1426.74, 0.00, 0.0000),
+(395, 4, 'SWDA.MI', 350.000000, 111.5400, 111.4300, 39000.50, 39039.00, -38.50, -0.0986),
+(396, 4, 'SGLD.MI', 10.000000, 272.5500, 349.4800, 3494.80, 2725.50, 769.30, 28.2260),
+(397, 4, 'TDIV.MI', 50.000000, 46.0000, 46.8050, 2340.25, 2300.00, 40.25, 1.7500),
+(398, 4, 'VHYL.MI', 21.000000, 67.9400, 69.0500, 1450.05, 1426.74, 23.31, 1.6338);
 
 -- --------------------------------------------------------
 
@@ -282,6 +289,18 @@ CREATE TABLE `transactions` (
   `notes` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Complete transaction history';
+
+--
+-- Dump dei dati per la tabella `transactions`
+--
+
+INSERT INTO `transactions` (`id`, `portfolio_id`, `ticker`, `transaction_date`, `type`, `quantity`, `price`, `amount`, `fees`, `notes`, `created_at`) VALUES
+(1, 1, 'SGLD.MI', '2025-11-30', 'SELL', 0.000000, 272.5500, 0.00, 0.00, 'Update holding', '2025-11-30 15:18:11'),
+(2, 1, 'SGLD.MI', '2025-11-30', 'SELL', 90.000000, 272.5500, 24529.50, 0.00, 'Update holding', '2025-11-30 15:24:59'),
+(3, 1, 'SWDA.MI', '2025-11-30', 'BUY', 315.000000, 111.5400, 35135.10, 0.00, 'Update holding', '2025-11-30 15:25:21'),
+(4, 1, 'SGLD.MI', '2025-11-30', 'BUY', 90.000000, 272.5500, 24529.50, 0.00, 'Update holding', '2025-11-30 15:27:00'),
+(5, 1, 'SGLD.MI', '2025-11-30', 'BUY', 900.000000, 272.5500, 245295.00, 0.00, 'Update holding', '2025-11-30 15:29:48'),
+(6, 1, 'SGLD.MI', '2025-11-30', 'SELL', 990.000000, 272.5500, 269824.50, 0.00, 'Update holding', '2025-11-30 15:30:56');
 
 -- --------------------------------------------------------
 
@@ -407,6 +426,7 @@ ALTER TABLE `dividend_payments`
 ALTER TABLE `holdings`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `unique_portfolio_ticker` (`portfolio_id`,`ticker`),
+  ADD UNIQUE KEY `unique_portfolio_isin` (`portfolio_id`,`isin`),
   ADD KEY `idx_ticker` (`ticker`),
   ADD KEY `idx_asset_class` (`asset_class`),
   ADD KEY `idx_active` (`is_active`);
@@ -469,7 +489,7 @@ ALTER TABLE `transactions`
 -- AUTO_INCREMENT per la tabella `allocation_by_asset_class`
 --
 ALTER TABLE `allocation_by_asset_class`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=76;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=106;
 
 --
 -- AUTO_INCREMENT per la tabella `cron_logs`
@@ -487,7 +507,7 @@ ALTER TABLE `dividend_payments`
 -- AUTO_INCREMENT per la tabella `holdings`
 --
 ALTER TABLE `holdings`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT per la tabella `metadata_cache`
@@ -499,7 +519,7 @@ ALTER TABLE `metadata_cache`
 -- AUTO_INCREMENT per la tabella `monthly_performance`
 --
 ALTER TABLE `monthly_performance`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=72;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=99;
 
 --
 -- AUTO_INCREMENT per la tabella `portfolios`
@@ -511,19 +531,19 @@ ALTER TABLE `portfolios`
 -- AUTO_INCREMENT per la tabella `snapshots`
 --
 ALTER TABLE `snapshots`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT per la tabella `snapshot_holdings`
 --
 ALTER TABLE `snapshot_holdings`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=291;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=399;
 
 --
 -- AUTO_INCREMENT per la tabella `transactions`
 --
 ALTER TABLE `transactions`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 -- --------------------------------------------------------
 

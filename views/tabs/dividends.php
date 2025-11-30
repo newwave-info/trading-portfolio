@@ -6,16 +6,25 @@
                 <!-- Summary Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
                     <?php
-                        $startYear = date('Y') . '-01-01';
-                        $dividendsYtd = array_filter($dividends, function($d) use ($startYear) {
-                            if (($d['status'] ?? '') !== 'RECEIVED') return false;
-                            $ex = $d['ex_date'] ?? null;
-                            if (!$ex) return false;
-                            return $ex >= $startYear;
-                        });
-                        $totalYtd = array_sum(array_column($dividendsYtd, 'amount'));
-                        $receivedCount = count($dividendsYtd);
-                        $countClass = $receivedCount > 0 ? 'text-positive' : 'text-gray-500';
+                    $startYear = date("Y") . "-01-01";
+                    $dividendsYtd = array_filter($dividends, function ($d) use (
+                        $startYear
+                    ) {
+                        if (($d["status"] ?? "") !== "RECEIVED") {
+                            return false;
+                        }
+                        $ex = $d["ex_date"] ?? null;
+                        if (!$ex) {
+                            return false;
+                        }
+                        return $ex >= $startYear;
+                    });
+                    $totalYtd = array_sum(
+                        array_column($dividendsYtd, "amount")
+                    );
+                    $receivedCount = count($dividendsYtd);
+                    $countClass =
+                        $receivedCount > 0 ? "text-positive" : "text-gray-500";
                     ?>
                     <div class="widget-card widget-purple p-6">
                         <div class="text-[11px] text-gray-500 mb-2 uppercase tracking-wider">Totale Dividendi (Ricevuti YTD)</div>
@@ -135,6 +144,10 @@
                             // Calculate year based on month position in forecast
                             // Calculate year based on month position in forecast
                             // Calculate year based on month position in forecast
+                            // Calculate year based on month position in forecast
+                            // Calculate year based on month position in forecast
+                            // Calculate year based on month position in forecast
+                            // Calculate year based on month position in forecast
                             else: ?>
                             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                                 <?php foreach (
@@ -162,7 +175,7 @@
                                             is_array($month["payment_dates"])
                                         ): ?>
                                             <div class="text-[10px] text-gray-500 mt-1 leading-4">
-                                                Pay-date: <?php echo htmlspecialchars(
+                                                Data pagamento: <?php echo htmlspecialchars(
                                                     implode(
                                                         ", ",
                                                         array_map(function (
@@ -383,36 +396,69 @@
                         </div>
                         <div class="space-y-3">
                             <?php
-                            $today = date('Y-m-d');
-                            $twelveMonthsAgo = date('Y-m-d', strtotime('-12 months'));
-                            $dividendsReceived = array_filter($dividends, function($d) use ($twelveMonthsAgo, $today) {
-                                if (($d['status'] ?? '') !== 'RECEIVED') return false;
-                                $ex = $d['ex_date'] ?? null;
-                                if (!$ex) return false;
-                                return $ex >= $twelveMonthsAgo && $ex <= $today;
-                            });
-                            usort($dividendsReceived, function($a, $b) {
-                                $da = $a['ex_date'] ?? '';
-                                $db = $b['ex_date'] ?? '';
+                            $today = date("Y-m-d");
+                            $twelveMonthsAgo = date(
+                                "Y-m-d",
+                                strtotime("-12 months")
+                            );
+                            $dividendsReceived = array_filter(
+                                $dividends,
+                                function ($d) use ($twelveMonthsAgo, $today) {
+                                    if (($d["status"] ?? "") !== "RECEIVED") {
+                                        return false;
+                                    }
+                                    $ex = $d["ex_date"] ?? null;
+                                    if (!$ex) {
+                                        return false;
+                                    }
+                                    return $ex >= $twelveMonthsAgo &&
+                                        $ex <= $today;
+                                }
+                            );
+                            usort($dividendsReceived, function ($a, $b) {
+                                $da = $a["ex_date"] ?? "";
+                                $db = $b["ex_date"] ?? "";
                                 return strcmp($db, $da);
                             });
                             $divCount = count($dividendsReceived);
                             foreach ($dividendsReceived as $div): ?>
                             <div class="flex justify-between items-center p-3 bg-gray-50 border border-gray-200">
                                 <div>
-                                    <div class="font-semibold text-primary text-sm"><?php echo htmlspecialchars($div['ticker']); ?></div>
+                                    <div class="font-semibold text-primary text-sm"><?php echo htmlspecialchars(
+                                        $div["ticker"]
+                                    ); ?></div>
                                     <div class="text-[11px] text-gray-700">
-                                        Ex-date: <?php echo $div['ex_date'] ? date('d/m/Y', strtotime($div['ex_date'])) : '-'; ?>
+                                        Ex-date: <?php echo $div["ex_date"]
+                                            ? date(
+                                                "d/m/Y",
+                                                strtotime($div["ex_date"])
+                                            )
+                                            : "-"; ?>
                                         <span class="text-gray-500 text-[10px] ml-1">
-                                            Pay-date: <?php echo !empty($div['payment_date']) ? date('d/m/Y', strtotime($div['payment_date'])) : '-'; ?>
+                                            Pay-date: <?php echo !empty(
+                                                $div["payment_date"]
+                                            )
+                                                ? date(
+                                                    "d/m/Y",
+                                                    strtotime(
+                                                        $div["payment_date"]
+                                                    )
+                                                )
+                                                : "-"; ?>
                                         </span>
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <div class="font-bold text-positive">€<?php echo number_format($div['amount'], 2, ',', '.'); ?></div>
+                                    <div class="font-bold text-positive">€<?php echo number_format(
+                                        $div["amount"],
+                                        2,
+                                        ",",
+                                        "."
+                                    ); ?></div>
                                 </div>
                             </div>
-                            <?php endforeach; ?>
+                            <?php endforeach;
+                            ?>
                             <?php if ($divCount === 0): ?>
                                 <div class="p-3 text-gray-500 text-sm italic bg-gray-50 border border-gray-200">
                                     Nessun dividendo ricevuto negli ultimi 12 mesi.
