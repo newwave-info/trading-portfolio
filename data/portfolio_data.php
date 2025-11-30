@@ -102,6 +102,16 @@ try {
             'volume' => $holding['volume'] ?? 0,
             'exchange' => $holding['exchange'] ?? '',
             'first_trade_date' => $holding['first_trade_date'] ?? 0,
+            // Indicatori tecnici
+            'ema9' => $holding['ema9'] ?? null,
+            'ema21' => $holding['ema21'] ?? null,
+            'ema50' => $holding['ema50'] ?? null,
+            'ema200' => $holding['ema200'] ?? null,
+            'rsi14' => $holding['rsi14'] ?? null,
+            'hist_vol_30d' => $holding['hist_vol_30d'] ?? null,
+            'atr14_pct' => $holding['atr14_pct'] ?? null,
+            'range_1y_percentile' => $holding['range_1y_percentile'] ?? null,
+            'bb_percent_b' => $holding['bb_percent_b'] ?? null,
             // Campi extra per compatibilità
             'market' => $holding['exchange'] ?? '',
             'instrument_type' => $holding['asset_class'],
@@ -393,14 +403,51 @@ try {
     $transactions = $transactionRepo->getCompletedHistory();
 
     // ============================================
-    // ANALISI TECNICA - Caricata da JSON (popolato da n8n workflow)
+    // ANALISI TECNICA - derivata dai campi tecnici delle holdings (DB-first)
     // ============================================
-    $technical_analysis = [];
-    $technicalPath = __DIR__ . '/technical_analysis.json';
-    if (file_exists($technicalPath)) {
-        $technicalData = json_decode(file_get_contents($technicalPath), true);
-        $technical_analysis = $technicalData['analysis'] ?? [];
-    }
+    $technical_analysis = array_map(function ($holding) {
+        $price = $holding['current_price'] ?? $holding['avg_price'] ?? 0;
+        $ema9 = $holding['ema9'] ?? null;
+        $ema21 = $holding['ema21'] ?? null;
+        $ema50 = $holding['ema50'] ?? null;
+        $ema200 = $holding['ema200'] ?? null;
+
+        $trend = 'Neutro';
+        if ($ema50 !== null && $ema200 !== null) {
+            if ($ema50 > $ema200) {
+                $trend = 'Rialzista';
+            } elseif ($ema50 < $ema200) {
+                $trend = 'Ribassista';
+            }
+        }
+
+        $momentum = 'Neutro';
+        if ($ema9 !== null && $ema21 !== null) {
+            if ($ema9 > $ema21) {
+                $momentum = 'Positivo';
+            } elseif ($ema9 < $ema21) {
+                $momentum = 'Negativo';
+            }
+        }
+
+        return [
+            'ticker' => $holding['ticker'],
+            'name' => $holding['name'],
+            'price' => $price,
+            'trend' => $trend,
+            'momentum' => $momentum,
+            'rsi14' => $holding['rsi14'] ?? null,
+            'hist_vol_30d' => $holding['hist_vol_30d'] ?? null,
+            'atr14_pct' => $holding['atr14_pct'] ?? null,
+            'range_1y_percentile' => $holding['range_1y_percentile'] ?? null,
+            'bb_percent_b' => $holding['bb_percent_b'] ?? null,
+            'ema50' => $ema50,
+            'ema200' => $ema200,
+            'ema9' => $ema9,
+            'ema21' => $ema21,
+            'insight' => ''
+        ];
+    }, $top_holdings);
 
     // ============================================
     // OPPORTUNITÀ ETF - Caricata da JSON (popolato da n8n workflow)

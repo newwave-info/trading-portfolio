@@ -142,12 +142,6 @@
                         <?php
                             // Calculate year based on month position in forecast
                             // Calculate year based on month position in forecast
-                            // Calculate year based on month position in forecast
-                            // Calculate year based on month position in forecast
-                            // Calculate year based on month position in forecast
-                            // Calculate year based on month position in forecast
-                            // Calculate year based on month position in forecast
-                            // Calculate year based on month position in forecast
                             else: ?>
                             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                                 <?php foreach (

@@ -116,6 +116,8 @@ ETF Portfolio Manager è una **web application PHP** che funziona come centro di
 - ✅ Dividendi: sincronizzazione da n8n (yield, frequenza, annual_dividend), calendario forecast 6 mesi, grafici ricevuti/previsti, tab dedicata
 - ✅ Payout automatico dividendi via script (`dividends-payout.php`) schedulabile in cron (nessun inserimento manuale)
 - ✅ Log transazioni base (BUY/SELL/DIVIDEND/FEE/DEPOSIT/WITHDRAWAL) su tabella `transactions` MySQL, usate nella timeline Performance/Flussi
+- ✅ Analisi tecnica DB-first: arricchimenti n8n scrivono in `technical_snapshots` e nei campi tecnici delle holdings (SMA/EMA/RSI/MACD, volatilità, percentili range), repository dedicato e logging rumoroso disabilitato
+- ✅ Vista Analisi Tecnica: tabella KPI per ogni ISIN con trend EMA50/200, momentum EMA9/21, RSI (color coding), volatilità 30d, ATR%, range 1Y, posizione Bande di Bollinger, insight placeholder per LLM
 
 **In roadmap (prossime iterazioni):**
 

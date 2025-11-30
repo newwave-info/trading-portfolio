@@ -1,8 +1,8 @@
 # 📊 ETF Portfolio Manager - Stato Avanzamento Lavori
 
 **Ultimo aggiornamento:** 30 Novembre 2025
-**Versione:** 0.3.4-MySQL ✅
-**Stato:** Produzione - Migrazione MySQL completata, Repository Pattern implementato, n8n integration attiva, viste Performance/Dividendi allineate a MySQL
+**Versione:** 0.3.6-MySQL ✅
+**Stato:** Produzione - Migrazione MySQL completata, Repository Pattern implementato, n8n integration attiva, viste Performance/Dividendi allineate a MySQL, analisi tecnica centralizzata su DB
 
 **Aggiornamenti recenti**
 - n8n DB-first: `/api/n8n/portfolio.php` e `/api/n8n/enrich.php` leggono/scrivono solo MySQL (niente JSON).
@@ -12,6 +12,8 @@
 - Vista Dividendi allineata al DB: ex-date come metrica base, pay-date secondario, conteggi RECEIVED ultimi 12 mesi, calendario e forecast solo da MySQL.
 - Holdings allineate a DB con ISIN (migrazione 2025_11_30) e arricchimento n8n funzionante (current_price, performance %, 52w, volumi).
 - Timeline transazioni aggiornata: lettura quantità/segno importo da `transactions` con rendering coerente (BUY/SELL/WITHDRAWAL/FEE).
+- Analisi tecnica: nuovo storage `technical_snapshots` + repository dedicato; enrichment n8n scrive SMA/EMA/RSI/MACD/volatilità/percentili direttamente in DB (noise di log ridotto).
+- Vista Analisi Tecnica DB-first: tabella KPI per ISIN (trend EMA50/200, momentum EMA9/21, RSI color-coded, volatilità 30d, ATR%, range 1Y, posizione Bollinger) alimentata dai campi holdings/enrichment.
 - TODO transazioni: loggare BUY/SELL/DIVIDEND/FEE/DEPOSIT/WITHDRAWAL in tabella `transactions` e usarle per la timeline “Performance & Flussi”.
 
 > 📋 **Documentazione:**

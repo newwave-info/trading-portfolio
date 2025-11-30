@@ -3,96 +3,142 @@
                     <h1 class="text-[18px] sm:text-[20px] font-medium text-primary tracking-tight">Analisi Tecnica</h1>
                 </div>
 
-                <!-- AI Insights per Technical -->
-                <?php if (!empty($technical_analysis)): ?>
-                <div class="mb-8">
-                    <div class="widget-ai-insight px-6 py-4 transition-all duration-300">
-                        <div class="flex items-center gap-2.5 mb-3 pb-2.5 border-b border-purple/20">
-                            <span class="badge-ai bg-purple text-white text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-wide">AI Insight</span>
-                            <span class="text-[11px] font-medium text-purple uppercase tracking-wider">Analisi Tecnica</span>
-                        </div>
-                        <div class="text-[13px] leading-relaxed text-gray-700 text-gray-500 italic">
-                            <div class="pl-4 relative py-2">
-                                <span class="absolute left-0 text-gray-400 font-bold">→</span>
-                                L'analisi tecnica verrà generata automaticamente dal workflow n8n una volta disponibili i dati di mercato.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <?php endif; ?>
-
-                <!-- Filters -->
-                <div class="mb-6 flex justify-between items-center">
-                    <div class="flex gap-2">
-                        <button class="px-3 py-1 text-xs font-semibold bg-purple text-white hover:bg-purple-dark transition-colors" data-filter="all">Tutti</button>
-                        <button class="px-3 py-1 text-xs font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors" data-filter="BUY">BUY</button>
-                        <button class="px-3 py-1 text-xs font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors" data-filter="HOLD">HOLD</button>
-                        <button class="px-3 py-1 text-xs font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors" data-filter="WATCH">WATCH</button>
-                    </div>
-                    <button class="px-3 py-1 bg-purple text-white text-[11px] font-semibold hover:bg-purple-dark transition-colors">
-                        <i class="fa-solid fa-download mr-1"></i> Export CSV
-                    </button>
-                </div>
-
-                <!-- Technical Table -->
+                <!-- Tabella Analisi Tecnica (DB-first) -->
                 <div class="widget-card widget-purple p-6">
                     <div class="overflow-x-auto">
                         <table id="technicalTable" class="w-full text-sm sortable-table">
                             <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>
                                     <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase" role="button">Ticker</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase" role="button">Nome</th>
                                     <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase" role="button">Prezzo</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase" role="button">EMA9</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase" role="button">EMA21</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase" role="button">EMA50</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase" role="button">EMA200</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase" role="button">RSI</th>
-                                    <th class="px-4 py-3 text-center font-semibold text-gray-700 text-[11px] uppercase" role="button">MACD</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase" role="button">Score</th>
-                                    <th class="px-4 py-3 text-center font-semibold text-gray-700 text-[11px] uppercase" role="button">Decisione</th>
-                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase" role="button">Azione</th>
-                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase" role="button">Motivazione</th>
+                                    <th class="px-4 py-3 text-center font-semibold text-gray-700 text-[11px] uppercase" role="button">Trend</th>
+                                    <th class="px-4 py-3 text-center font-semibold text-gray-700 text-[11px] uppercase" role="button">Momentum</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase" role="button">RSI 14</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase" role="button">Vol. 30d</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase" role="button">ATR %</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase" role="button">Range 1Y %</th>
+                                    <th class="px-4 py-3 text-center font-semibold text-gray-700 text-[11px] uppercase" role="button">Bollinger</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Insight tecnico</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php if (empty($technical_analysis)): ?>
                                     <tr>
-                                        <td colspan="12" class="px-4 py-8 text-center text-gray-500 italic">
-                                            Nessuna analisi tecnica disponibile. I dati verranno generati dal workflow n8n.
+                                        <td colspan="11" class="px-4 py-8 text-center text-gray-500 italic">
+                                            Nessun dato tecnico disponibile. Esegui il workflow n8n di enrichment per popolare gli indicatori.
                                         </td>
                                     </tr>
                                 <?php else: ?>
-                                    <?php foreach ($technical_analysis as $analysis):
-                                        // Simula dati EMA (in produzione verranno dal backend)
-                                        $ema9 = $analysis['price'] * (rand(98, 102) / 100);
-                                        $ema21 = $analysis['sma_50'] * 0.98;
-                                        $ema50 = $analysis['sma_50'];
-                                        $ema200 = $analysis['sma_200'];
-                                        $macd_signal = $analysis['signal'] === 'BUY' ? 'Positivo' : ($analysis['signal'] === 'WATCH' ? 'Neutrale' : 'Positivo Div');
-                                        $tech_score = round($analysis['confidence'] * 100);
-                                        $action = $analysis['signal'] === 'BUY' ? 'Accumula €' . number_format($analysis['price'] * 0.98, 2) : 'Hold + div';
-                                    ?>
-                                    <tr class="border-b border-gray-200 hover:bg-gray-50" data-signal="<?php echo $analysis['signal']; ?>">
-                                        <td class="px-4 py-3 font-semibold text-purple"><?php echo htmlspecialchars($analysis['ticker']); ?></td>
-                                        <td class="px-4 py-3 text-right font-medium">€<?php echo number_format($analysis['price'], 2, ',', '.'); ?></td>
-                                        <td class="px-4 py-3 text-right text-xs">€<?php echo number_format($ema9, 2, ',', '.'); ?></td>
-                                        <td class="px-4 py-3 text-right text-xs">€<?php echo number_format($ema21, 2, ',', '.'); ?></td>
-                                        <td class="px-4 py-3 text-right text-xs">€<?php echo number_format($ema50, 2, ',', '.'); ?></td>
-                                        <td class="px-4 py-3 text-right text-xs">€<?php echo number_format($ema200, 2, ',', '.'); ?></td>
-                                        <td class="px-4 py-3 text-right font-semibold"><?php echo number_format($analysis['rsi'], 0); ?></td>
-                                        <td class="px-4 py-3 text-center text-xs"><?php echo $macd_signal; ?></td>
-                                        <td class="px-4 py-3 text-right font-bold text-purple"><?php echo $tech_score; ?></td>
+                                    <?php foreach ($technical_analysis as $row):
+
+                                        $rsi = $row["rsi14"] ?? null;
+                                        $rsiClass = "text-gray-700";
+                                        if ($rsi !== null) {
+                                            if ($rsi < 30) {
+                                                $rsiClass = "text-positive";
+                                            } elseif ($rsi > 70) {
+                                                $rsiClass = "text-negative";
+                                            }
+                                        }
+
+                                        $bollPos = $row["bb_percent_b"] ?? null;
+                                        $bollLabel = "-";
+                                        if ($bollPos !== null) {
+                                            if ($bollPos < 0.2) {
+                                                $bollLabel =
+                                                    "Vicino banda inferiore";
+                                            } elseif ($bollPos <= 0.8) {
+                                                $bollLabel = "Centro banda";
+                                            } else {
+                                                $bollLabel =
+                                                    "Vicino banda superiore";
+                                            }
+                                        }
+                                        ?>
+                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                        <td class="px-4 py-3 font-semibold text-purple whitespace-nowrap"><?php echo htmlspecialchars(
+                                            $row["ticker"]
+                                        ); ?></td>
+                                        <td class="px-4 py-3 text-gray-800"><?php echo htmlspecialchars(
+                                            $row["name"]
+                                        ); ?></td>
+                                        <td class="px-4 py-3 text-right font-medium">€<?php echo number_format(
+                                            $row["price"],
+                                            2,
+                                            ",",
+                                            "."
+                                        ); ?></td>
                                         <td class="px-4 py-3 text-center">
-                                            <span class="px-2 py-1 text-[11px] font-semibold <?php echo $analysis['signal'] === 'BUY' ? 'bg-green-100 text-green-700' : ($analysis['signal'] === 'WATCH' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'); ?>">
-                                                <?php echo $analysis['signal']; ?>
+                                            <span class="px-2 py-1 text-[11px] font-semibold rounded <?php echo $row[
+                                                "trend"
+                                            ] === "Rialzista"
+                                                ? "bg-green-100 text-green-700"
+                                                : ($row["trend"] ===
+                                                "Ribassista"
+                                                    ? "bg-red-100 text-red-700"
+                                                    : "bg-gray-100 text-gray-700"); ?>">
+                                                <?php echo $row["trend"]; ?>
                                             </span>
                                         </td>
-                                        <td class="px-4 py-3 text-xs text-gray-600"><?php echo $action; ?></td>
-                                        <td class="px-4 py-3 text-xs text-gray-600 max-w-md">
-                                            <span class="italic"><?php echo htmlspecialchars($analysis['reasoning']); ?></span>
+                                        <td class="px-4 py-3 text-center">
+                                            <span class="px-2 py-1 text-[11px] font-semibold rounded <?php echo $row[
+                                                "momentum"
+                                            ] === "Positivo"
+                                                ? "bg-green-100 text-green-700"
+                                                : ($row["momentum"] ===
+                                                "Negativo"
+                                                    ? "bg-red-100 text-red-700"
+                                                    : "bg-gray-100 text-gray-700"); ?>">
+                                                <?php echo $row["momentum"]; ?>
+                                            </span>
                                         </td>
+                                        <td class="px-4 py-3 text-right font-semibold <?php echo $rsiClass; ?>"><?php echo $rsi !==
+null
+    ? number_format($rsi, 1, ",", ".")
+    : "-"; ?></td>
+                                        <td class="px-4 py-3 text-right text-gray-700"><?php echo $row[
+                                            "hist_vol_30d"
+                                        ] !== null
+                                            ? number_format(
+                                                    $row["hist_vol_30d"],
+                                                    2,
+                                                    ",",
+                                                    "."
+                                                ) . "%"
+                                            : "-"; ?></td>
+                                        <td class="px-4 py-3 text-right text-gray-700"><?php echo $row[
+                                            "atr14_pct"
+                                        ] !== null
+                                            ? number_format(
+                                                    $row["atr14_pct"],
+                                                    2,
+                                                    ",",
+                                                    "."
+                                                ) . "%"
+                                            : "-"; ?></td>
+                                        <td class="px-4 py-3 text-right text-gray-700"><?php echo $row[
+                                            "range_1y_percentile"
+                                        ] !== null
+                                            ? number_format(
+                                                    $row[
+                                                        "range_1y_percentile"
+                                                    ] * 100,
+                                                    1,
+                                                    ",",
+                                                    "."
+                                                ) . "%"
+                                            : "-"; ?></td>
+                                        <td class="px-4 py-3 text-center text-gray-700"><?php echo $bollPos !==
+                                        null
+                                            ? $bollLabel
+                                            : "-"; ?></td>
+                                        <td class="px-4 py-3 text-left text-gray-700 text-sm"><?php echo htmlspecialchars(
+                                            $row["insight"] ?? ""
+                                        ); ?></td>
                                     </tr>
-                                    <?php endforeach; ?>
+                                    <?php
+                                    endforeach; ?>
                                 <?php endif; ?>
                             </tbody>
                         </table>
