@@ -305,7 +305,7 @@ class HoldingRepository extends BaseRepository
         $holdingData = [
             'portfolio_id' => $portfolioId,
             'ticker' => $data['ticker'],
-            'isin' => $data['isin'] ?? null,
+            'isin' => $data['isin'] ?? $data['ticker'] ?? null,
             'name' => $data['name'],
             'asset_class' => $data['asset_class'] ?? 'ETF',
             'quantity' => $data['quantity'],

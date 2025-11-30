@@ -174,8 +174,8 @@ try {
             throw new Exception('Dati non validi');
         }
 
-        // Validazione campi obbligatori
-        $required = ['ticker', 'name', 'quantity', 'avg_price', 'isin'];
+        // Validazione campi obbligatori base
+        $required = ['ticker', 'name', 'quantity', 'avg_price'];
         foreach ($required as $field) {
             if (!isset($input[$field]) || $input[$field] === '') {
                 throw new Exception("Campo obbligatorio mancante: {$field}");
@@ -183,8 +183,24 @@ try {
         }
 
         $ticker = strtoupper(trim($input['ticker']));
-        $isin = strtoupper(trim($input['isin']));
+        $isin = isset($input['isin']) ? strtoupper(trim($input['isin'])) : '';
         $isUpdate = isset($input['is_update']) ? (bool) $input['is_update'] : false;
+
+        // ISIN: obbligatorio in create, fallback da existing/ticker in edit
+        if ($isUpdate) {
+            if ($isin === '') {
+                $existing = $holdingRepo->findByTicker($ticker);
+                if ($existing && !empty($existing['isin'])) {
+                    $isin = strtoupper($existing['isin']);
+                } else {
+                    $isin = $ticker; // fallback per compatibilità
+                }
+            }
+        } else {
+            if ($isin === '') {
+                $isin = $ticker; // fallback per evitare blocco su dati legacy
+            }
+        }
 
         // Check duplicati se non è update
         if (!$isUpdate && $holdingRepo->findByTicker($ticker)) {

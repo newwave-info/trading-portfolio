@@ -22,7 +22,7 @@ function openHoldingModal(holding = null) {
         editMode.value = 'true';
 
         // Popola form
-        document.getElementById('isin').value = holding.isin;
+        document.getElementById('isin').value = holding.isin || holding.ticker || '';
         document.getElementById('ticker').value = holding.ticker;
         document.getElementById('name').value = holding.name;
         document.getElementById('quantity').value = holding.quantity;
@@ -91,11 +91,11 @@ document.addEventListener('DOMContentLoaded', function() {
     e.preventDefault();
 
     const formData = {
-        isin: document.getElementById('isin').value.trim().toUpperCase(),
+        isin: document.getElementById('isin').value.trim().toUpperCase() || document.getElementById('ticker').value.trim().toUpperCase(),
         ticker: document.getElementById('ticker').value.trim().toUpperCase(),
         name: document.getElementById('name').value.trim(),
-        quantity: parseFloat(document.getElementById('quantity').value),
-        avg_price: parseFloat(document.getElementById('avg_price').value),
+        quantity: parseFloat(document.getElementById('quantity').value.replace(',', '.')),
+        avg_price: parseFloat(document.getElementById('avg_price').value.replace(',', '.')),
         target_allocation: parseFloat(document.getElementById('target_allocation').value) || 0,
         asset_class: document.getElementById('asset_class').value.trim() || 'Unknown',
         notes: document.getElementById('notes').value.trim(),

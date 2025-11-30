@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Creato il: Nov 29, 2025 alle 17:44
+-- Creato il: Nov 30, 2025 alle 08:54
 -- Versione del server: 10.5.29-MariaDB-0+deb11u1
 -- Versione PHP: 8.4.12
 
@@ -136,7 +136,7 @@ CREATE TABLE `holdings` (
 --
 
 INSERT INTO `holdings` (`id`, `portfolio_id`, `ticker`, `name`, `asset_class`, `sector`, `quantity`, `avg_price`, `current_price`, `dividend_yield`, `annual_dividend`, `dividend_frequency`, `has_dividends`, `total_dividends_5y`, `fifty_two_week_high`, `fifty_two_week_low`, `ytd_change_percent`, `one_month_change_percent`, `three_month_change_percent`, `one_year_change_percent`, `previous_close`, `day_high`, `day_low`, `volume`, `price_source`, `exchange`, `first_trade_date`, `is_active`, `created_at`, `updated_at`) VALUES
-(5, 1, 'SGLD.MI', 'Invesco Physical Gold ETC', 'ETF', NULL, 10.000000, 272.5530, 272.5530, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'CSV Import', NULL, NULL, 1, '2025-11-29 16:22:16', '2025-11-29 16:22:16'),
+(5, 1, 'SGLD.MI', 'Invesco Physical Gold ETC', 'ETF', NULL, 10.000000, 272.5530, 344.0000, 1.0000, 10.000000, '12', 0, NULL, NULL, NULL, 43.0000, 2.0000, 4.0000, 23.0000, 243.0000, NULL, NULL, NULL, 'CSV Import', NULL, NULL, 1, '2025-11-29 16:22:16', '2025-11-29 19:40:59'),
 (6, 1, 'VHYL.MI', 'Vanguard FTSE All-World High Div. Yield UCITS ETF Dis', 'ETF', NULL, 21.000000, 67.9400, 67.9400, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'CSV Import', NULL, NULL, 1, '2025-11-29 16:22:16', '2025-11-29 16:22:16'),
 (7, 1, 'TDIV.MI', 'VanEck Morn. Dev. Mkts Div Lead. UCITS ETF', 'ETF', NULL, 50.000000, 46.0000, 46.0000, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'CSV Import', NULL, NULL, 1, '2025-11-29 16:22:16', '2025-11-29 16:22:16');
 
@@ -320,15 +320,34 @@ CREATE TABLE `v_holdings_enriched` (
 ,`ticker` varchar(20)
 ,`name` varchar(255)
 ,`asset_class` enum('ETF','Stock','Bond','Cash','Other')
+,`sector` varchar(100)
 ,`quantity` decimal(12,6)
 ,`avg_price` decimal(12,4)
 ,`current_price` decimal(12,4)
-,`price_source` varchar(50)
+,`previous_close` decimal(12,4)
 ,`invested` decimal(24,10)
 ,`market_value` decimal(24,10)
 ,`pnl` decimal(25,10)
 ,`pnl_pct` decimal(24,8)
+,`fifty_two_week_high` decimal(12,4)
+,`fifty_two_week_low` decimal(12,4)
+,`day_high` decimal(12,4)
+,`day_low` decimal(12,4)
+,`ytd_change_percent` decimal(8,4)
+,`one_month_change_percent` decimal(8,4)
+,`three_month_change_percent` decimal(8,4)
+,`one_year_change_percent` decimal(8,4)
+,`dividend_yield` decimal(8,4)
+,`annual_dividend` decimal(12,6)
+,`dividend_frequency` varchar(20)
+,`has_dividends` tinyint(1)
+,`total_dividends_5y` int(10) unsigned
+,`volume` bigint(20) unsigned
+,`exchange` varchar(20)
+,`first_trade_date` bigint(20) unsigned
+,`price_source` varchar(50)
 ,`is_active` tinyint(1)
+,`created_at` timestamp
 ,`updated_at` timestamp
 );
 
@@ -522,7 +541,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`poRtUsR25`@`%` SQL SECURITY DEFINER VIEW `v_
 --
 DROP TABLE IF EXISTS `v_holdings_enriched`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`poRtUsR25`@`%` SQL SECURITY DEFINER VIEW `v_holdings_enriched`  AS SELECT `h`.`id` AS `id`, `h`.`portfolio_id` AS `portfolio_id`, `h`.`ticker` AS `ticker`, `h`.`name` AS `name`, `h`.`asset_class` AS `asset_class`, `h`.`quantity` AS `quantity`, `h`.`avg_price` AS `avg_price`, `h`.`current_price` AS `current_price`, `h`.`price_source` AS `price_source`, `h`.`quantity`* `h`.`avg_price` AS `invested`, `h`.`quantity`* coalesce(`h`.`current_price`,`h`.`avg_price`) AS `market_value`, `h`.`quantity`* coalesce(`h`.`current_price`,`h`.`avg_price`) - `h`.`quantity` * `h`.`avg_price` AS `pnl`, CASE WHEN `h`.`avg_price` > 0 THEN (coalesce(`h`.`current_price`,`h`.`avg_price`) - `h`.`avg_price`) / `h`.`avg_price` * 100 ELSE 0 END AS `pnl_pct`, `h`.`is_active` AS `is_active`, `h`.`updated_at` AS `updated_at` FROM `holdings` AS `h` WHERE `h`.`is_active` = 1 ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`poRtUsR25`@`%` SQL SECURITY DEFINER VIEW `v_holdings_enriched`  AS SELECT `h`.`id` AS `id`, `h`.`portfolio_id` AS `portfolio_id`, `h`.`ticker` AS `ticker`, `h`.`name` AS `name`, `h`.`asset_class` AS `asset_class`, `h`.`sector` AS `sector`, `h`.`quantity` AS `quantity`, `h`.`avg_price` AS `avg_price`, `h`.`current_price` AS `current_price`, `h`.`previous_close` AS `previous_close`, `h`.`quantity`* `h`.`avg_price` AS `invested`, `h`.`quantity`* coalesce(`h`.`current_price`,`h`.`avg_price`) AS `market_value`, `h`.`quantity`* coalesce(`h`.`current_price`,`h`.`avg_price`) - `h`.`quantity` * `h`.`avg_price` AS `pnl`, CASE WHEN `h`.`avg_price` > 0 THEN (coalesce(`h`.`current_price`,`h`.`avg_price`) - `h`.`avg_price`) / `h`.`avg_price` * 100 ELSE 0 END AS `pnl_pct`, `h`.`fifty_two_week_high` AS `fifty_two_week_high`, `h`.`fifty_two_week_low` AS `fifty_two_week_low`, `h`.`day_high` AS `day_high`, `h`.`day_low` AS `day_low`, `h`.`ytd_change_percent` AS `ytd_change_percent`, `h`.`one_month_change_percent` AS `one_month_change_percent`, `h`.`three_month_change_percent` AS `three_month_change_percent`, `h`.`one_year_change_percent` AS `one_year_change_percent`, `h`.`dividend_yield` AS `dividend_yield`, `h`.`annual_dividend` AS `annual_dividend`, `h`.`dividend_frequency` AS `dividend_frequency`, `h`.`has_dividends` AS `has_dividends`, `h`.`total_dividends_5y` AS `total_dividends_5y`, `h`.`volume` AS `volume`, `h`.`exchange` AS `exchange`, `h`.`first_trade_date` AS `first_trade_date`, `h`.`price_source` AS `price_source`, `h`.`is_active` AS `is_active`, `h`.`created_at` AS `created_at`, `h`.`updated_at` AS `updated_at` FROM `holdings` AS `h` WHERE `h`.`is_active` = 1 ;
 
 -- --------------------------------------------------------
 
