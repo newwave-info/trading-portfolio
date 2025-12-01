@@ -115,17 +115,18 @@ try {
 
     $holdingsFromPayload = $payload["holdings"];
 
-    // Log received holdings for debugging
-    // Verbose logging disabilitato per ridurre rumore nei log
+    // Prepara lista ISIN per deduplica
+    $receivedISINs = array_map(
+        fn($h) => $h["isin"] ?? "",
+        $holdingsFromPayload
+    );
+    $receivedISINs = array_filter($receivedISINs, fn($i) => $i !== "");
 
     // Check for duplicates in received data
-    $isinCounts = array_count_values($receivedISINs);
+    $isinCounts = !empty($receivedISINs) ? array_count_values($receivedISINs) : [];
     $hasDuplicates = false;
     foreach ($isinCounts as $isin => $count) {
         if ($count > 1) {
-            error_log(
-                "[n8n/enrich] WARNING: Duplicate ISIN received from n8n: {$isin} (appears {$count} times)"
-            );
             $hasDuplicates = true;
         }
     }
