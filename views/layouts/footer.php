@@ -30,9 +30,153 @@
             console.error('Errore inizializzazione Allocation Chart:', error);
         }
     }
+
+    // Allocation Evolution Chart - Performance Tab
+    if (document.getElementById('allocationEvolutionChart')) {
+        loadAllocationHistory();
+    }
+
+    async function loadAllocationHistory(days = 30) {
+        const loadingEl = document.getElementById('allocationHistoryLoading');
+        const errorEl = document.getElementById('allocationHistoryError');
+        const emptyEl = document.getElementById('allocationHistoryEmpty');
+        const chartEl = document.getElementById('allocationHistoryChart');
+
+        try {
+            const response = await fetch(`/api/allocation-history.php?days=${days}`);
+            const json = await response.json();
+
+            if (!json.success) {
+                throw new Error(json.error || 'API error');
+            }
+
+            if (!json.data.dates || json.data.dates.length === 0) {
+                loadingEl.classList.add('hidden');
+                emptyEl.classList.remove('hidden');
+                return;
+            }
+
+            // Hide loading, show chart
+            loadingEl.classList.add('hidden');
+            chartEl.classList.remove('hidden');
+
+            // Create chart
+            createAllocationEvolutionChart(json.data);
+
+        } catch (error) {
+            console.error('Error loading allocation history:', error);
+            loadingEl.classList.add('hidden');
+            errorEl.classList.remove('hidden');
+        }
+    }
+
+    function createAllocationEvolutionChart(data) {
+        const ctx = document.getElementById('allocationEvolutionChart');
+        if (!ctx) return;
+
+        // Formatta date per display
+        const labels = data.dates.map(d => {
+            const date = new Date(d);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            return `${day}/${month}`;
+        });
+
+        // Colori per ticker (palette)
+        const colors = [
+            'rgba(124, 58, 237, 0.6)',   // Purple
+            'rgba(251, 191, 36, 0.6)',   // Amber
+            'rgba(34, 197, 94, 0.6)',    // Green
+            'rgba(239, 68, 68, 0.6)',    // Red
+            'rgba(59, 130, 246, 0.6)',   // Blue
+            'rgba(236, 72, 153, 0.6)',   // Pink
+            'rgba(14, 165, 233, 0.6)',   // Sky
+            'rgba(168, 85, 247, 0.6)'    // Violet
+        ];
+
+        // Crea datasets per ogni ticker
+        const datasets = data.tickers.map((ticker, index) => ({
+            label: ticker,
+            data: data.allocations[ticker],
+            backgroundColor: colors[index % colors.length],
+            borderColor: colors[index % colors.length].replace('0.6', '1'),
+            borderWidth: 1,
+            fill: true
+        }));
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 10,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
+                            },
+                            footer: function(tooltipItems) {
+                                const total = tooltipItems.reduce((sum, item) => sum + item.parsed.y, 0);
+                                return 'Totale: ' + total.toFixed(1) + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        title: {
+                            display: true,
+                            text: 'Data'
+                        },
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        min: 0,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Allocazione (%)'
+                        },
+                        ticks: {
+                            callback: value => value + '%'
+                        }
+                    }
+                }
+            }
+        });
+
+        console.log('✅ Allocation Evolution Chart created');
+    }
 </script>
 <script src="/assets/js/app.js?v=<?php echo time(); ?>"></script>
 <script src="/assets/js/holdings.js?v=<?php echo time(); ?>"></script>
 <script src="/assets/js/technical-modal.js?v=<?php echo time(); ?>"></script>
+<script src="/assets/js/technical-charts.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>

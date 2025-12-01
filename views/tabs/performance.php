@@ -183,6 +183,35 @@
                     </div>
                 </div>
 
+                <!-- Grafico Evoluzione Allocazione -->
+                <div class="mb-8 widget-card p-6">
+                    <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-chart-pie text-purple text-sm"></i>
+                            <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Evoluzione Allocazione nel Tempo</span>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded mb-4 text-sm text-gray-700">
+                        <strong>Interpretazione:</strong> Questo grafico mostra come è cambiata l'allocazione % per ticker nel tempo.
+                        Permette di identificare ribilanciamenti, nuove posizioni e chiusure.
+                    </div>
+                    <div id="allocationHistoryLoading" class="text-center py-8">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-purple border-t-transparent"></div>
+                        <p class="text-gray-600 mt-2 text-sm">Caricamento dati allocazione...</p>
+                    </div>
+                    <div id="allocationHistoryError" class="hidden text-center py-8">
+                        <p class="text-red-600">Errore nel caricamento dati allocazione</p>
+                    </div>
+                    <div id="allocationHistoryEmpty" class="hidden text-center py-8">
+                        <p class="text-gray-600">Nessuno storico allocazione disponibile</p>
+                    </div>
+                    <div id="allocationHistoryChart" class="hidden">
+                        <div class="relative h-[350px]">
+                            <canvas id="allocationEvolutionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Tabella Storica Progressiva -->
                 <div class="mb-8 widget-card p-6">
                     <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">

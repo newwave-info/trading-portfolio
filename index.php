@@ -31,6 +31,7 @@ require_once __DIR__ . '/views/tabs/dashboard.php';
 require_once __DIR__ . '/views/tabs/holdings.php';
 require_once __DIR__ . '/views/tabs/performance.php';
 require_once __DIR__ . '/views/tabs/technical.php';
+require_once __DIR__ . '/views/tabs/charts.php';
 require_once __DIR__ . '/views/tabs/dividends.php';
 require_once __DIR__ . '/views/tabs/recommendations.php';
 
