@@ -132,9 +132,14 @@
                                         }
                                         ?>
                                     <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                        <td class="px-4 py-3 font-semibold text-purple whitespace-nowrap"><?php echo htmlspecialchars(
-                                            $row["ticker"]
-                                        ); ?></td>
+                                        <td class="px-4 py-3 font-semibold whitespace-nowrap">
+                                            <button
+                                                onclick="openTechnicalModal('<?php echo htmlspecialchars($row["ticker"]); ?>')"
+                                                class="text-purple hover:text-purple-dark underline cursor-pointer font-semibold transition-colors"
+                                                title="Click per dettagli tecnici completi">
+                                                <?php echo htmlspecialchars($row["ticker"]); ?>
+                                            </button>
+                                        </td>
                                         <td class="px-4 py-3 text-gray-800"><?php echo htmlspecialchars(
                                             $row["name"]
                                         ); ?></td>
@@ -268,6 +273,29 @@ null
                         </table>
                     </div>
                 </div>
+
+                <!-- Modal Analisi Tecnica Dettagliata -->
+                <div id="technicalModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
+                    <div class="flex items-start justify-center min-h-screen pt-10 pb-20 px-4">
+                        <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full">
+                            <!-- Header -->
+                            <div class="bg-purple text-white px-6 py-4 rounded-t-lg flex justify-between items-center">
+                                <h2 id="modalTitle" class="text-lg font-bold">Analisi Tecnica Dettagliata</h2>
+                                <button onclick="closeTechnicalModal()" class="text-white hover:text-gray-200 text-2xl font-bold">&times;</button>
+                            </div>
+
+                            <!-- Content -->
+                            <div id="modalContent" class="p-6">
+                                <!-- Contenuto dinamico caricato via JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dati holdings per JavaScript -->
+                <script>
+                const technicalData = <?php echo json_encode($top_holdings, JSON_UNESCAPED_UNICODE); ?>;
+                </script>
             </div>
 
             <!-- View: Dividends -->

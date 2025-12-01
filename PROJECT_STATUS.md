@@ -1,10 +1,12 @@
 # 📊 ETF Portfolio Manager - Stato Avanzamento Lavori
 
-**Ultimo aggiornamento:** 30 Novembre 2025
-**Versione:** 0.3.9-MySQL ✅
-**Stato:** Produzione - Migrazione MySQL completata, Repository Pattern implementato, n8n integration attiva, viste Performance/Dividendi allineate a MySQL, analisi tecnica centralizzata su DB, AI Technical Insights integrati
+**Ultimo aggiornamento:** 01 Dicembre 2025
+**Versione:** 0.4.0-Enhancement ✅
+**Stato:** Produzione - Migrazione MySQL completata, Repository Pattern implementato, n8n integration attiva, viste Performance/Dividendi allineate a MySQL, analisi tecnica centralizzata su DB, AI Technical Insights integrati, **Data Enhancement Roadmap definita**
 
 **Aggiornamenti recenti**
+- **[01 Dic 2025]** Fix colonne insight tecnici in vista Analisi Tecnica: `insight_flags` e `insight_levels` ora si popolano correttamente (fix `data/portfolio_data.php:601-605`)
+- **[01 Dic 2025]** **Data Enhancement Roadmap** pubblicata: identificati 25+ campi DB non visualizzati, pianificate 3 fasi implementazione (Quick Wins, Grafici Storici, Enhancement UX). Fibonacci levels, Bollinger width, 52W badges, grafici storici da `technical_snapshots` pronti per sviluppo.
 - n8n DB-first: `/api/n8n/portfolio.php` e `/api/n8n/enrich.php` leggono/scrivono solo MySQL (niente JSON).
 - Ricalcolo metriche/snapshot su DB via `PortfolioMetricsService` dopo ogni enrichment.
 - Aggiunta `base_currency` su `portfolios` + vista `v_portfolio_metadata` aggiornata (migrazione `docs/migrations/2025_11_29_add_base_currency.sql`).
@@ -15,11 +17,12 @@
 - Analisi tecnica: nuovo storage `technical_snapshots` + repository dedicato; enrichment n8n scrive SMA/EMA/RSI/MACD/volatilità/percentili direttamente in DB (noise di log ridotto).
 - Vista Analisi Tecnica DB-first: tabella KPI per ISIN (trend EMA50/200, momentum EMA9/21, RSI color-coded, volatilità 30d, ATR%, range 1Y, posizione Bollinger) alimentata dai campi holdings/enrichment.
 - AI Technical Insights: tabella `technical_insights` + repository; endpoint n8n `/api/n8n/technical-context.php` (contesto per LLM) e `/api/n8n/ai_insights.php` (persistenza output con fallback ticker/name); endpoint frontend `/api/ai/technical-insights.php` con filtro per ISIN; vista Analisi Tecnica aggiornata con punteggi (6 KPI), card Trend/Rischio/Volatilità/Diversificazione, insight per asset in tabella (testo + flag + supporti/resistenze + scores + signals).
-- TODO transazioni: loggare BUY/SELL/DIVIDEND/FEE/DEPOSIT/WITHDRAWAL in tabella `transactions` e usarle per la timeline “Performance & Flussi”.
+- TODO transazioni: loggare BUY/SELL/DIVIDEND/FEE/DEPOSIT/WITHDRAWAL in tabella `transactions` e usarle per la timeline "Performance & Flussi".
 
 > 📋 **Documentazione:**
 > - [README.md](README.md) - Panoramica generale e setup (aggiornato 26 Nov 2025)
 > - [STYLE_GUIDE.md](STYLE_GUIDE.md) - Linee guida UI/UX (REGOLE FERREE)
+> - **[docs/07-DATA-ENHANCEMENT-ROADMAP.md](docs/07-DATA-ENHANCEMENT-ROADMAP.md)** - **Roadmap miglioramenti dati e visualizzazioni** (NEW 01 Dic 2025) ⚡
 > - Questo documento - Stato tecnico dettagliato e prossimi step operativi
 
 ---
@@ -397,11 +400,25 @@ lib/Database/
 
 > 💡 **Nota strategica:** Il progetto segue una roadmap a 4 fasi (vedi [README.md](README.md#roadmap)):
 > - ✅ **Fase 1 (MVP JSON)** - Completata
-> - 🔄 **Fase 2 (Database Migration)** - Prossima priorità
-> - 🚀 **Fase 3 (Automation n8n)** - Dopo Fase 2
-> - 💎 **Fase 4 (Advanced Features)** - Long-term
+> - ✅ **Fase 2 (Database Migration)** - Completata
+> - 🔄 **Fase 3 (Data Enhancement)** - In corso - vedi [Data Enhancement Roadmap](docs/07-DATA-ENHANCEMENT-ROADMAP.md)
+> - 🚀 **Fase 4 (Automation n8n)** - Parzialmente completata
+> - 💎 **Fase 5 (Advanced Features)** - Long-term
 >
-> Gli step qui sotto sono **operativi/tattici** per completare le funzionalità intermedie prima della Fase 2.
+> **PRIORITÀ CORRENTE: Data Enhancement Fase 1 (Quick Wins)** - Vedi [docs/07-DATA-ENHANCEMENT-ROADMAP.md](docs/07-DATA-ENHANCEMENT-ROADMAP.md)
+
+### **STEP 0: Data Enhancement - Quick Wins (Priorità ALTISSIMA ⚡)**
+**Obiettivo:** Sfruttare dati già disponibili nel DB per migliorare frontend
+
+📊 **Vedi documento completo:** [docs/07-DATA-ENHANCEMENT-ROADMAP.md](docs/07-DATA-ENHANCEMENT-ROADMAP.md)
+
+**Quick Summary Fase 1 (1-2 giorni):**
+- [ ] **Fibonacci Levels** - Aggiungere colonna espandibile in Analisi Tecnica
+- [ ] **Bollinger Width** - Indicatore volatilità color-coded
+- [ ] **Badge 52W High/Low** - Alert visivi vicino massimi/minimi
+- [ ] **Day Range Widget** - Performance intraday in dashboard
+
+**Impatto:** Alto valore con zero query DB aggiuntive (dati già in `holdings`)
 
 ### **STEP 1: Completare Backend Dati (Priorità ALTA)**
 **Obiettivo:** Rendere il sistema completamente funzionale con dati reali
