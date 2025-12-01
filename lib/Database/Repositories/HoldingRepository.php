@@ -29,54 +29,9 @@ class HoldingRepository extends BaseRepository
     {
         $portfolioId = $portfolioId ?: self::DEFAULT_PORTFOLIO_ID;
 
-        // Usa i prezzi correnti dalla tabella holdings (fonte nativa)
         $sql = "
-            SELECT
-                id,
-                ticker,
-                name,
-                asset_class,
-                sector,
-                quantity,
-                avg_price,
-                current_price,
-                price_source,
-                dividend_yield,
-                annual_dividend,
-                dividend_frequency,
-                has_dividends,
-                total_dividends_5y,
-                fifty_two_week_high,
-                fifty_two_week_low,
-                ytd_change_percent,
-                one_month_change_percent,
-                three_month_change_percent,
-                one_year_change_percent,
-                previous_close,
-                day_high,
-                day_low,
-                volume,
-                exchange,
-                first_trade_date,
-                ema9,
-                ema21,
-                ema50,
-                ema200,
-                rsi14,
-                hist_vol_30d,
-                atr14_pct,
-                range_1y_percentile,
-                bb_percent_b,
-                (quantity * avg_price) AS invested,
-                (quantity * COALESCE(current_price, avg_price)) AS market_value,
-                (quantity * COALESCE(current_price, avg_price)) - (quantity * avg_price) AS pnl,
-                CASE
-                    WHEN avg_price > 0 THEN
-                        ((COALESCE(current_price, avg_price) - avg_price) / avg_price) * 100
-                    ELSE 0
-                END AS pnl_pct,
-                updated_at
-            FROM holdings
+            SELECT *
+            FROM v_holdings_enriched
             WHERE portfolio_id = ? AND is_active = 1
             ORDER BY market_value DESC
         ";
@@ -90,6 +45,7 @@ class HoldingRepository extends BaseRepository
                 'name' => $holding['name'],
                 'asset_class' => $holding['asset_class'],
                 'sector' => $holding['sector'],
+                'isin' => $holding['isin'] ?? null,
                 'quantity' => (float)$holding['quantity'],
                 'avg_price' => (float)$holding['avg_price'],
                 'current_price' => $holding['current_price'] !== null ? (float)$holding['current_price'] : null,
@@ -116,15 +72,48 @@ class HoldingRepository extends BaseRepository
                 'ema50' => $holding['ema50'] !== null ? (float)$holding['ema50'] : null,
                 'ema200' => $holding['ema200'] !== null ? (float)$holding['ema200'] : null,
                 'rsi14' => $holding['rsi14'] !== null ? (float)$holding['rsi14'] : null,
+                'macd_value' => $holding['macd_value'] !== null ? (float)$holding['macd_value'] : null,
+                'macd_signal' => $holding['macd_signal'] !== null ? (float)$holding['macd_signal'] : null,
+                'macd_hist' => $holding['macd_hist'] !== null ? (float)$holding['macd_hist'] : null,
                 'hist_vol_30d' => $holding['hist_vol_30d'] !== null ? (float)$holding['hist_vol_30d'] : null,
                 'atr14_pct' => $holding['atr14_pct'] !== null ? (float)$holding['atr14_pct'] : null,
                 'range_1y_percentile' => $holding['range_1y_percentile'] !== null ? (float)$holding['range_1y_percentile'] : null,
                 'bb_percent_b' => $holding['bb_percent_b'] !== null ? (float)$holding['bb_percent_b'] : null,
+                'atr14' => $holding['atr14'] !== null ? (float)$holding['atr14'] : null,
+                'hist_vol_90d' => $holding['hist_vol_90d'] !== null ? (float)$holding['hist_vol_90d'] : null,
+                'range_1m_min' => $holding['range_1m_min'] !== null ? (float)$holding['range_1m_min'] : null,
+                'range_1m_max' => $holding['range_1m_max'] !== null ? (float)$holding['range_1m_max'] : null,
+                'range_1m_percentile' => $holding['range_1m_percentile'] !== null ? (float)$holding['range_1m_percentile'] : null,
+                'range_3m_min' => $holding['range_3m_min'] !== null ? (float)$holding['range_3m_min'] : null,
+                'range_3m_max' => $holding['range_3m_max'] !== null ? (float)$holding['range_3m_max'] : null,
+                'range_3m_percentile' => $holding['range_3m_percentile'] !== null ? (float)$holding['range_3m_percentile'] : null,
+                'range_6m_min' => $holding['range_6m_min'] !== null ? (float)$holding['range_6m_min'] : null,
+                'range_6m_max' => $holding['range_6m_max'] !== null ? (float)$holding['range_6m_max'] : null,
+                'range_6m_percentile' => $holding['range_6m_percentile'] !== null ? (float)$holding['range_6m_percentile'] : null,
+                'range_1y_min' => $holding['range_1y_min'] !== null ? (float)$holding['range_1y_min'] : null,
+                'range_1y_max' => $holding['range_1y_max'] !== null ? (float)$holding['range_1y_max'] : null,
+                'fib_low' => $holding['fib_low'] !== null ? (float)$holding['fib_low'] : null,
+                'fib_high' => $holding['fib_high'] !== null ? (float)$holding['fib_high'] : null,
+                'fib_23_6' => $holding['fib_23_6'] !== null ? (float)$holding['fib_23_6'] : null,
+                'fib_38_2' => $holding['fib_38_2'] !== null ? (float)$holding['fib_38_2'] : null,
+                'fib_50_0' => $holding['fib_50_0'] !== null ? (float)$holding['fib_50_0'] : null,
+                'fib_61_8' => $holding['fib_61_8'] !== null ? (float)$holding['fib_61_8'] : null,
+                'fib_78_6' => $holding['fib_78_6'] !== null ? (float)$holding['fib_78_6'] : null,
+                'fib_23_6_dist_pct' => $holding['fib_23_6_dist_pct'] !== null ? (float)$holding['fib_23_6_dist_pct'] : null,
+                'fib_38_2_dist_pct' => $holding['fib_38_2_dist_pct'] !== null ? (float)$holding['fib_38_2_dist_pct'] : null,
+                'fib_50_0_dist_pct' => $holding['fib_50_0_dist_pct'] !== null ? (float)$holding['fib_50_0_dist_pct'] : null,
+                'fib_61_8_dist_pct' => $holding['fib_61_8_dist_pct'] !== null ? (float)$holding['fib_61_8_dist_pct'] : null,
+                'fib_78_6_dist_pct' => $holding['fib_78_6_dist_pct'] !== null ? (float)$holding['fib_78_6_dist_pct'] : null,
+                'bb_middle' => $holding['bb_middle'] !== null ? (float)$holding['bb_middle'] : null,
+                'bb_upper' => $holding['bb_upper'] !== null ? (float)$holding['bb_upper'] : null,
+                'bb_lower' => $holding['bb_lower'] !== null ? (float)$holding['bb_lower'] : null,
+                'bb_width_pct' => $holding['bb_width_pct'] !== null ? (float)$holding['bb_width_pct'] : null,
                 'invested' => (float)$holding['invested'],
                 'market_value' => (float)$holding['market_value'],
                 'pnl' => (float)$holding['pnl'],
                 'pnl_pct' => (float)$holding['pnl_pct'],
-                'updated_at' => $holding['updated_at']
+                'updated_at' => $holding['updated_at'],
+                'is_active' => (int)($holding['is_active'] ?? 1)
             ];
         }, $holdings);
     }

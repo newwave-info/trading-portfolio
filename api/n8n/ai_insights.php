@@ -9,6 +9,7 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/../../lib/Database/DatabaseManager.php';
 require_once __DIR__ . '/../../lib/Database/Repositories/PortfolioRepository.php';
 require_once __DIR__ . '/../../lib/Database/Repositories/TechnicalInsightRepository.php';
+require_once __DIR__ . '/../../lib/Database/Repositories/HoldingRepository.php';
 
 try {
     $portfolioId = PortfolioRepository::DEFAULT_PORTFOLIO_ID;
@@ -46,13 +47,24 @@ try {
 
     // Instrument-level insights (scope instrument)
     if (!empty($data['instruments']) && is_array($data['instruments'])) {
+        $holdingRepo = new HoldingRepository($db);
         foreach ($data['instruments'] as $insight) {
             if (empty($insight['isin'])) {
                 continue;
             }
+            // Fallback: se ticker/name mancano, recupera dal DB per evitare colonne vuote
+            if (empty($insight['ticker']) || empty($insight['name'])) {
+                $h = $holdingRepo->findByIsin($insight['isin'], $portfolioId);
+                if ($h) {
+                    $insight['ticker'] = $insight['ticker'] ?? ($h['ticker'] ?? null);
+                    $insight['name'] = $insight['name'] ?? ($h['name'] ?? null);
+                }
+            }
             $created[] = $repo->createInsight([
                 'portfolio_id' => $portfolioId,
                 'isin' => $insight['isin'],
+                'ticker' => $insight['ticker'] ?? null,
+                'instrument_name' => $insight['name'] ?? null,
                 'scope' => 'instrument',
                 'model' => $model,
                 'generated_at' => $insight['generated_at'] ?? ($data['generated_at'] ?? date('Y-m-d H:i:s')),

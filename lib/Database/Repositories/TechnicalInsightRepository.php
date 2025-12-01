@@ -21,6 +21,8 @@ class TechnicalInsightRepository extends BaseRepository
         return $this->create([
             'portfolio_id' => $data['portfolio_id'],
             'isin' => $data['isin'] ?? null,
+            'ticker' => $data['ticker'] ?? null,
+            'instrument_name' => $data['instrument_name'] ?? null,
             'scope' => $data['scope'] ?? 'portfolio',
             'model' => $data['model'] ?? 'openai',
             'generated_at' => $data['generated_at'] ?? date('Y-m-d H:i:s'),

@@ -1,7 +1,7 @@
 # 📊 ETF Portfolio Manager - Stato Avanzamento Lavori
 
 **Ultimo aggiornamento:** 30 Novembre 2025
-**Versione:** 0.3.8-MySQL ✅
+**Versione:** 0.3.9-MySQL ✅
 **Stato:** Produzione - Migrazione MySQL completata, Repository Pattern implementato, n8n integration attiva, viste Performance/Dividendi allineate a MySQL, analisi tecnica centralizzata su DB, AI Technical Insights integrati
 
 **Aggiornamenti recenti**
@@ -14,7 +14,7 @@
 - Timeline transazioni aggiornata: lettura quantità/segno importo da `transactions` con rendering coerente (BUY/SELL/WITHDRAWAL/FEE).
 - Analisi tecnica: nuovo storage `technical_snapshots` + repository dedicato; enrichment n8n scrive SMA/EMA/RSI/MACD/volatilità/percentili direttamente in DB (noise di log ridotto).
 - Vista Analisi Tecnica DB-first: tabella KPI per ISIN (trend EMA50/200, momentum EMA9/21, RSI color-coded, volatilità 30d, ATR%, range 1Y, posizione Bollinger) alimentata dai campi holdings/enrichment.
-- AI Technical Insights: tabella `technical_insights` + repository; endpoint n8n `/api/n8n/technical-context.php` (contesto per LLM) e `/api/n8n/ai_insights.php` (persistenza output); endpoint frontend `/api/ai/technical-insights.php` per esporre gli ultimi insight; vista Analisi Tecnica aggiornata con punteggi (6 KPI) e card dedicate per Trend/Rischio/Volatilità/Diversificazione.
+- AI Technical Insights: tabella `technical_insights` + repository; endpoint n8n `/api/n8n/technical-context.php` (contesto per LLM) e `/api/n8n/ai_insights.php` (persistenza output con fallback ticker/name); endpoint frontend `/api/ai/technical-insights.php` con filtro per ISIN; vista Analisi Tecnica aggiornata con punteggi (6 KPI), card Trend/Rischio/Volatilità/Diversificazione, insight per asset in tabella (testo + flag + supporti/resistenze + scores + signals).
 - TODO transazioni: loggare BUY/SELL/DIVIDEND/FEE/DEPOSIT/WITHDRAWAL in tabella `transactions` e usarle per la timeline “Performance & Flussi”.
 
 > 📋 **Documentazione:**

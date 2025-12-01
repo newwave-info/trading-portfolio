@@ -51,83 +51,6 @@ try {
     ];
 
     // ============================================
-    // TOP HOLDINGS (da VIEW con computed values)
-    // ============================================
-    $holdings_raw = $holdingRepo->getEnrichedHoldings();
-
-    // Calcola il totale per le percentuali di allocazione
-    $total_market_value = array_sum(array_column($holdings_raw, 'market_value'));
-
-    // Mappa i nomi delle chiavi per compatibilità con le view
-    $top_holdings = array_map(function($holding) use ($total_market_value) {
-        // Calcola allocazione corrente
-        $current_allocation = $total_market_value > 0
-            ? ($holding['market_value'] / $total_market_value) * 100
-            : 0;
-
-        return [
-            'id' => $holding['id'],
-            'ticker' => $holding['ticker'],
-            'isin' => '', // Non disponibile nel DB, campo opzionale
-            'name' => $holding['name'],
-            'asset_class' => $holding['asset_class'],
-            'sector' => $holding['sector'] ?? '',
-            'quantity' => $holding['quantity'],
-            'avg_price' => $holding['avg_price'],
-            'current_price' => $holding['current_price'],
-            'price_source' => $holding['price_source'],
-            'invested_value' => $holding['invested'],
-            'market_value' => $holding['market_value'],
-            'unrealized_pnl' => $holding['pnl'],
-            'pnl_percentage' => $holding['pnl_pct'],
-            'current_allocation' => $current_allocation,
-            'target_allocation' => 0, // TODO: aggiungere campo al DB
-            'drift' => $current_allocation - 0, // drift = current - target
-            'updated_at' => $holding['updated_at'],
-            // Range prezzi (52w, giornalieri)
-            'fifty_two_week_high' => $holding['fifty_two_week_high'] ?? 0,
-            'fifty_two_week_low' => $holding['fifty_two_week_low'] ?? 0,
-            'day_high' => $holding['day_high'] ?? 0,
-            'day_low' => $holding['day_low'] ?? 0,
-            // Performance percentuali
-            'ytd_change_percent' => $holding['ytd_change_percent'] ?? 0,
-            'one_month_change_percent' => $holding['one_month_change_percent'] ?? 0,
-            'three_month_change_percent' => $holding['three_month_change_percent'] ?? 0,
-            'one_year_change_percent' => $holding['one_year_change_percent'] ?? 0,
-            // Dividendi
-            'dividend_yield' => $holding['dividend_yield'] ?? 0,
-            'annual_dividend' => $holding['annual_dividend'] ?? 0,
-            'dividend_frequency' => $holding['dividend_frequency'] ?? '-',
-            'has_dividends' => $holding['has_dividends'] ?? false,
-            'total_dividends_5y' => $holding['total_dividends_5y'] ?? 0,
-            // Volume e mercato
-            'volume' => $holding['volume'] ?? 0,
-            'exchange' => $holding['exchange'] ?? '',
-            'first_trade_date' => $holding['first_trade_date'] ?? 0,
-            // Indicatori tecnici
-            'ema9' => $holding['ema9'] ?? null,
-            'ema21' => $holding['ema21'] ?? null,
-            'ema50' => $holding['ema50'] ?? null,
-            'ema200' => $holding['ema200'] ?? null,
-            'rsi14' => $holding['rsi14'] ?? null,
-            'hist_vol_30d' => $holding['hist_vol_30d'] ?? null,
-            'atr14_pct' => $holding['atr14_pct'] ?? null,
-            'range_1y_percentile' => $holding['range_1y_percentile'] ?? null,
-            'bb_percent_b' => $holding['bb_percent_b'] ?? null,
-            // Campi extra per compatibilità
-            'market' => $holding['exchange'] ?? '',
-            'instrument_type' => $holding['asset_class'],
-            'currency' => 'EUR',
-            'expense_ratio' => 0,
-            'distributor' => '',
-            'notes' => ''
-        ];
-    }, $holdings_raw);
-
-    // Riordina per market_value decrescente
-    usort($top_holdings, fn($a, $b) => $b['market_value'] <=> $a['market_value']);
-
-    // ============================================
     // STORICO PERFORMANCE - Da snapshots
     // ============================================
     $currentYear = date('Y');
@@ -404,6 +327,228 @@ try {
     // ============================================
     $ai_portfolio_insight = $technicalInsightRepo->getLatestPortfolioInsight(PortfolioRepository::DEFAULT_PORTFOLIO_ID);
     $ai_instrument_insights = $technicalInsightRepo->getLatestInstrumentsInsights(PortfolioRepository::DEFAULT_PORTFOLIO_ID);
+    // Mappa insight per ISIN/ticker per arricchire le righe holdings
+    $insightMap = [];
+    if (!empty($ai_instrument_insights)) {
+        foreach ($ai_instrument_insights as $ins) {
+            $payload = [
+                'text' => $ins['insight_text'] ?? '',
+                'flags' => (!empty($ins['insight_json']['flags']) && is_array($ins['insight_json']['flags'])) ? $ins['insight_json']['flags'] : [],
+                'levels' => (!empty($ins['insight_json']['levels']) && is_array($ins['insight_json']['levels'])) ? $ins['insight_json']['levels'] : [],
+                'scores' => (!empty($ins['insight_json']['scores']) && is_array($ins['insight_json']['scores'])) ? $ins['insight_json']['scores'] : [],
+                'signals' => (!empty($ins['insight_json']['signals']) && is_array($ins['insight_json']['signals'])) ? $ins['insight_json']['signals'] : [],
+            ];
+            if (!empty($ins['isin'])) {
+                $insightMap[strtoupper($ins['isin'])] = $payload;
+            }
+            if (!empty($ins['ticker'])) {
+                $insightMap[strtoupper($ins['ticker'])] = $payload;
+            }
+        }
+    }
+
+    // ============================================
+    // TOP HOLDINGS (da VIEW con computed values)
+    // ============================================
+    $holdings_raw = $holdingRepo->getEnrichedHoldings();
+
+    // Calcola il totale per le percentuali di allocazione
+    $total_market_value = array_sum(array_column($holdings_raw, 'market_value'));
+
+    // Mappa i nomi delle chiavi per compatibilità con le view
+    $top_holdings = array_map(function($holding) use ($total_market_value, $insightMap) {
+        // Calcola allocazione corrente
+        $current_allocation = $total_market_value > 0
+            ? ($holding['market_value'] / $total_market_value) * 100
+            : 0;
+
+        // Insight match
+        $keyIsin = !empty($holding['isin']) ? strtoupper($holding['isin']) : null;
+        $keyTicker = !empty($holding['ticker']) ? strtoupper($holding['ticker']) : null;
+        $match = null;
+        if ($keyIsin && isset($insightMap[$keyIsin])) {
+            $match = $insightMap[$keyIsin];
+        } elseif ($keyTicker && isset($insightMap[$keyTicker])) {
+            $match = $insightMap[$keyTicker];
+        }
+
+        return [
+            'id' => $holding['id'],
+            'ticker' => $holding['ticker'],
+            'isin' => $holding['isin'] ?? '',
+            'name' => $holding['name'],
+            'asset_class' => $holding['asset_class'],
+            'sector' => $holding['sector'] ?? '',
+            'quantity' => $holding['quantity'],
+            'avg_price' => $holding['avg_price'],
+            'current_price' => $holding['current_price'],
+            'price_source' => $holding['price_source'],
+            'invested_value' => $holding['invested'],
+            'market_value' => $holding['market_value'],
+            'unrealized_pnl' => $holding['pnl'],
+            'pnl_percentage' => $holding['pnl_pct'],
+            'current_allocation' => $current_allocation,
+            'target_allocation' => 0, // TODO: aggiungere campo al DB
+            'drift' => $current_allocation - 0, // drift = current - target
+            'updated_at' => $holding['updated_at'],
+            // Range prezzi (52w, giornalieri)
+            'fifty_two_week_high' => $holding['fifty_two_week_high'] ?? 0,
+            'fifty_two_week_low' => $holding['fifty_two_week_low'] ?? 0,
+            'day_high' => $holding['day_high'] ?? 0,
+            'day_low' => $holding['day_low'] ?? 0,
+            // Performance percentuali
+            'ytd_change_percent' => $holding['ytd_change_percent'] ?? 0,
+            'one_month_change_percent' => $holding['one_month_change_percent'] ?? 0,
+            'three_month_change_percent' => $holding['three_month_change_percent'] ?? 0,
+            'one_year_change_percent' => $holding['one_year_change_percent'] ?? 0,
+            // Dividendi
+            'dividend_yield' => $holding['dividend_yield'] ?? 0,
+            'annual_dividend' => $holding['annual_dividend'] ?? 0,
+            'dividend_frequency' => $holding['dividend_frequency'] ?? '-',
+            'has_dividends' => $holding['has_dividends'] ?? false,
+            'total_dividends_5y' => $holding['total_dividends_5y'] ?? 0,
+            // Volume e mercato
+            'volume' => $holding['volume'] ?? 0,
+            'exchange' => $holding['exchange'] ?? '',
+            'first_trade_date' => $holding['first_trade_date'] ?? 0,
+            // Indicatori tecnici
+            'ema9' => $holding['ema9'] ?? null,
+            'ema21' => $holding['ema21'] ?? null,
+            'ema50' => $holding['ema50'] ?? null,
+            'ema200' => $holding['ema200'] ?? null,
+            'rsi14' => $holding['rsi14'] ?? null,
+            'macd_value' => $holding['macd_value'] ?? null,
+            'macd_signal' => $holding['macd_signal'] ?? null,
+            'macd_hist' => $holding['macd_hist'] ?? null,
+            'hist_vol_30d' => $holding['hist_vol_30d'] ?? null,
+            'atr14_pct' => $holding['atr14_pct'] ?? null,
+            'range_1y_percentile' => $holding['range_1y_percentile'] ?? null,
+            'bb_percent_b' => $holding['bb_percent_b'] ?? null,
+            // Insight AI per strumento (match su ISIN o ticker)
+            'insight' => $match['text'] ?? '',
+            'insight_flags' => $match['flags'] ?? [],
+            'insight_levels' => $match['levels'] ?? [],
+            'insight_scores' => $match['scores'] ?? [],
+            'insight_signals' => $match['signals'] ?? [],
+            // Campi extra per compatibilità
+            'market' => $holding['exchange'] ?? '',
+            'instrument_type' => $holding['asset_class'],
+            'currency' => 'EUR',
+            'expense_ratio' => 0,
+            'distributor' => '',
+            'notes' => ''
+        ];
+    }, $holdings_raw);
+
+    // Riordina per market_value decrescente
+    usort($top_holdings, fn($a, $b) => $b['market_value'] <=> $a['market_value']);
+
+    // ============================================
+    // TOP HOLDINGS (da VIEW con computed values)
+    // ============================================
+    $holdings_raw = $holdingRepo->getEnrichedHoldings();
+
+    // Calcola il totale per le percentuali di allocazione
+    $total_market_value = array_sum(array_column($holdings_raw, 'market_value'));
+
+    // Mappa i nomi delle chiavi per compatibilità con le view
+    $top_holdings = array_map(function($holding) use ($total_market_value, $insightMap) {
+        // Calcola allocazione corrente
+        $current_allocation = $total_market_value > 0
+            ? ($holding['market_value'] / $total_market_value) * 100
+            : 0;
+
+        return [
+            'id' => $holding['id'],
+            'ticker' => $holding['ticker'],
+            'isin' => $holding['isin'] ?? '',
+            'name' => $holding['name'],
+            'asset_class' => $holding['asset_class'],
+            'sector' => $holding['sector'] ?? '',
+            'quantity' => $holding['quantity'],
+            'avg_price' => $holding['avg_price'],
+            'current_price' => $holding['current_price'],
+            'price_source' => $holding['price_source'],
+            'invested_value' => $holding['invested'],
+            'market_value' => $holding['market_value'],
+            'unrealized_pnl' => $holding['pnl'],
+            'pnl_percentage' => $holding['pnl_pct'],
+            'current_allocation' => $current_allocation,
+            'target_allocation' => 0, // TODO: aggiungere campo al DB
+            'drift' => $current_allocation - 0, // drift = current - target
+            'updated_at' => $holding['updated_at'],
+            // Range prezzi (52w, giornalieri)
+            'fifty_two_week_high' => $holding['fifty_two_week_high'] ?? 0,
+            'fifty_two_week_low' => $holding['fifty_two_week_low'] ?? 0,
+            'day_high' => $holding['day_high'] ?? 0,
+            'day_low' => $holding['day_low'] ?? 0,
+            // Performance percentuali
+            'ytd_change_percent' => $holding['ytd_change_percent'] ?? 0,
+            'one_month_change_percent' => $holding['one_month_change_percent'] ?? 0,
+            'three_month_change_percent' => $holding['three_month_change_percent'] ?? 0,
+            'one_year_change_percent' => $holding['one_year_change_percent'] ?? 0,
+            // Dividendi
+            'dividend_yield' => $holding['dividend_yield'] ?? 0,
+            'annual_dividend' => $holding['annual_dividend'] ?? 0,
+            'dividend_frequency' => $holding['dividend_frequency'] ?? '-',
+            'has_dividends' => $holding['has_dividends'] ?? false,
+            'total_dividends_5y' => $holding['total_dividends_5y'] ?? 0,
+            // Volume e mercato
+            'volume' => $holding['volume'] ?? 0,
+            'exchange' => $holding['exchange'] ?? '',
+            'first_trade_date' => $holding['first_trade_date'] ?? 0,
+            // Indicatori tecnici
+            'ema9' => $holding['ema9'] ?? null,
+            'ema21' => $holding['ema21'] ?? null,
+            'ema50' => $holding['ema50'] ?? null,
+            'ema200' => $holding['ema200'] ?? null,
+            'rsi14' => $holding['rsi14'] ?? null,
+            'macd_value' => $holding['macd_value'] ?? null,
+            'macd_signal' => $holding['macd_signal'] ?? null,
+            'macd_hist' => $holding['macd_hist'] ?? null,
+            'hist_vol_30d' => $holding['hist_vol_30d'] ?? null,
+            'atr14_pct' => $holding['atr14_pct'] ?? null,
+            'range_1y_percentile' => $holding['range_1y_percentile'] ?? null,
+            'bb_percent_b' => $holding['bb_percent_b'] ?? null,
+            // Insight AI per strumento (match su ISIN o ticker)
+            ...(function() use ($holding, $insightMap) {
+                $payload = [
+                    'insight' => '',
+                    'insight_flags' => [],
+                    'insight_levels' => [],
+                    'insight_scores' => [],
+                    'insight_signals' => [],
+                ];
+                $keyIsin = !empty($holding['isin']) ? strtoupper($holding['isin']) : null;
+                $keyTicker = !empty($holding['ticker']) ? strtoupper($holding['ticker']) : null;
+                $match = null;
+                if ($keyIsin && isset($insightMap[$keyIsin])) {
+                    $match = $insightMap[$keyIsin];
+                } elseif ($keyTicker && isset($insightMap[$keyTicker])) {
+                    $match = $insightMap[$keyTicker];
+                }
+                if ($match) {
+                    $payload['insight'] = $match['text'] ?? '';
+                    $payload['insight_flags'] = $match['flags'] ?? [];
+                    $payload['insight_levels'] = $match['levels'] ?? [];
+                    $payload['insight_scores'] = $match['scores'] ?? [];
+                    $payload['insight_signals'] = $match['signals'] ?? [];
+                }
+                return $payload;
+            })(),
+            // Campi extra per compatibilità
+            'market' => $holding['exchange'] ?? '',
+            'instrument_type' => $holding['asset_class'],
+            'currency' => 'EUR',
+            'expense_ratio' => 0,
+            'distributor' => '',
+            'notes' => ''
+        ];
+    }, $holdings_raw);
+
+    // Riordina per market_value decrescente
+    usort($top_holdings, fn($a, $b) => $b['market_value'] <=> $a['market_value']);
+
 
     // ============================================
     // TRANSAZIONI (BUY/SELL/DIVIDEND)
@@ -453,7 +598,11 @@ try {
             'ema200' => $ema200,
             'ema9' => $ema9,
             'ema21' => $ema21,
-            'insight' => ''
+            'insight' => $holding['insight'] ?? '',
+            'insight_flags' => $holding['insight_flags'] ?? [],
+            'insight_levels' => $holding['insight_levels'] ?? [],
+            'insight_scores' => $holding['insight_scores'] ?? [],
+            'insight_signals' => $holding['insight_signals'] ?? []
         ];
     }, $top_holdings);
 

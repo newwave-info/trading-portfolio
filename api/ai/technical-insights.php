@@ -15,8 +15,18 @@ try {
     $db = DatabaseManager::getInstance();
     $repo = new TechnicalInsightRepository($db);
 
+    $isinFilter = isset($_GET['isin']) ? trim($_GET['isin']) : null;
+
     $portfolioInsight = $repo->getLatestPortfolioInsight($portfolioId);
-    $instrumentInsights = $repo->getLatestInstrumentsInsights($portfolioId);
+    $instrumentInsights = [];
+    if ($isinFilter) {
+        $single = $repo->getLatestInstrumentInsight($portfolioId, $isinFilter);
+        if ($single) {
+            $instrumentInsights[] = $single;
+        }
+    } else {
+        $instrumentInsights = $repo->getLatestInstrumentsInsights($portfolioId);
+    }
 
     echo json_encode([
         'success' => true,

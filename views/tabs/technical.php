@@ -94,6 +94,7 @@
                                     <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase" role="button">Range 1Y %</th>
                                     <th class="px-4 py-3 text-center font-semibold text-gray-700 text-[11px] uppercase" role="button">Bollinger</th>
                                     <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Insight tecnico</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Flag / Livelli</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -104,7 +105,7 @@
                                         </td>
                                     </tr>
                                 <?php else: ?>
-                                    <?php foreach ($technical_analysis as $row):
+                                <?php foreach ($technical_analysis as $row):
 
                                         $rsi = $row["rsi14"] ?? null;
                                         $rsiClass = "text-gray-700";
@@ -207,10 +208,59 @@ null
                                         null
                                             ? $bollLabel
                                             : "-"; ?></td>
-                                        <td class="px-4 py-3 text-left text-gray-700 text-sm"><?php echo htmlspecialchars(
-                                            $row["insight"] ?? ""
-                                        ); ?></td>
-                                    </tr>
+                                    <?php
+                                        $insightText = $row['insight'] ?? '';
+                                        $insightFlags = $row['insight_flags'] ?? [];
+                                        $insightLevels = $row['insight_levels'] ?? [];
+                                        $insightScores = $row['insight_scores'] ?? [];
+                                        $insightSignals = $row['insight_signals'] ?? [];
+                                    ?>
+                                        <td class="px-4 py-3 text-left text-gray-700 text-sm">
+                                            <?php echo htmlspecialchars($insightText); ?>
+                                            <?php if (!empty($insightScores) || !empty($insightSignals)): ?>
+                                                <div class="mt-1 flex flex-wrap gap-1 text-[11px]">
+                                                    <?php if (!empty($insightScores['trend_strength'])): ?>
+                                                        <span class="px-2 py-0.5 rounded bg-purple/10 text-primary border border-purple/20">Trend <?php echo (int)$insightScores['trend_strength']; ?>/100</span>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($insightScores['momentum_strength'])): ?>
+                                                        <span class="px-2 py-0.5 rounded bg-purple/10 text-primary border border-purple/20">Momentum <?php echo (int)$insightScores['momentum_strength']; ?>/100</span>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($insightScores['overextension_score'])): ?>
+                                                        <span class="px-2 py-0.5 rounded bg-yellow-50 text-yellow-700 border border-yellow-200">Overext <?php echo (int)$insightScores['overextension_score']; ?>/100</span>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($insightScores['volatility_score'])): ?>
+                                                        <span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">Vol <?php echo (int)$insightScores['volatility_score']; ?>/100</span>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($insightSignals)): ?>
+                                                        <span class="px-2 py-0.5 rounded bg-gray-50 text-gray-700 border border-gray-200" title="Trend: <?php echo htmlspecialchars($insightSignals['trend_signal'] ?? '-'); ?> | Momentum: <?php echo htmlspecialchars($insightSignals['momentum_signal'] ?? '-'); ?> | RSI: <?php echo htmlspecialchars($insightSignals['rsi_condition'] ?? '-'); ?> | Bollinger: <?php echo htmlspecialchars($insightSignals['bollinger_position'] ?? '-'); ?> | Range: <?php echo htmlspecialchars($insightSignals['range_position'] ?? '-'); ?> | Vol: <?php echo htmlspecialchars($insightSignals['volatility_flag'] ?? '-'); ?>">Segnali</span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        </td>
+                                    <td class="px-4 py-3 text-left text-gray-700 text-sm">
+                                        <?php if (!empty($insightFlags)): ?>
+                                            <div class="flex flex-wrap gap-1">
+                                                <?php foreach ($insightFlags as $flag): ?>
+                                                    <span class="px-2 py-0.5 text-[11px] bg-purple/10 text-primary border border-purple/20 rounded-full"><?php echo htmlspecialchars($flag); ?></span>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        <?php endif; ?>
+                                        <?php if (!empty($insightLevels) && ( !empty($insightLevels['potential_support_levels']) || !empty($insightLevels['potential_resistance_levels']) )): ?>
+                                            <div class="mt-2 text-[11px] text-gray-600 flex flex-col gap-1">
+                                                <?php if (!empty($insightLevels['potential_support_levels'])): ?>
+                                                    <div class="px-2 py-1 rounded bg-green-50 border border-green-200 text-positive">
+                                                        <span class="font-semibold">Supporti:</span> <?php echo htmlspecialchars(implode(', ', $insightLevels['potential_support_levels'])); ?>
+                                                    </div>
+                                                <?php endif; ?>
+                                                <?php if (!empty($insightLevels['potential_resistance_levels'])): ?>
+                                                    <div class="px-2 py-1 rounded bg-red-50 border border-red-200 text-negative">
+                                                        <span class="font-semibold">Resistenze:</span> <?php echo htmlspecialchars(implode(', ', $insightLevels['potential_resistance_levels'])); ?>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
                                     <?php
                                     endforeach; ?>
                                 <?php endif; ?>

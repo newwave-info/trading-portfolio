@@ -118,7 +118,7 @@ ETF Portfolio Manager è una **web application PHP** che funziona come centro di
 - ✅ Log transazioni base (BUY/SELL/DIVIDEND/FEE/DEPOSIT/WITHDRAWAL) su tabella `transactions` MySQL, usate nella timeline Performance/Flussi
 - ✅ Analisi tecnica DB-first: arricchimenti n8n scrivono in `technical_snapshots` e nei campi tecnici delle holdings (SMA/EMA/RSI/MACD, volatilità, percentili range), repository dedicato e logging rumoroso disabilitato
 - ✅ Vista Analisi Tecnica: tabella KPI per ogni ISIN con trend EMA50/200, momentum EMA9/21, RSI (color coding), volatilità 30d, ATR%, range 1Y, posizione Bande di Bollinger, insight placeholder per LLM
-- ✅ AI Technical Insights: tabella `technical_insights`, repository, endpoint n8n (`/api/n8n/technical-context.php` per prompt + `/api/n8n/ai_insights.php` per salvataggio) ed endpoint frontend `/api/ai/technical-insights.php` per mostrare gli ultimi insight; vista Analisi Tecnica aggiornata con punteggi (6 KPI) e card Trend/Rischio/Volatilità/Diversificazione
+- ✅ AI Technical Insights: tabella `technical_insights`, repository, endpoint n8n (`/api/n8n/technical-context.php` per prompt + `/api/n8n/ai_insights.php` per salvataggio con fallback ticker/name) ed endpoint frontend `/api/ai/technical-insights.php` (anche filtro per ISIN); vista Analisi Tecnica aggiornata con punteggi (6 KPI), card Trend/Rischio/Volatilità/Diversificazione e insight per asset (testo, flag, supporti/resistenze, scores, signals)
 
 **In roadmap (prossime iterazioni):**
 
