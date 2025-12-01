@@ -82,17 +82,23 @@
             return `${day}/${month}`;
         });
 
-        // Colori per ticker (palette)
-        const colors = [
-            'rgba(124, 58, 237, 0.6)',   // Purple
-            'rgba(251, 191, 36, 0.6)',   // Amber
-            'rgba(34, 197, 94, 0.6)',    // Green
-            'rgba(239, 68, 68, 0.6)',    // Red
-            'rgba(59, 130, 246, 0.6)',   // Blue
-            'rgba(236, 72, 153, 0.6)',   // Pink
-            'rgba(14, 165, 233, 0.6)',   // Sky
-            'rgba(168, 85, 247, 0.6)'    // Violet
+        // Colori per ticker (palette viola/grigio secondo style guide)
+        const purpleShades = [
+            'rgba(124, 58, 237, 0.6)',   // Purple dark
+            'rgba(139, 92, 246, 0.6)',   // Purple primary
+            'rgba(167, 139, 250, 0.6)',  // Purple light
+            'rgba(196, 181, 253, 0.6)'   // Purple lighter
         ];
+
+        const grayShades = [
+            'rgba(82, 82, 91, 0.6)',     // Gray dark
+            'rgba(113, 113, 122, 0.6)',  // Gray
+            'rgba(161, 161, 170, 0.6)',  // Gray light
+            'rgba(212, 212, 216, 0.6)'   // Gray lighter
+        ];
+
+        // Alterna viola e grigio
+        const colors = [...purpleShades, ...grayShades];
 
         // Crea datasets per ogni ticker
         const datasets = data.tickers.map((ticker, index) => ({
@@ -100,8 +106,11 @@
             data: data.allocations[ticker],
             backgroundColor: colors[index % colors.length],
             borderColor: colors[index % colors.length].replace('0.6', '1'),
-            borderWidth: 1,
-            fill: true
+            borderWidth: 2,
+            fill: true,
+            tension: 0,
+            pointStyle: 'rect',
+            pointRadius: 3
         }));
 
         new Chart(ctx, {

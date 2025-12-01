@@ -496,7 +496,7 @@ const ChartManager = {
             backgroundColor: this.getPattern(this.colors.purpleAreaLight),
             borderWidth: 3,
             fill: true,
-            tension: 0.4,
+            tension: 0,
             pointStyle: this.pointStyle.style,
             pointRadius: this.pointStyle.radius,
             pointHoverRadius: this.pointStyle.hoverRadius,

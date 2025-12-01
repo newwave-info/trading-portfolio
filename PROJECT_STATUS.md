@@ -1,12 +1,14 @@
 # 📊 ETF Portfolio Manager - Stato Avanzamento Lavori
 
 **Ultimo aggiornamento:** 01 Dicembre 2025
-**Versione:** 0.4.0-Enhancement ✅
-**Stato:** Produzione - Migrazione MySQL completata, Repository Pattern implementato, n8n integration attiva, viste Performance/Dividendi allineate a MySQL, analisi tecnica centralizzata su DB, AI Technical Insights integrati, **Data Enhancement Roadmap definita**
+**Versione:** 0.4.1-StyleCompliance ✅
+**Stato:** Produzione - Migrazione MySQL completata, Repository Pattern implementato, n8n integration attiva, analisi tecnica con modale dettagliata e grafici storici, AI Technical Insights integrati, **Style Guide compliance completata su tutti i grafici**
 
 **Aggiornamenti recenti**
+- **[01 Dic 2025]** **Style Guide Compliance completata:** Sostituiti tutti gli emoji con Font Awesome icons monocolore (`technical-modal.js`, `charts.php`), rimossi border-radius non conformi, corretto grafico performance dashboard (`tension: 0`). Verificati tutti i 38 grafici del progetto (ChartManager, technical-charts, app.js, footer) per conformità completa: tension=0, pointStyle='rect', borderRadius=0, pattern diagonali, colori viola/grigio.
+- **[01 Dic 2025]** **Data Enhancement Roadmap - Fase 1 completata:** Implementata modale dettagliata analisi tecnica (Fibonacci levels, Bollinger width, 52W badges, day range, volumi, SMA); grafici storici tecnici (RSI, MACD, Volatilità, Bollinger %B, Range Percentile da `technical_snapshots`); grafico allocation evolution in tab Performance.
 - **[01 Dic 2025]** Fix colonne insight tecnici in vista Analisi Tecnica: `insight_flags` e `insight_levels` ora si popolano correttamente (fix `data/portfolio_data.php:601-605`)
-- **[01 Dic 2025]** **Data Enhancement Roadmap** pubblicata: identificati 25+ campi DB non visualizzati, pianificate 3 fasi implementazione (Quick Wins, Grafici Storici, Enhancement UX). Fibonacci levels, Bollinger width, 52W badges, grafici storici da `technical_snapshots` pronti per sviluppo.
+- **[01 Dic 2025]** **Data Enhancement Roadmap** pubblicata: identificati 25+ campi DB non visualizzati, pianificate 3 fasi implementazione (Quick Wins, Grafici Storici, Enhancement UX).
 - n8n DB-first: `/api/n8n/portfolio.php` e `/api/n8n/enrich.php` leggono/scrivono solo MySQL (niente JSON).
 - Ricalcolo metriche/snapshot su DB via `PortfolioMetricsService` dopo ogni enrichment.
 - Aggiunta `base_currency` su `portfolios` + vista `v_portfolio_metadata` aggiornata (migrazione `docs/migrations/2025_11_29_add_base_currency.sql`).
@@ -401,24 +403,24 @@ lib/Database/
 > 💡 **Nota strategica:** Il progetto segue una roadmap a 4 fasi (vedi [README.md](README.md#roadmap)):
 > - ✅ **Fase 1 (MVP JSON)** - Completata
 > - ✅ **Fase 2 (Database Migration)** - Completata
-> - 🔄 **Fase 3 (Data Enhancement)** - In corso - vedi [Data Enhancement Roadmap](docs/07-DATA-ENHANCEMENT-ROADMAP.md)
+> - ✅ **Fase 3 (Data Enhancement - Fase 1)** - Completata (01 Dic 2025) - vedi [Data Enhancement Roadmap](docs/07-DATA-ENHANCEMENT-ROADMAP.md)
 > - 🚀 **Fase 4 (Automation n8n)** - Parzialmente completata
 > - 💎 **Fase 5 (Advanced Features)** - Long-term
 >
-> **PRIORITÀ CORRENTE: Data Enhancement Fase 1 (Quick Wins)** - Vedi [docs/07-DATA-ENHANCEMENT-ROADMAP.md](docs/07-DATA-ENHANCEMENT-ROADMAP.md)
+> **PRIORITÀ CORRENTE: Data Enhancement Fase 2 (Grafici Storici Avanzati)** o **Backend Dati** - Vedi sezione STEP 1 sotto
 
-### **STEP 0: Data Enhancement - Quick Wins (Priorità ALTISSIMA ⚡)**
+### **STEP 0: Data Enhancement - Quick Wins ✅ COMPLETATA**
 **Obiettivo:** Sfruttare dati già disponibili nel DB per migliorare frontend
 
 📊 **Vedi documento completo:** [docs/07-DATA-ENHANCEMENT-ROADMAP.md](docs/07-DATA-ENHANCEMENT-ROADMAP.md)
 
-**Quick Summary Fase 1 (1-2 giorni):**
-- [ ] **Fibonacci Levels** - Aggiungere colonna espandibile in Analisi Tecnica
-- [ ] **Bollinger Width** - Indicatore volatilità color-coded
-- [ ] **Badge 52W High/Low** - Alert visivi vicino massimi/minimi
-- [ ] **Day Range Widget** - Performance intraday in dashboard
+**Fase 1 completata (01 Dic 2025):**
+- [x] **Modale Analisi Tecnica Dettagliata** - Click su ticker apre modale con 7 sezioni: Fibonacci Levels (5 livelli + distanze), Bollinger Bands (width %, squeeze alert), 52W Range (badge high/low), Day Range & Gap, Volume Analysis, Moving Averages (SMA 9/20/50/200), AI Insights
+- [x] **Grafici Storici Tecnici** - Nuova vista "Grafici Tecnici Storici" con 5 chart da `technical_snapshots`: RSI 14, MACD, Volatilità 30d, Bollinger %B, Range 1Y Percentile (ultimi 30 giorni)
+- [x] **Allocation Evolution** - Grafico stacked area in tab Performance mostra evoluzione allocazione per ticker nel tempo
+- [x] **Style Guide Compliance** - Tutti i 38 grafici del progetto allineati: emoji → Font Awesome icons, tension=0, pointStyle='rect', borderRadius=0, pattern diagonali, colori viola/grigio
 
-**Impatto:** Alto valore con zero query DB aggiuntive (dati già in `holdings`)
+**Impatto:** Alto valore con zero query DB aggiuntive (dati già in `holdings` e `technical_snapshots`)
 
 ### **STEP 1: Completare Backend Dati (Priorità ALTA)**
 **Obiettivo:** Rendere il sistema completamente funzionale con dati reali

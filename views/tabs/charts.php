@@ -35,14 +35,18 @@
 
                 <!-- Empty State -->
                 <div id="chartsEmpty" class="text-center py-12">
-                    <div class="text-gray-400 text-6xl mb-4">📊</div>
+                    <div class="text-gray-400 mb-4">
+                        <i class="fa-solid fa-chart-line text-6xl"></i>
+                    </div>
                     <p class="text-gray-600 text-lg">Seleziona uno strumento per visualizzare i grafici storici</p>
                 </div>
 
                 <!-- Error State -->
                 <div id="chartsError" class="hidden">
-                    <div class="bg-red-50 border border-red-300 rounded-lg p-4 text-center">
-                        <div class="text-red-600 text-5xl mb-3">⚠️</div>
+                    <div class="bg-red-50 border border-red-300 p-4 text-center">
+                        <div class="text-red-600 mb-3">
+                            <i class="fa-solid fa-triangle-exclamation text-5xl"></i>
+                        </div>
                         <p class="text-red-700 font-semibold mb-2">Errore nel caricamento dei dati</p>
                         <p class="text-red-600 text-sm" id="chartsErrorMessage"></p>
                     </div>
@@ -50,8 +54,10 @@
 
                 <!-- No Data State -->
                 <div id="chartsNoData" class="hidden">
-                    <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-4 text-center">
-                        <div class="text-yellow-600 text-5xl mb-3">📭</div>
+                    <div class="bg-yellow-50 border border-yellow-300 p-4 text-center">
+                        <div class="text-yellow-600 mb-3">
+                            <i class="fa-solid fa-inbox text-5xl"></i>
+                        </div>
                         <p class="text-yellow-700 font-semibold mb-2">Nessun dato storico disponibile</p>
                         <p class="text-yellow-600 text-sm">
                             Non ci sono snapshot tecnici per questo strumento. Esegui il workflow n8n di enrichment per popolare i dati.
@@ -78,10 +84,10 @@
                     <!-- RSI Chart -->
                     <div class="widget-card widget-purple p-6">
                         <div class="flex items-center gap-2 mb-4">
-                            <span class="text-2xl">📈</span>
+                            <i class="fa-solid fa-chart-line text-purple text-2xl"></i>
                             <h3 class="text-lg font-bold text-primary">RSI 14 - Relative Strength Index</h3>
                         </div>
-                        <div class="bg-gray-50 p-3 rounded mb-4 text-sm text-gray-700">
+                        <div class="bg-gray-50 p-3 mb-4 text-sm text-gray-700">
                             <strong>Interpretazione:</strong> RSI > 70 = Ipercomprato (possibile correzione), RSI < 30 = Ipervenduto (possibile rimbalzo), RSI 30-70 = Zona neutrale.
                         </div>
                         <div style="height: 300px;">
@@ -92,10 +98,10 @@
                     <!-- MACD Chart -->
                     <div class="widget-card widget-purple p-6">
                         <div class="flex items-center gap-2 mb-4">
-                            <span class="text-2xl">📊</span>
+                            <i class="fa-solid fa-chart-simple text-purple text-2xl"></i>
                             <h3 class="text-lg font-bold text-primary">MACD - Moving Average Convergence Divergence</h3>
                         </div>
-                        <div class="bg-gray-50 p-3 rounded mb-4 text-sm text-gray-700">
+                        <div class="bg-gray-50 p-3 mb-4 text-sm text-gray-700">
                             <strong>Interpretazione:</strong> MACD sopra segnale = Momentum rialzista, MACD sotto segnale = Momentum ribassista. Istogramma positivo/negativo indica forza del trend.
                         </div>
                         <div style="height: 300px;">
@@ -106,10 +112,10 @@
                     <!-- Volatility Chart -->
                     <div class="widget-card widget-purple p-6">
                         <div class="flex items-center gap-2 mb-4">
-                            <span class="text-2xl">📉</span>
+                            <i class="fa-solid fa-chart-area text-purple text-2xl"></i>
                             <h3 class="text-lg font-bold text-primary">Volatilità Storica 30 Giorni</h3>
                         </div>
-                        <div class="bg-gray-50 p-3 rounded mb-4 text-sm text-gray-700">
+                        <div class="bg-gray-50 p-3 mb-4 text-sm text-gray-700">
                             <strong>Interpretazione:</strong> Volatilità alta = Movimenti ampi, rischio elevato. Volatilità bassa = Movimenti contenuti, fase di consolidamento.
                         </div>
                         <div style="height: 300px;">
@@ -120,10 +126,10 @@
                     <!-- Bollinger %B Chart -->
                     <div class="widget-card widget-purple p-6">
                         <div class="flex items-center gap-2 mb-4">
-                            <span class="text-2xl">📐</span>
+                            <i class="fa-solid fa-wave-square text-purple text-2xl"></i>
                             <h3 class="text-lg font-bold text-primary">Bollinger %B - Posizione nelle Bande</h3>
                         </div>
-                        <div class="bg-gray-50 p-3 rounded mb-4 text-sm text-gray-700">
+                        <div class="bg-gray-50 p-3 mb-4 text-sm text-gray-700">
                             <strong>Interpretazione:</strong> %B > 1 = Sopra banda superiore (ipercomprato), %B < 0 = Sotto banda inferiore (ipervenduto), %B 0.5 = Centro banda (neutro).
                         </div>
                         <div style="height: 300px;">
@@ -134,10 +140,10 @@
                     <!-- Range Percentile Chart -->
                     <div class="widget-card widget-purple p-6">
                         <div class="flex items-center gap-2 mb-4">
-                            <span class="text-2xl">📏</span>
+                            <i class="fa-solid fa-ruler text-purple text-2xl"></i>
                             <h3 class="text-lg font-bold text-primary">Range 1Y Percentile</h3>
                         </div>
-                        <div class="bg-gray-50 p-3 rounded mb-4 text-sm text-gray-700">
+                        <div class="bg-gray-50 p-3 mb-4 text-sm text-gray-700">
                             <strong>Interpretazione:</strong> Percentile > 80% = Prezzo vicino ai massimi annuali, Percentile < 20% = Prezzo vicino ai minimi annuali.
                         </div>
                         <div style="height: 300px;">

@@ -159,13 +159,13 @@ function generateOverviewSection(holding) {
                         </div>
                         <div class="flex gap-2 justify-center md:justify-end mt-2">
                             ${near52wHigh ? `
-                                <span class="px-3 py-1 text-[10px] font-bold bg-green-100 text-green-700 rounded-full border border-green-300">
-                                    📈 Near 52W High
+                                <span class="px-3 py-1 text-[10px] font-bold bg-green-100 text-green-700 border border-green-300">
+                                    Near 52W High
                                 </span>
                             ` : ''}
                             ${near52wLow ? `
-                                <span class="px-3 py-1 text-[10px] font-bold bg-red-100 text-red-700 rounded-full border border-red-300">
-                                    📉 Near 52W Low
+                                <span class="px-3 py-1 text-[10px] font-bold bg-red-100 text-red-700 border border-red-300">
+                                    Near 52W Low
                                 </span>
                             ` : ''}
                         </div>
@@ -214,7 +214,7 @@ function generateFibonacciSection(holding) {
     let html = `
         <div class="border border-purple/30 rounded-lg p-4 bg-purple/5">
             <div class="flex items-center gap-2 mb-4">
-                <span class="text-2xl">📐</span>
+                <i class="fa-solid fa-chart-line text-purple text-xl"></i>
                 <h3 class="text-lg font-bold text-primary">Livelli di Fibonacci</h3>
                 <span class="text-[11px] text-gray-500 ml-auto">Range: €${formatNumber(holding.fib_low, 2)} - €${formatNumber(holding.fib_high, 2)}</span>
             </div>
@@ -249,8 +249,8 @@ function generateFibonacciSection(holding) {
 
     html += `
             </div>
-            <div class="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-[11px] text-gray-700">
-                💡 <strong>Come usare:</strong> I livelli Fibonacci sono supporti/resistenze automatici.
+            <div class="mt-3 p-2 bg-blue-50 border border-blue-200 text-[11px] text-gray-700">
+                <i class="fa-solid fa-lightbulb text-blue-600 mr-1"></i> <strong>Come usare:</strong> I livelli Fibonacci sono supporti/resistenze automatici.
                 ${closestLevel ? `Il livello <strong>${closestLevel.name}</strong> è il più vicino (${Math.abs(closestLevel.dist).toFixed(1)}%) e potrebbe agire da ${closestLevel.value > price ? 'resistenza' : 'supporto'}.` : ''}
             </div>
         </div>
@@ -279,19 +279,15 @@ function generateBollingerSection(holding) {
     // Interpretazione bb_width_pct
     let widthLabel = '';
     let widthColor = '';
-    let widthIcon = '';
     if (bbWidth < 5) {
         widthLabel = 'Volatilità Compressa';
         widthColor = 'text-positive';
-        widthIcon = '🟢';
     } else if (bbWidth > 10) {
         widthLabel = 'Volatilità Alta';
         widthColor = 'text-negative';
-        widthIcon = '🔴';
     } else {
         widthLabel = 'Volatilità Normale';
         widthColor = 'text-gray-700';
-        widthIcon = '🟡';
     }
 
     // Posizione prezzo
@@ -307,10 +303,10 @@ function generateBollingerSection(holding) {
     let html = `
         <div class="border border-blue-300 rounded-lg p-4 bg-blue-50">
             <div class="flex items-center gap-2 mb-4">
-                <span class="text-2xl">📊</span>
+                <i class="fa-solid fa-chart-simple text-purple text-xl"></i>
                 <h3 class="text-lg font-bold text-primary">Bollinger Bands</h3>
-                <span class="ml-auto px-3 py-1 rounded-full text-[11px] font-bold ${widthColor} bg-white border border-gray-300">
-                    ${widthIcon} ${widthLabel}
+                <span class="ml-auto px-3 py-1 text-[11px] font-bold ${widthColor} bg-white border border-gray-300">
+                    ${widthLabel}
                 </span>
             </div>
 
@@ -352,8 +348,8 @@ function generateBollingerSection(holding) {
                 <div class="text-sm font-semibold text-gray-700 mb-2">Posizione Prezzo:</div>
                 <div class="text-sm text-gray-600">${positionLabel}</div>
                 ${bbWidth < 5 ? `
-                    <div class="mt-2 p-2 bg-yellow-50 border border-yellow-300 rounded text-[11px] text-gray-700">
-                        ⚠️ <strong>Squeeze Alert:</strong> Volatilità compressa (<5%). Possibile breakout imminente - monitora il volume.
+                    <div class="mt-2 p-2 bg-yellow-50 border border-yellow-300 text-[11px] text-gray-700">
+                        <i class="fa-solid fa-triangle-exclamation text-yellow-600 mr-1"></i> <strong>Squeeze Alert:</strong> Volatilità compressa (<5%). Possibile breakout imminente - monitora il volume.
                     </div>
                 ` : ''}
             </div>
@@ -403,7 +399,7 @@ function generateRangeSection(holding) {
     let html = `
         <div class="border border-gray-300 rounded-lg p-4 bg-gray-50">
             <div class="flex items-center gap-2 mb-4">
-                <span class="text-2xl">📏</span>
+                <i class="fa-solid fa-ruler text-purple text-xl"></i>
                 <h3 class="text-lg font-bold text-primary">Range Multi-Timeframe</h3>
             </div>
 
@@ -449,8 +445,8 @@ function generateRangeSection(holding) {
 
     html += `
             </div>
-            <div class="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-[11px] text-gray-700">
-                💡 <strong>Interpretazione:</strong> Percentile >80% = prezzo vicino ai massimi del periodo (possibile resistenza).
+            <div class="mt-3 p-2 bg-blue-50 border border-blue-200 text-[11px] text-gray-700">
+                <i class="fa-solid fa-lightbulb text-blue-600 mr-1"></i> <strong>Interpretazione:</strong> Percentile >80% = prezzo vicino ai massimi del periodo (possibile resistenza).
                 Percentile <20% = prezzo vicino ai minimi (possibile supporto).
             </div>
         </div>
@@ -477,26 +473,23 @@ function generateVolumeSection(holding) {
     const volAnomalous = volRatio > 2 || volRatio < 0.5;
     let volLabel = 'Volume Normale';
     let volColor = 'text-gray-700';
-    let volIcon = '🟢';
 
     if (volRatio > 2) {
         volLabel = 'Volume Molto Alto';
         volColor = 'text-negative';
-        volIcon = '🔴';
     } else if (volRatio < 0.5) {
         volLabel = 'Volume Molto Basso';
         volColor = 'text-blue-600';
-        volIcon = '🔵';
     }
 
     let html = `
         <div class="border border-gray-300 rounded-lg p-4 bg-gray-50">
             <div class="flex items-center gap-2 mb-4">
-                <span class="text-2xl">📈</span>
+                <i class="fa-solid fa-chart-column text-purple text-xl"></i>
                 <h3 class="text-lg font-bold text-primary">Volume e Liquidità</h3>
                 ${volAnomalous ? `
-                    <span class="ml-auto px-3 py-1 rounded-full text-[11px] font-bold ${volColor} bg-white border border-gray-300">
-                        ⚠️ Volume Anomalo
+                    <span class="ml-auto px-3 py-1 text-[11px] font-bold ${volColor} bg-white border border-gray-300">
+                        <i class="fa-solid fa-triangle-exclamation mr-1"></i> Volume Anomalo
                     </span>
                 ` : ''}
             </div>
@@ -515,13 +508,13 @@ function generateVolumeSection(holding) {
                 <div class="bg-white p-3 rounded-lg border border-gray-200">
                     <div class="text-[11px] text-gray-500 uppercase">Ratio vs Media</div>
                     <div class="text-xl font-bold ${volColor}">${formatNumber(volRatio, 2)}x</div>
-                    <div class="text-[11px] ${volColor} font-semibold mt-1">${volIcon} ${volLabel}</div>
+                    <div class="text-[11px] ${volColor} font-semibold mt-1">${volLabel}</div>
                 </div>
             </div>
 
             ${volAnomalous ? `
-                <div class="mt-3 p-3 bg-yellow-50 border border-yellow-300 rounded">
-                    <div class="text-sm font-semibold text-gray-700 mb-1">⚠️ Alert Volume Anomalo</div>
+                <div class="mt-3 p-3 bg-yellow-50 border border-yellow-300">
+                    <div class="text-sm font-semibold text-gray-700 mb-1"><i class="fa-solid fa-triangle-exclamation text-yellow-600 mr-1"></i> Alert Volume Anomalo</div>
                     <div class="text-[11px] text-gray-700">
                         ${volRatio > 2
                             ? `Volume ${volRatio.toFixed(1)}x superiore alla media. Possibile notizia importante o breakout imminente - monitora i prezzi.`
@@ -563,7 +556,7 @@ function generateMovingAveragesSection(holding) {
     let html = `
         <div class="border border-gray-300 rounded-lg p-4 bg-gray-50">
             <div class="flex items-center gap-2 mb-4">
-                <span class="text-2xl">📉</span>
+                <i class="fa-solid fa-wave-square text-purple text-xl"></i>
                 <h3 class="text-lg font-bold text-primary">Moving Averages (EMA)</h3>
                 <span class="ml-auto flex gap-2">
                     <span class="px-2 py-1 rounded text-[11px] font-bold ${trendColor} bg-white border border-gray-300">
@@ -619,7 +612,7 @@ function generateAIInsightsSection(holding) {
     let html = `
         <div class="border border-purple/30 rounded-lg p-4 bg-purple/5">
             <div class="flex items-center gap-2 mb-4">
-                <span class="text-2xl">🤖</span>
+                <i class="fa-solid fa-robot text-purple text-xl"></i>
                 <h3 class="text-lg font-bold text-primary">AI Technical Insights</h3>
             </div>
 

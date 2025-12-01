@@ -119,11 +119,12 @@ function createRSIChart(labels, data) {
                     data: rsiValues,
                     borderColor: '#7c3aed',
                     backgroundColor: 'rgba(124, 58, 237, 0.1)',
-                    borderWidth: 2,
+                    borderWidth: 3,
                     fill: true,
-                    tension: 0.4,
-                    pointRadius: 3,
-                    pointHoverRadius: 5
+                    tension: 0,
+                    pointStyle: 'rect',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
                 },
                 {
                     label: 'Ipercomprato (70)',
@@ -204,21 +205,23 @@ function createMACDChart(labels, data) {
                     label: 'MACD',
                     data: macdValues,
                     borderColor: '#7c3aed',
-                    borderWidth: 2,
+                    borderWidth: 3,
                     fill: false,
-                    tension: 0.4,
-                    pointRadius: 3,
+                    tension: 0,
+                    pointStyle: 'rect',
+                    pointRadius: 4,
                     order: 1
                 },
                 {
                     type: 'line',
                     label: 'Signal',
                     data: macdSignal,
-                    borderColor: '#f59e0b',
-                    borderWidth: 2,
+                    borderColor: '#52525b',
+                    borderWidth: 3,
                     fill: false,
-                    tension: 0.4,
-                    pointRadius: 3,
+                    tension: 0,
+                    pointStyle: 'rect',
+                    pointRadius: 4,
                     order: 2
                 },
                 {
@@ -279,13 +282,14 @@ function createVolatilityChart(labels, data) {
                 {
                     label: 'Volatilità 30d (%)',
                     data: volValues,
-                    borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    borderWidth: 2,
+                    borderColor: '#52525b',
+                    backgroundColor: 'rgba(82, 82, 91, 0.1)',
+                    borderWidth: 3,
                     fill: true,
-                    tension: 0.4,
-                    pointRadius: 3,
-                    pointHoverRadius: 5
+                    tension: 0,
+                    pointStyle: 'rect',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
                 }
             ]
         },
@@ -348,11 +352,12 @@ function createBollingerChart(labels, data) {
                     data: bbValues,
                     borderColor: '#7c3aed',
                     backgroundColor: 'rgba(124, 58, 237, 0.1)',
-                    borderWidth: 2,
+                    borderWidth: 3,
                     fill: true,
-                    tension: 0.4,
-                    pointRadius: 3,
-                    pointHoverRadius: 5
+                    tension: 0,
+                    pointStyle: 'rect',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
                 },
                 {
                     label: 'Banda Superiore (100%)',
@@ -446,11 +451,12 @@ function createRangePercentileChart(labels, data) {
                     data: percentileValues,
                     borderColor: '#8b5cf6',
                     backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                    borderWidth: 2,
+                    borderWidth: 3,
                     fill: true,
-                    tension: 0.4,
-                    pointRadius: 3,
-                    pointHoverRadius: 5,
+                    tension: 0,
+                    pointStyle: 'rect',
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
                     segment: {
                         backgroundColor: ctx => {
                             const value = ctx.p1.parsed.y;
