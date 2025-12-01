@@ -1,0 +1,274 @@
+{
+  "name": "AI Technical Insights",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "/**\n * PREPARE CONTEXT REQUEST\n *\n * Normalizza l'input proveniente dal trigger (Webhook o Schedule)\n * e costruisce il body JSON da inviare a /api/n8n/technical-context.php.\n *\n * Output JSON:\n * {\n *   \"portfolio_id\": 1,\n *   \"isins\": [...opzionale...]\n * }\n */\n\nconst input = $json;\n\n// 1) Recupero APP_BASE_URL se presente da nodi precedenti (es. Config Variables)\nconst appBaseUrl =\n  input.APP_BASE_URL ||\n  $env.APP_BASE_URL || // se usi variables globali n8n\n  \"https://portfolio.newwave-media.it\";\n\n// 2) Portfolio ID\n// - Se arriva dal webhook, usalo\n// - Altrimenti fallback a 1\nconst portfolioId = input.portfolio_id || 1;\n\n// 3) ISINs opzionali\n// - Se arrivano dal webhook, validiamo che siano array di stringhe\nlet isins = [];\nif (Array.isArray(input.isins)) {\n  isins = input.isins.filter(x => typeof x === \"string\" && x.trim().length > 0);\n}\n\n// 4) Output finale\nreturn [\n  {\n    json: {\n      APP_BASE_URL: appBaseUrl,\n      portfolio_id: portfolioId,\n      isins: isins.length > 0 ? isins : undefined\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        0
+      ],
+      "id": "723ece5e-da0e-44e8-8a54-f164afe511a1",
+      "name": "Prepare Context Request"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -32,
+        0
+      ],
+      "id": "4e8a9fdc-f8c6-4bc6-9811-a72b64966b8d",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.APP_BASE_URL || \"https://portfolio.newwave-media.it\" }}/api/n8n/technical-context.php",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; ETF-Portfolio-Manager/2.1; +https://portfolio.newwave-media.it"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "b27b64b3-e4ca-43db-b520-82d93e8ce0d7",
+      "name": "Get Technical Context"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-5-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Sei un analista tecnico che analizza un portafoglio di ETF.\n- dai consigli diretti di acquisto o vendita.\n- NON parli di apertura ordini o automazione.\n- Descrivi trend, momentum, volatilità e posizionamento nel range.\n- Rispondi SOLO in JSON valido, senza testo extra."
+            },
+            {
+              "content": "=Sei un analista tecnico incaricato di produrre una valutazione strutturata del portafoglio e dei singoli strumenti.\n\nREGOLE:\n- Non fornire mai consigli diretti di acquisto, vendita o operazioni.\n- Non parlare di apertura ordini, take profit, stop loss, automazione o operatività.\n- Puoi però descrivere “segnali tecnici”, “condizioni di rischio”, “aree monitorate”, “possibili livelli tecnici”.\n- Rispondi SOLO in JSON valido.\n- Tutti i punteggi devono essere tra 0 e 100.\n\nLa risposta JSON deve rispettare questa struttura:\n\n{\n  \"portfolio\": {\n    \"scores\": {\n      \"health_score\": 0-100,\n      \"risk_score\": 0-100,\n      \"diversification_score\": 0-100,\n      \"momentum_score\": 0-100,\n      \"volatility_score\": 0-100,\n      \"extension_score\": 0-100\n    },\n    \"insight_text\": \"breve testo in italiano\",\n    \"insight_json\": {\n      \"trend\": \"bullish|neutral|bearish\",\n      \"risk\": \"low|medium|high\",\n      \"volatility_comment\": \"string\",\n      \"diversification_comment\": \"string\",\n      \"notes\": \"string\"\n    }\n  },\n  \"instruments\": [\n    {\n      \"isin\": \"STRING\",\n      \"ticker\": \"STRING\",\n\n      \"scores\": {\n        \"trend_strength\": 0-100,\n        \"momentum_strength\": 0-100,\n        \"volatility_score\": 0-100,\n        \"overextension_score\": 0-100\n      },\n\n      \"signals\": {\n        \"trend_signal\": \"strong_uptrend|uptrend|neutral|downtrend|strong_downtrend\",\n        \"momentum_signal\": \"accelerating|stable|weakening\",\n        \"rsi_condition\": \"overbought|neutral|oversold\",\n        \"bollinger_position\": \"upper_band|middle_band|lower_band\",\n        \"range_position\": \"near_high|mid_range|near_low\",\n        \"volatility_flag\": \"high|medium|low\"\n      },\n\n      \"levels\": {\n        \"potential_support_levels\": [ ... valori numerici ... ],\n        \"potential_resistance_levels\": [ ... valori numerici ... ]\n      },\n\n      \"insight_text\": \"breve commento tecnico\",\n      \"insight_json\": {\n        \"trend\": \"bullish|neutral|bearish\",\n        \"momentum\": \"bullish|neutral|bearish\",\n        \"flags\": [\"overbought\", \"high_volatility\", \"...\"],\n        \"notes\": \"osservazioni tecniche\"\n      }\n    }\n  ]\n}\n\nDati tecnici del portafoglio:\n\n```json\n{{ JSON.stringify($json, null, 2) }}\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        864,
+        0
+      ],
+      "id": "696c35bf-ae51-4a39-af09-5f3298f86f2a",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "YKH8CfczdzNM1zeT",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * PARSE TECHNICAL CONTEXT\n *\n * Input: output dell'HTTP Request \"Get Technical Context\"\n * (nel tuo caso è un array con un solo oggetto).\n *\n * Output: un singolo item con struttura normalizzata:\n * {\n *   portfolio_id,\n *   as_of,\n *   holdings: [\n *     {\n *       ticker, isin, name, sector, asset_class,\n *       price,\n *       indicators: { ... },\n *       derived: { trend_ema50_ema200, momentum_ema9_ema21, ... }\n *     }\n *   ]\n * }\n */\n\n// Gestione root: può essere o l'oggetto, o [ oggetto ]\nlet root = $json;\nif (Array.isArray(root)) {\n  if (root.length === 0) {\n    throw new Error(\"Empty response from technical-context.php\");\n  }\n  root = root[0];\n}\n\nif (!root.success) {\n  throw new Error(\"technical-context.php returned success = false\");\n}\n\nconst portfolioId = root.portfolio_id || 1;\nconst holdings = Array.isArray(root.holdings) ? root.holdings : [];\n\n// helper per arrotondare numeri in modo consistente\nfunction roundNum(value, decimals = 2) {\n  if (typeof value !== \"number\" || isNaN(value)) return null;\n  return parseFloat(value.toFixed(decimals));\n}\n\nconst normalizedHoldings = holdings.map((h) => {\n  const price = typeof h.price === \"number\" ? h.price : null;\n  const ema9 = typeof h.ema9 === \"number\" ? h.ema9 : null;\n  const ema21 = typeof h.ema21 === \"number\" ? h.ema21 : null;\n  const ema50 = typeof h.ema50 === \"number\" ? h.ema50 : null;\n  const ema200 = typeof h.ema200 === \"number\" ? h.ema200 : null;\n\n  // Trend medio periodo: EMA50 vs EMA200\n  let trend = \"unknown\";\n  if (ema50 !== null && ema200 !== null) {\n    if (ema50 > ema200 * 1.01) trend = \"bullish\";\n    else if (ema50 < ema200 * 0.99) trend = \"bearish\";\n    else trend = \"neutral\";\n  }\n\n  // Momentum breve: EMA9 vs EMA21\n  let momentum = \"unknown\";\n  if (ema9 !== null && ema21 !== null) {\n    if (ema9 > ema21 * 1.005) momentum = \"bullish\";\n    else if (ema9 < ema21 * 0.995) momentum = \"bearish\";\n    else momentum = \"neutral\";\n  }\n\n  // Vicinanza a 52w high/low (booleani soft)\n  let near52wHigh = null;\n  let near52wLow = null;\n  if (price !== null && typeof h.fifty_two_week_high === \"number\") {\n    near52wHigh = price >= h.fifty_two_week_high * 0.97; // entro ~3% dal max\n  }\n  if (price !== null && typeof h.fifty_two_week_low === \"number\") {\n    near52wLow = price <= h.fifty_two_week_low * 1.03; // entro ~3% dal min\n  }\n\n  return {\n    ticker: h.ticker || null,\n    isin: h.isin || null,\n    name: h.name || null,\n    sector: h.sector || null,\n    asset_class: h.asset_class || null,\n\n    price: roundNum(price, 4),\n\n    indicators: {\n      ema9: roundNum(ema9, 4),\n      ema21: roundNum(ema21, 4),\n      ema50: roundNum(ema50, 4),\n      ema200: roundNum(ema200, 4),\n\n      rsi14: roundNum(h.rsi14, 2),\n\n      atr14: roundNum(h.atr14, 4),\n      atr14_pct: roundNum(h.atr14_pct, 2),\n\n      hist_vol_30d: roundNum(h.hist_vol_30d, 2),\n      hist_vol_90d: roundNum(h.hist_vol_90d, 2),\n\n      range_1m_percentile: roundNum(h.range_1m_percentile, 2),\n      range_3m_percentile: roundNum(h.range_3m_percentile, 2),\n      range_1y_percentile: roundNum(h.range_1y_percentile, 2),\n\n      bb_percent_b: roundNum(h.bb_percent_b, 4),\n\n      macd_value: roundNum(h.macd_value, 4),\n      macd_signal: roundNum(h.macd_signal, 4),\n      macd_hist: roundNum(h.macd_hist, 4),\n\n      ytd_change_percent: roundNum(h.ytd_change_percent, 2),\n      one_month_change_percent: roundNum(h.one_month_change_percent, 2),\n      three_month_change_percent: roundNum(h.three_month_change_percent, 2),\n      one_year_change_percent: roundNum(h.one_year_change_percent, 2),\n\n      fifty_two_week_high: roundNum(h.fifty_two_week_high, 4),\n      fifty_two_week_low: roundNum(h.fifty_two_week_low, 4)\n    },\n\n    derived: {\n      trend_ema50_ema200: trend,\n      momentum_ema9_ema21: momentum,\n      near_52w_high: near52wHigh,\n      near_52w_low: near52wLow\n    }\n  };\n});\n\nreturn [\n  {\n    json: {\n      portfolio_id: portfolioId,\n      as_of: new Date().toISOString(),\n      holdings: normalizedHoldings\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        0
+      ],
+      "id": "4ca879f2-5d87-449c-a69f-f0b2d5c82594",
+      "name": "Parse Technical Context"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * BUILD LLM PROMPT\n * Usa il contesto normalizzato da Parse Technical Context\n * e costruisce system_prompt + user_prompt come stringhe.\n */\n\nconst ctx = $json; // { portfolio_id, as_of, holdings[...] }\n\nconst systemPrompt = `\nSei un analista tecnico che analizza un portafoglio di ETF.\n- NON dai mai consigli diretti di acquisto o vendita.\n- NON parli di apertura ordini o automazione.\n- Ti limiti a descrivere trend, momentum, volatilità e posizionamento nel range.\n- Rispondi SOLO in JSON valido, senza testo extra.\n`.trim();\n\nconst userPrompt = `\nDi seguito trovi i dati di un portafoglio ETF, con indicatori tecnici per ciascun strumento.\n\nRestituisci un JSON con questa struttura:\n{\n  \"portfolio\": {\n    \"insight_text\": \"... breve sintesi in italiano ...\",\n    \"insight_json\": { ... dettagli strutturati ... }\n  },\n  \"instruments\": [\n    {\n      \"isin\": \"...\",\n      \"insight_text\": \"... breve sintesi per questo strumento ...\",\n      \"insight_json\": {\n        \"trend\": \"bullish|neutral|bearish\",\n        \"risk\": \"low|medium|high\",\n        \"flags\": [\"overbought\", \"high_volatility\", \"...\"],\n        \"notes\": \"...\"\n      }\n    }\n  ]\n}\n\nDati tecnici del portafoglio (JSON):\n${JSON.stringify(ctx, null, 2)}\n`.trim();\n\nreturn [\n  {\n    json: {\n      system_prompt: systemPrompt,\n      user_prompt: userPrompt,\n      model: \"gpt-4.1-mini\" // o quello che userai\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -32,
+        -224
+      ],
+      "id": "fc7beffc-3c2e-4331-b056-0cb01925269f",
+      "name": "Build LLM Prompt"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * PARSE LLM OUTPUT (Final v2 - Structured Scores & Signals)\n *\n * Input:\n *   - output del nodo \"Message a model\" (OpenAI)\n *   - contesto tecnico dal nodo \"Parse Technical Context\"\n *\n * Output:\n *   payload completo per /api/n8n/ai_insights.php\n */\n\nconst ctx = $node[\"Parse Technical Context\"].json;\n\n// ----------------------------\n// 1) Estrarre testo dal nodo AI\n// ----------------------------\nlet raw = null;\n\nif (Array.isArray($json.output) && $json.output.length > 0) {\n  const block = $json.output[0];\n  if (Array.isArray(block.content) && block.content.length > 0) {\n    raw = block.content[0].text;\n  }\n}\n\nif (typeof raw !== \"string\") {\n  throw new Error(\"AI output is not a string: expected output[0].content[0].text\");\n}\n\n// ----------------------------\n// 2) Pulizia formattazione\n// ----------------------------\nlet cleaned = raw.trim();\n\nif (cleaned.startsWith(\"```\")) {\n  cleaned = cleaned\n    .replace(/```json/gi, \"\")\n    .replace(/```/g, \"\")\n    .trim();\n}\n\n// ----------------------------\n// 3) Parse JSON\n// ----------------------------\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch (err) {\n  throw new Error(\n    \"Failed to parse JSON from LLM: \" +\n      err.message +\n      \"\\nRaw:\\n\" +\n      cleaned\n  );\n}\n\n// ----------------------------\n// 4) Normalizzazione dei campi\n// ----------------------------\n\n// --- Portfolio block ---\nconst portfolioBlock = parsed.portfolio || {};\nconst portfolioInsightJSON = portfolioBlock.insight_json || {};\nconst portfolioScores = portfolioBlock.scores || {};\nconst portfolioText = portfolioBlock.insight_text || \"\";\n\n// --- Instruments block ---\nconst instruments = Array.isArray(parsed.instruments)\n  ? parsed.instruments\n  : [];\n\n// --- Timestamp MySQL ---\nconst now = new Date();\nconst mysqlTimestamp = now.toISOString().slice(0, 19).replace(\"T\", \" \");\n\n// ----------------------------\n// 5) Preparazione payload per PHP\n// ----------------------------\nconst payload = {\n  model: \"gpt-5-mini\",          // puoi anche prenderlo dinamico\n  generated_at: mysqlTimestamp,\n\n  portfolio: {\n    raw_input_snapshot: ctx,\n    insight_json: {\n      scores: portfolioScores,\n      ...portfolioInsightJSON,\n    },\n    insight_text: portfolioText\n  },\n\n  instruments: instruments\n    .filter(i => i && (i.isin || i.ticker))\n    .map(i => ({\n      isin: i.isin || null,\n      ticker: i.ticker || null,\n      generated_at: mysqlTimestamp,\n      raw_input_snapshot: null,\n\n      insight_json: {\n        scores: i.scores || {},\n        signals: i.signals || {},\n        levels: i.levels || {},\n        ...(i.insight_json || {})\n      },\n\n      insight_text: i.insight_text || \"\"\n    }))\n};\n\n// ----------------------------\n// 6) Output verso HTTP Request finale\n// ----------------------------\nreturn [{ json: payload }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1216,
+        0
+      ],
+      "id": "86634166-2c09-4ff5-895c-0e660be9ae5d",
+      "name": "Parse LLM Output"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://portfolio.newwave-media.it/api/n8n/ai_insights.php",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36\""
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1424,
+        0
+      ],
+      "id": "d9ce6615-2cb6-448c-97e2-fbc608313fc8",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {
+    "Message a model": [
+      {
+        "json": {
+          "output": [
+            {
+              "id": "msg_0562c9ae283c1bac00692db12c5aa88190abc43afc74dcc0f0",
+              "type": "message",
+              "status": "completed",
+              "content": [
+                {
+                  "type": "output_text",
+                  "annotations": [],
+                  "logprobs": [],
+                  "text": "{\n  \"portfolio\": {\n    \"scores\": {\n      \"health_score\": 78,\n      \"risk_score\": 42,\n      \"diversification_score\": 62,\n      \"momentum_score\": 70,\n      \"volatility_score\": 46,\n      \"extension_score\": 66\n    },\n    \"insight_text\": \"Portafoglio con trend generale positivo e momentum moderato; volatilità complessiva contenuta ad eccezione dell'oro. Tutti gli strumenti sono vicino ai massimi a 52 settimane: monitorare possibili inversioni di momentum e aumento della volatilità.\",\n    \"insight_json\": {\n      \"trend\": \"bullish\",\n      \"risk\": \"medium\",\n      \"volatility_comment\": \"Volatilità complessiva moderata; oro (SGLD) mostra volatilità significativamente più alta rispetto agli ETF azionari.\",\n      \"diversification_comment\": \"Diversificazione funzionale tra azioni globali, high-dividend, mercati sviluppati/emergenti e oro; leggero sovrappeso su esposizione azionaria globale.\",\n      \"notes\": \"Posizionamento vicino ai massimi a 52 settimane aumenta il rischio di ritracciamenti; supporti su EMA21/50 e livelli storici da monitorare.\"\n    }\n  },\n  \"instruments\": [\n    {\n      \"isin\": \"\",\n      \"ticker\": \"SWDA.MI\",\n      \"scores\": {\n        \"trend_strength\": 80,\n        \"momentum_strength\": 60,\n        \"volatility_score\": 45,\n        \"overextension_score\": 55\n      },\n      \"signals\": {\n        \"trend_signal\": \"uptrend\",\n        \"momentum_signal\": \"weakening\",\n        \"rsi_condition\": \"neutral\",\n        \"bollinger_position\": \"middle_band\",\n        \"range_position\": \"near_high\",\n        \"volatility_flag\": \"medium\"\n      },\n      \"levels\": {\n        \"potential_support_levels\": [\n          110.3358,\n          109.3478,\n          107.7121,\n          103.5444,\n          82.7\n        ],\n        \"potential_resistance_levels\": [\n          112.55,\n          115.0\n        ]\n      },\n      \"insight_text\": \"Trend rialzista confermato dalle EMA; momentum moderato ma ha mostrato lieve debolezza mensile. Vicino ai massimi annuali; supporti EMA21/50 da monitorare.\",\n      \"insight_json\": {\n        \"trend\": \"bullish\",\n        \"momentum\": \"neutral\",\n        \"flags\": [\n          \"near_52w_high\",\n          \"neutral_rsi\"\n        ],\n        \"notes\": \"Breve pullback recente (-1.13% 1M); EMA21 e EMA50 rappresentano supporti tecnici rilevanti.\"\n      }\n    },\n    {\n      \"isin\": \"\",\n      \"ticker\": \"SGLD.MI\",\n      \"scores\": {\n        \"trend_strength\": 85,\n        \"momentum_strength\": 80,\n        \"volatility_score\": 75,\n        \"overextension_score\": 80\n      },\n      \"signals\": {\n        \"trend_signal\": \"strong_uptrend\",\n        \"momentum_signal\": \"accelerating\",\n        \"rsi_condition\": \"neutral\",\n        \"bollinger_position\": \"upper_band\",\n        \"range_position\": \"near_high\",\n        \"volatility_flag\": \"high\"\n      },\n      \"levels\": {\n        \"potential_support_levels\": [\n          345.4428,\n          339.2448,\n          327.1959,\n          293.2637\n        ],\n        \"potential_resistance_levels\": [\n          359.67,\n          370.0\n        ]\n      },\n      \"insight_text\": \"Oro con trend forte e momentum accelerato; volatilità relativamente elevata. Vicino al massimo a 52 settimane.\",\n      \"insight_json\": {\n        \"trend\": \"bullish\",\n        \"momentum\": \"bullish\",\n        \"flags\": [\n          \"near_52w_high\",\n          \"high_volatility\"\n        ],\n        \"notes\": \"Prestazione YTD robusta; attenzione a possibili prese di profitto in prossimità della resistenza 52w.\"\n      }\n    },\n    {\n      \"isin\": \"\",\n      \"ticker\": \"TDIV.MI\",\n      \"scores\": {\n        \"trend_strength\": 78,\n        \"momentum_strength\": 72,\n        \"volatility_score\": 30,\n        \"overextension_score\": 68\n      },\n      \"signals\": {\n        \"trend_signal\": \"uptrend\",\n        \"momentum_signal\": \"accelerating\",\n        \"rsi_condition\": \"neutral\",\n        \"bollinger_position\": \"upper_band\",\n        \"range_position\": \"near_high\",\n        \"volatility_flag\": \"low\"\n      },\n      \"levels\": {\n        \"potential_support_levels\": [\n          46.4088,\n          45.714,\n          44.7749,\n          43.2474\n        ],\n        \"potential_resistance_levels\": [\n          47.0,\n          49.0\n        ]\n      },\n      \"insight_text\": \"ETF su mercati sviluppati/emergenti a rendimento da dividendo con trend positivo e volatilità contenuta. Vicino ai massimi annuali.\",\n      \"insight_json\": {\n        \"trend\": \"bullish\",\n        \"momentum\": \"bullish\",\n        \"flags\": [\n          \"near_52w_high\",\n          \"low_volatility\"\n        ],\n        \"notes\": \"Supporti EMA21/50 chiave; comportamento più stabile rispetto all'oro.\"\n      }\n    },\n    {\n      \"isin\": \"\",\n      \"ticker\": \"VHYL.MI\",\n      \"scores\": {\n        \"trend_strength\": 76,\n        \"momentum_strength\": 62,\n        \"volatility_score\": 32,\n        \"overextension_score\": 64\n      },\n      \"signals\": {\n        \"trend_signal\": \"uptrend\",\n        \"momentum_signal\": \"stable\",\n        \"rsi_condition\": \"neutral\",\n        \"bollinger_position\": \"upper_band\",\n        \"range_position\": \"near_high\",\n        \"volatility_flag\": \"low\"\n      },\n      \"levels\": {\n        \"potential_support_levels\": [\n          68.4493,\n          67.711,\n          66.708,\n          65.1497\n        ],\n        \"potential_resistance_levels\": [\n          69.5,\n          71.0\n        ]\n      },\n      \"insight_text\": \"ETF high-dividend globale con trend positivo e volatilità contenuta; posizionamento verso la parte alta del range annuale.\",\n      \"insight_json\": {\n        \"trend\": \"bullish\",\n        \"momentum\": \"neutral\",\n        \"flags\": [\n          \"near_52w_high\",\n          \"neutral_rsi\"\n        ],\n        \"notes\": \"Posizione nel range alta; EMA21 ed EMA50 forniscono supporti tecnici immediati.\"\n      }\n    }\n  ]\n}"
+                }
+              ],
+              "role": "assistant"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Prepare Context Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Context Request": {
+      "main": [
+        [
+          {
+            "node": "Get Technical Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Technical Context": {
+      "main": [
+        [
+          {
+            "node": "Parse Technical Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Technical Context": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build LLM Prompt": {
+      "main": [
+        []
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Parse LLM Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse LLM Output": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9ca85e07-6d1d-490e-a289-7dfe9243b8a0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fe117d56aad4346ee596609bb8c3079d6edd34e383a675201472f524674346cc"
+  },
+  "id": "5AlOvn9qGvKRPqMs",
+  "tags": []
+}

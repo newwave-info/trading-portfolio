@@ -11,14 +11,21 @@ class TechnicalInsightRepository extends BaseRepository
     */
     public function createInsight(array $data): int
     {
+        $rawInput = isset($data['raw_input_snapshot'])
+            ? json_encode($data['raw_input_snapshot'], JSON_UNESCAPED_UNICODE)
+            : null;
+        $insightJson = isset($data['insight_json'])
+            ? json_encode($data['insight_json'], JSON_UNESCAPED_UNICODE)
+            : null;
+
         return $this->create([
             'portfolio_id' => $data['portfolio_id'],
             'isin' => $data['isin'] ?? null,
             'scope' => $data['scope'] ?? 'portfolio',
             'model' => $data['model'] ?? 'openai',
             'generated_at' => $data['generated_at'] ?? date('Y-m-d H:i:s'),
-            'raw_input_snapshot' => $data['raw_input_snapshot'] ?? null,
-            'insight_json' => $data['insight_json'] ?? null,
+            'raw_input_snapshot' => $rawInput,
+            'insight_json' => $insightJson,
             'insight_text' => $data['insight_text'] ?? null,
         ]);
     }
@@ -36,7 +43,8 @@ class TechnicalInsightRepository extends BaseRepository
             LIMIT 1
         ";
 
-        return $this->fetchOne($sql, [$portfolioId]);
+        $row = $this->fetchOne($sql, [$portfolioId]);
+        return $this->decodeJsonFields($row);
     }
 
     /**
@@ -52,7 +60,8 @@ class TechnicalInsightRepository extends BaseRepository
             LIMIT 1
         ";
 
-        return $this->fetchOne($sql, [$portfolioId, $isin]);
+        $row = $this->fetchOne($sql, [$portfolioId, $isin]);
+        return $this->decodeJsonFields($row);
     }
 
     /**
@@ -73,6 +82,28 @@ class TechnicalInsightRepository extends BaseRepository
             ORDER BY ti.isin ASC
         ";
 
-        return $this->fetchAll($sql, [$portfolioId, $portfolioId]);
+        $rows = $this->fetchAll($sql, [$portfolioId, $portfolioId]);
+        return array_map([$this, 'decodeJsonFields'], $rows);
+    }
+
+    /**
+     * Decode JSON fields (raw_input_snapshot, insight_json)
+     */
+    private function decodeJsonFields(?array $row): ?array
+    {
+        if (!$row) {
+            return null;
+        }
+
+        foreach (['raw_input_snapshot', 'insight_json'] as $field) {
+            if (isset($row[$field]) && is_string($row[$field])) {
+                $decoded = json_decode($row[$field], true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $row[$field] = $decoded;
+                }
+            }
+        }
+
+        return $row;
     }
 }

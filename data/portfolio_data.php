@@ -12,6 +12,7 @@ require_once __DIR__ . '/../lib/Database/Repositories/DividendRepository.php';
 require_once __DIR__ . '/../lib/Database/Repositories/DividendEnrichedRepository.php';
 require_once __DIR__ . '/../lib/Database/Repositories/SnapshotRepository.php';
 require_once __DIR__ . '/../lib/Database/Repositories/TransactionRepository.php';
+require_once __DIR__ . '/../lib/Database/Repositories/TechnicalInsightRepository.php';
 
 try {
     // Initialize database and repositories
@@ -22,6 +23,7 @@ try {
     $dividendEnrichedRepo = new DividendEnrichedRepository($db);
     $snapshotRepo = new SnapshotRepository($db);
     $transactionRepo = new TransactionRepository($db);
+    $technicalInsightRepo = new TechnicalInsightRepository($db);
 
     // ============================================
     // METADATA DEL PORTAFOGLIO (da VIEW)
@@ -396,6 +398,12 @@ try {
             $dividends_calendar_data['portfolio_yield'] = ($totalAnnualAll / $metadata['total_market_value']) * 100;
         }
     }
+
+    // ============================================
+    // AI TECHNICAL INSIGHTS
+    // ============================================
+    $ai_portfolio_insight = $technicalInsightRepo->getLatestPortfolioInsight(PortfolioRepository::DEFAULT_PORTFOLIO_ID);
+    $ai_instrument_insights = $technicalInsightRepo->getLatestInstrumentsInsights(PortfolioRepository::DEFAULT_PORTFOLIO_ID);
 
     // ============================================
     // TRANSAZIONI (BUY/SELL/DIVIDEND)

@@ -3,6 +3,80 @@
                     <h1 class="text-[18px] sm:text-[20px] font-medium text-primary tracking-tight">Analisi Tecnica</h1>
                 </div>
 
+                <!-- AI Technical Insights -->
+                <div class="widget-card widget-purple p-5 mb-6">
+                    <div class="flex items-center gap-2 mb-4 pb-2 border-b border-gray-200">
+                        <span class="text-[11px] font-semibold text-purple uppercase tracking-wider">Insight AI Portafoglio</span>
+                        <?php if (!empty($ai_portfolio_insight['generated_at'])): ?>
+                            <span class="text-[11px] text-gray-500 ml-auto">Aggiornato: <?php echo date('d/m/Y H:i', strtotime($ai_portfolio_insight['generated_at'])); ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <?php if (!empty($ai_portfolio_insight['insight_text'])): ?>
+                        <?php $scores = $ai_portfolio_insight['insight_json']['scores'] ?? []; ?>
+                        <?php if (!empty($scores) && is_array($scores)): ?>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2 mb-4">
+                                <?php foreach (['health_score'=>'Salute','risk_score'=>'Rischio','diversification_score'=>'Diversificazione','momentum_score'=>'Momentum','volatility_score'=>'Volatilità','extension_score'=>'Estensione'] as $k => $label): ?>
+                                    <?php if (isset($scores[$k])): ?>
+                                        <?php
+                                            $val = (int)$scores[$k];
+                                            // Colori: >70 positivo, 40-70 neutro, <40 negativo. Per Rischio invertiamo la lettura.
+                                            $isRisk = $k === 'risk_score';
+                                            if ($isRisk) {
+                                                $css = $val < 40 ? 'text-positive' : ($val > 70 ? 'text-negative' : 'text-gray-700');
+                                            } else {
+                                                $css = $val > 70 ? 'text-positive' : ($val < 40 ? 'text-negative' : 'text-gray-700');
+                                            }
+                                        ?>
+                                        <div class="bg-white rounded border border-purple/20 px-3 py-2 flex flex-col">
+                                            <span class="text-[11px] text-gray-600"><?php echo $label; ?></span>
+                                            <span class="text-lg font-bold <?php echo $css; ?>"><?php echo $val; ?><span class="text-[11px] text-gray-500 font-normal"> / 100</span></span>
+                                        </div>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                        <?php
+                            $trendText = $ai_portfolio_insight['insight_json']['trend'] ?? '-';
+                            $riskText = $ai_portfolio_insight['insight_json']['risk'] ?? '-';
+                            $volText = $ai_portfolio_insight['insight_json']['volatility_comment'] ?? '-';
+                            $divText = $ai_portfolio_insight['insight_json']['diversification_comment'] ?? '-';
+                        ?>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
+                            <div class="bg-white rounded border border-gray-200 px-3 py-2">
+                                <div class="text-[11px] text-gray-600 uppercase">Trend</div>
+                                <div class="text-sm font-semibold text-primary"><?php echo htmlspecialchars($trendText); ?></div>
+                            </div>
+                            <div class="bg-white rounded border border-gray-200 px-3 py-2">
+                                <div class="text-[11px] text-gray-600 uppercase">Rischio</div>
+                                <div class="text-sm font-semibold text-gray-800"><?php echo htmlspecialchars($riskText); ?></div>
+                            </div>
+                            <div class="bg-white rounded border border-gray-200 px-3 py-2">
+                                <div class="text-[11px] text-gray-600 uppercase">Volatilità</div>
+                                <div class="text-sm text-gray-800"><?php echo htmlspecialchars($volText); ?></div>
+                            </div>
+                            <div class="bg-white rounded border border-gray-200 px-3 py-2">
+                                <div class="text-[11px] text-gray-600 uppercase">Diversificazione</div>
+                                <div class="text-sm text-gray-800"><?php echo htmlspecialchars($divText); ?></div>
+                            </div>
+                        </div>
+                        <div class="text-sm text-gray-800 leading-relaxed mb-3">
+                            <?php echo htmlspecialchars($ai_portfolio_insight['insight_text']); ?>
+                        </div>
+                        <?php if (!empty($ai_portfolio_insight['insight_json']) && is_array($ai_portfolio_insight['insight_json'])): ?>
+                            <ul class="list-disc pl-5 text-xs text-gray-700 space-y-1">
+                                <?php foreach (['trend','risk','volatility_comment','diversification_comment','notes'] as $k):
+                                    if (!empty($ai_portfolio_insight['insight_json'][$k])): ?>
+                                        <li><span class="font-semibold capitalize"><?php echo str_replace('_',' ', $k); ?>:</span> <?php echo htmlspecialchars($ai_portfolio_insight['insight_json'][$k]); ?></li>
+                                    <?php endif;
+                                endforeach; ?>
+                            </ul>
+                        <?php endif; ?>
+                        <div class="text-[11px] text-gray-500 mt-3">Modello: <?php echo htmlspecialchars($ai_portfolio_insight['model'] ?? '-'); ?></div>
+                    <?php else: ?>
+                        <div class="text-sm text-gray-500 italic">Nessun insight AI disponibile. Esegui il workflow AI Technical Insights.</div>
+                    <?php endif; ?>
+                </div>
+
                 <!-- Tabella Analisi Tecnica (DB-first) -->
                 <div class="widget-card widget-purple p-6">
                     <div class="overflow-x-auto">

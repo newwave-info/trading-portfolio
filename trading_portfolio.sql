@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Creato il: Dic 01, 2025 alle 11:37
+-- Creato il: Dic 01, 2025 alle 16:17
 -- Versione del server: 10.5.29-MariaDB-0+deb11u1
 -- Versione PHP: 8.4.12
 
@@ -41,7 +41,7 @@ CREATE TABLE `allocation_by_asset_class` (
 --
 
 INSERT INTO `allocation_by_asset_class` (`id`, `portfolio_id`, `asset_class`, `market_value`, `percentage`, `updated_at`) VALUES
-(131, 1, '', 395110.61, 100.0000, '2025-12-01 10:31:48');
+(135, 1, '', 11173.55, 100.0000, '2025-12-01 13:56:04');
 
 -- --------------------------------------------------------
 
@@ -185,10 +185,10 @@ CREATE TABLE `holdings` (
 --
 
 INSERT INTO `holdings` (`id`, `portfolio_id`, `ticker`, `isin`, `name`, `asset_class`, `sector`, `quantity`, `avg_price`, `current_price`, `dividend_yield`, `annual_dividend`, `dividend_frequency`, `has_dividends`, `total_dividends_5y`, `fifty_two_week_high`, `fifty_two_week_low`, `ytd_change_percent`, `one_month_change_percent`, `three_month_change_percent`, `one_year_change_percent`, `sma9`, `sma21`, `sma50`, `sma200`, `ema9`, `ema21`, `ema50`, `ema200`, `rsi14`, `macd_value`, `macd_signal`, `macd_hist`, `atr14`, `atr14_pct`, `hist_vol_30d`, `hist_vol_90d`, `vol_avg_20d`, `vol_ratio_current_20d`, `range_1m_min`, `range_1m_max`, `range_1m_percentile`, `range_3m_min`, `range_3m_max`, `range_3m_percentile`, `range_6m_min`, `range_6m_max`, `range_6m_percentile`, `range_1y_min`, `range_1y_max`, `range_1y_percentile`, `fib_low`, `fib_high`, `fib_23_6`, `fib_38_2`, `fib_50_0`, `fib_61_8`, `fib_78_6`, `fib_23_6_dist_pct`, `fib_38_2_dist_pct`, `fib_50_0_dist_pct`, `fib_61_8_dist_pct`, `fib_78_6_dist_pct`, `bb_middle`, `bb_upper`, `bb_lower`, `bb_width_pct`, `bb_percent_b`, `technical_as_of`, `previous_close`, `day_high`, `day_low`, `volume`, `price_source`, `exchange`, `first_trade_date`, `is_active`, `created_at`, `updated_at`) VALUES
-(10, 1, 'SGLD.MI', 'IE00B579F325', 'Invesco Physical Gold ETC', '', 'Gold', 10.000000, 272.5500, 352.7400, 0.0000, 0.000000, 'None', 0, 0, 359.6700, 239.2600, 41.3400, 5.6500, 20.0000, 45.3300, 344.4956, 340.9748, 327.9418, 290.4637, 345.5628, 339.2993, 327.2194, 293.2697, 56.28, 6.9500, 6.6084, 0.3416, 5.1329, 1.4600, 25.6800, 18.0100, 100747, 0.4100, 331.9500, 352.7400, 100.0000, 293.2000, 359.1800, 90.2400, 268.9700, 359.1800, 92.8600, 240.4200, 359.1800, 94.5800, 267.4500, 359.6700, 337.9061, 324.4420, 313.5600, 302.6781, 287.1851, 4.2100, 8.0200, 11.1100, 14.1900, 18.5800, 341.3295, 352.6114, 330.0476, 6.6100, 1.0057, '2025-12-01', 145.4900, 352.9800, 351.4400, 40878, 'YahooFinance_v8', 'MIL', 1417161600, 1, '2025-11-30 08:10:13', '2025-12-01 10:31:48'),
-(11, 1, 'VHYL.MI', 'IE00B8GKDB10', 'Vanguard FTSE All-World High Div. Yield UCITS ETF Dis', '', 'Global', 21.000000, 67.9400, 68.7600, 2.9100, 2.001600, 'Quarterly', 1, 20, 69.5000, 55.7600, 6.0500, 1.3700, 4.5800, 3.7100, 68.2644, 68.2224, 66.3062, 64.8209, 68.4513, 67.7119, 66.7084, 65.1498, 52.93, 0.8210, 0.8200, 0.0010, 0.5436, 0.7900, 8.8100, 8.5400, 19519, 0.6900, 67.3400, 69.3800, 69.6100, 65.7000, 69.3800, 83.1500, 62.6700, 69.3800, 90.7600, 56.4400, 69.3800, 95.2100, 62.6400, 69.5000, 67.8810, 66.8795, 66.0700, 65.2605, 64.1080, 1.2800, 2.7300, 3.9100, 5.0900, 6.7700, 68.2420, 69.3836, 67.1004, 3.3500, 0.7269, '2025-12-01', 45.5650, 68.9300, 68.7600, 13539, 'YahooFinance_v8', 'MIL', 1547798400, 1, '2025-11-30 08:10:13', '2025-12-01 10:31:48'),
-(12, 1, 'TDIV.MI', 'NL0011683594', 'VanEck Morn. Dev. Mkts Div Lead. UCITS ETF', '', 'Mixed', 50.000000, 46.0000, 46.7850, 3.8300, 1.790000, 'Quarterly', 1, 20, 47.0000, 36.7950, 12.9000, 3.8200, 7.1100, 14.0700, 46.2933, 46.0479, 44.3389, 43.3562, 46.4288, 45.7231, 44.7788, 43.2484, 54.50, 0.7802, 0.7731, 0.0071, 0.4275, 0.9100, 8.5400, 9.1600, 42927, 0.1600, 45.0650, 46.9000, 93.7300, 43.6800, 46.9000, 96.4300, 41.7650, 46.9000, 97.7600, 37.6800, 46.9000, 98.7500, 41.6900, 47.0000, 45.7468, 44.9716, 44.3450, 43.7184, 42.8263, 2.2200, 3.8800, 5.2200, 6.5500, 8.4600, 46.0970, 47.2605, 44.9335, 5.0500, 0.7956, '2025-12-01', 25.7250, 46.8150, 46.7000, 6673, 'YahooFinance_v8', 'MIL', 1556002800, 1, '2025-11-30 08:10:13', '2025-12-01 10:31:48'),
-(15, 1, 'SWDA.MI', 'IE00B4L5Y983', 'iShares Core MSCI World UCITS ETF USD (Acc)', '', 'Global', 3500.000000, 111.5400, 110.8000, 0.0000, 0.000000, 'None', 0, 0, 112.5500, 82.7000, 5.2200, -1.0300, 6.1300, 4.8200, 109.9600, 110.3271, 107.4182, 102.0830, 110.3578, 109.3578, 107.7164, 103.5455, 52.34, 1.1257, 1.1230, 0.0027, 1.3950, 1.2600, 13.8100, 11.8600, 198330, 0.2300, 108.1300, 111.9600, 69.7100, 104.4000, 111.9600, 84.6600, 98.5700, 111.9600, 91.3400, 85.2900, 111.9600, 95.6500, 98.4400, 112.5500, 109.2200, 107.1600, 105.4950, 103.8300, 101.4595, 1.4300, 3.2900, 4.7900, 6.2900, 8.4300, 110.2460, 112.5650, 107.9270, 4.2100, 0.6195, '2025-12-01', 59.1400, 110.9900, 110.6600, 45539, 'YahooFinance_v8', 'MIL', 1253862000, 1, '2025-11-30 08:14:43', '2025-12-01 10:31:48');
+(10, 1, 'SGLD.MI', 'IE00B579F325', 'Invesco Physical Gold ETC', '', 'Gold', 10.000000, 272.5500, 352.1400, 0.0000, 0.000000, 'None', 0, 0, 359.6700, 239.2600, 41.1000, 5.4700, 19.7900, 45.0800, 344.4289, 340.9462, 327.9298, 290.4607, 345.4428, 339.2448, 327.1959, 293.2637, 56.09, 6.9021, 6.5988, 0.3033, 5.1329, 1.4600, 25.6400, 17.9900, 101261, 0.5100, 331.9500, 352.1400, 100.0000, 293.2000, 359.1800, 89.3300, 268.9700, 359.1800, 92.2000, 240.4200, 359.1800, 94.0700, 267.4500, 359.6700, 337.9061, 324.4420, 313.5600, 302.6781, 287.1851, 4.0400, 7.8700, 10.9600, 14.0500, 18.4500, 341.2995, 352.4625, 330.1365, 6.5400, 0.9856, '2025-12-01', 145.4900, 352.9800, 351.4400, 51151, 'YahooFinance_v8', 'MIL', 1417161600, 1, '2025-11-30 08:10:13', '2025-12-01 11:30:03'),
+(11, 1, 'VHYL.MI', 'IE00B8GKDB10', 'Vanguard FTSE All-World High Div. Yield UCITS ETF Dis', '', 'Global', 21.000000, 67.9400, 68.7500, 2.9100, 2.001600, 'Quarterly', 1, 20, 69.5000, 55.7600, 6.0300, 1.3600, 4.5600, 3.7000, 68.2633, 68.2219, 66.3060, 64.8208, 68.4493, 67.7110, 66.7080, 65.1497, 52.91, 0.8202, 0.8199, 0.0004, 0.5443, 0.7900, 8.8200, 8.5500, 19569, 0.7400, 67.3400, 69.3800, 69.1200, 65.7000, 69.3800, 82.8800, 62.6700, 69.3800, 90.6100, 56.4400, 69.3800, 95.1300, 62.6400, 69.5000, 67.8810, 66.8795, 66.0700, 65.2605, 64.1080, 1.2600, 2.7200, 3.9000, 5.0800, 6.7500, 68.2415, 69.3822, 67.1008, 3.3400, 0.7229, '2025-12-01', 45.5650, 68.9300, 68.7500, 14552, 'YahooFinance_v8', 'MIL', 1547798400, 1, '2025-11-30 08:10:13', '2025-12-01 11:30:03'),
+(12, 1, 'TDIV.MI', 'NL0011683594', 'VanEck Morn. Dev. Mkts Div Lead. UCITS ETF', '', 'Mixed', 50.000000, 46.0000, 46.6850, 3.8300, 1.790000, 'Quarterly', 1, 20, 47.0000, 36.7950, 12.6600, 3.5900, 6.8800, 13.8200, 46.2822, 46.0431, 44.3369, 43.3557, 46.4088, 45.7140, 44.7749, 43.2474, 54.17, 0.7722, 0.7715, 0.0007, 0.4286, 0.9200, 8.6100, 9.1800, 43064, 0.2200, 45.0650, 46.9000, 88.2800, 43.6800, 46.9000, 93.3200, 41.7650, 46.9000, 95.8100, 37.6800, 46.9000, 97.6700, 41.6900, 47.0000, 45.7468, 44.9716, 44.3450, 43.7184, 42.8263, 2.0100, 3.6700, 5.0100, 6.3500, 8.2700, 46.0920, 47.2445, 44.9395, 5.0000, 0.7573, '2025-12-01', 25.7250, 46.8150, 46.6850, 9425, 'YahooFinance_v8', 'MIL', 1556002800, 1, '2025-11-30 08:10:13', '2025-12-01 11:30:03'),
+(15, 1, 'SWDA.MI', 'IE00B4L5Y983', 'iShares Core MSCI World UCITS ETF USD (Acc)', '', 'Global', 35.000000, 111.5400, 110.6900, 0.0000, 0.000000, 'None', 0, 0, 112.5500, 82.7000, 5.1200, -1.1300, 6.0200, 4.7100, 109.9478, 110.3219, 107.4160, 102.0825, 110.3358, 109.3478, 107.7121, 103.5444, 52.21, 1.1169, 1.1213, -0.0043, 1.3957, 1.2600, 13.8600, 11.8700, 198705, 0.2700, 108.1300, 111.9600, 66.8400, 104.4000, 111.9600, 83.2000, 98.5700, 111.9600, 90.5200, 85.2900, 111.9600, 95.2400, 98.4400, 112.5500, 109.2200, 107.1600, 105.4950, 103.8300, 101.4595, 1.3300, 3.1900, 4.6900, 6.2000, 8.3400, 110.2405, 112.5547, 107.9263, 4.2000, 0.5971, '2025-12-01', 59.1400, 110.9900, 110.6500, 53041, 'YahooFinance_v8', 'MIL', 1253862000, 1, '2025-11-30 08:14:43', '2025-12-01 13:56:04');
 
 -- --------------------------------------------------------
 
@@ -230,7 +230,7 @@ CREATE TABLE `monthly_performance` (
 
 INSERT INTO `monthly_performance` (`id`, `portfolio_id`, `year`, `month`, `month_label`, `total_value`, `total_invested`, `total_gain`, `gain_pct`) VALUES
 (1, 1, 2025, 11, 'Nov', 46285.60, 45491.24, 794.36, 1.7462),
-(114, 1, 2025, 12, 'Dec', 395110.61, 396842.24, -1731.63, -0.4364);
+(114, 1, 2025, 12, 'Dec', 11173.55, 10356.14, 817.41, 7.8930);
 
 -- --------------------------------------------------------
 
@@ -252,7 +252,7 @@ CREATE TABLE `portfolios` (
 --
 
 INSERT INTO `portfolios` (`id`, `name`, `owner`, `base_currency`, `created_at`, `updated_at`) VALUES
-(1, 'Portafoglio ETF Personale', 'User', 'EUR', '2025-11-27 21:39:10', '2025-12-01 08:21:02');
+(1, 'Portafoglio ETF Personale', 'User', 'EUR', '2025-11-27 21:39:10', '2025-12-01 13:56:04');
 
 -- --------------------------------------------------------
 
@@ -282,7 +282,7 @@ INSERT INTO `snapshots` (`id`, `portfolio_id`, `snapshot_date`, `total_invested`
 (2, 1, '2025-11-28', 43273.90, 44587.20, 1313.30, 3.0349, 0.00, '{\"holdings_count\":4}', '2025-11-28 07:26:52'),
 (3, 1, '2025-11-29', 6452.27, 6452.27, 0.00, 0.0000, 0.00, '{\"holdings_count\":3}', '2025-11-29 13:07:51'),
 (4, 1, '2025-11-30', 45491.24, 46285.60, 794.36, 1.7462, 0.00, '{\"holdings_count\":4}', '2025-11-30 08:00:40'),
-(5, 1, '2025-12-01', 396842.24, 395110.61, -1731.63, -0.4364, 0.00, '{\"holdings_count\":4}', '2025-12-01 06:00:02');
+(5, 1, '2025-12-01', 10356.14, 11173.55, 817.41, 7.8930, 0.00, '{\"holdings_count\":4}', '2025-12-01 06:00:02');
 
 -- --------------------------------------------------------
 
@@ -319,10 +319,36 @@ INSERT INTO `snapshot_holdings` (`id`, `snapshot_id`, `ticker`, `quantity`, `avg
 (452, 4, 'SGLD.MI', 10.000000, 272.5500, 349.4800, 3494.80, 2725.50, 769.30, 28.2260),
 (453, 4, 'TDIV.MI', 50.000000, 46.0000, 46.8050, 2340.25, 2300.00, 40.25, 1.7500),
 (454, 4, 'VHYL.MI', 21.000000, 67.9400, 69.0500, 1450.05, 1426.74, 23.31, 1.6338),
-(499, 5, 'SWDA.MI', 3500.000000, 111.5400, 110.8000, 387800.00, 390390.00, -2590.00, -0.6634),
-(500, 5, 'SGLD.MI', 10.000000, 272.5500, 352.7400, 3527.40, 2725.50, 801.90, 29.4221),
-(501, 5, 'TDIV.MI', 50.000000, 46.0000, 46.7850, 2339.25, 2300.00, 39.25, 1.7065),
-(502, 5, 'VHYL.MI', 21.000000, 67.9400, 68.7600, 1443.96, 1426.74, 17.22, 1.2069);
+(515, 5, 'SWDA.MI', 35.000000, 111.5400, 110.6900, 3874.15, 3903.90, -29.75, -0.7621),
+(516, 5, 'SGLD.MI', 10.000000, 272.5500, 352.1400, 3521.40, 2725.50, 795.90, 29.2020),
+(517, 5, 'TDIV.MI', 50.000000, 46.0000, 46.6850, 2334.25, 2300.00, 34.25, 1.4891),
+(518, 5, 'VHYL.MI', 21.000000, 67.9400, 68.7500, 1443.75, 1426.74, 17.01, 1.1922);
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `technical_insights`
+--
+
+CREATE TABLE `technical_insights` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `portfolio_id` int(10) UNSIGNED NOT NULL,
+  `isin` varchar(32) DEFAULT NULL,
+  `scope` enum('portfolio','instrument') NOT NULL DEFAULT 'instrument',
+  `model` varchar(100) NOT NULL,
+  `generated_at` datetime NOT NULL,
+  `raw_input_snapshot` mediumtext DEFAULT NULL,
+  `insight_json` mediumtext DEFAULT NULL,
+  `insight_text` mediumtext DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI technical insights per portafoglio e strumenti';
+
+--
+-- Dump dei dati per la tabella `technical_insights`
+--
+
+INSERT INTO `technical_insights` (`id`, `portfolio_id`, `isin`, `scope`, `model`, `generated_at`, `raw_input_snapshot`, `insight_json`, `insight_text`, `created_at`) VALUES
+(4, 1, NULL, 'portfolio', 'gpt-5-mini', '2025-12-01 15:16:26', '{\"portfolio_id\":1,\"as_of\":\"2025-12-01T14:18:21.250Z\",\"holdings\":[{\"ticker\":\"SWDA.MI\",\"isin\":null,\"name\":\"iShares Core MSCI World UCITS ETF USD (Acc)\",\"sector\":\"Global\",\"asset_class\":null,\"price\":110.69,\"indicators\":{\"ema9\":110.3358,\"ema21\":109.3478,\"ema50\":107.7121,\"ema200\":103.5444,\"rsi14\":52.21,\"atr14\":null,\"atr14_pct\":1.26,\"hist_vol_30d\":13.86,\"hist_vol_90d\":null,\"range_1m_percentile\":null,\"range_3m_percentile\":null,\"range_1y_percentile\":95.24,\"bb_percent_b\":0.5971,\"macd_value\":null,\"macd_signal\":null,\"macd_hist\":null,\"ytd_change_percent\":5.12,\"one_month_change_percent\":-1.13,\"three_month_change_percent\":6.02,\"one_year_change_percent\":4.71,\"fifty_two_week_high\":112.55,\"fifty_two_week_low\":82.7},\"derived\":{\"trend_ema50_ema200\":\"bullish\",\"momentum_ema9_ema21\":\"bullish\",\"near_52w_high\":true,\"near_52w_low\":false}},{\"ticker\":\"SGLD.MI\",\"isin\":null,\"name\":\"Invesco Physical Gold ETC\",\"sector\":\"Gold\",\"asset_class\":null,\"price\":352.14,\"indicators\":{\"ema9\":345.4428,\"ema21\":339.2448,\"ema50\":327.1959,\"ema200\":293.2637,\"rsi14\":56.09,\"atr14\":null,\"atr14_pct\":1.46,\"hist_vol_30d\":25.64,\"hist_vol_90d\":null,\"range_1m_percentile\":null,\"range_3m_percentile\":null,\"range_1y_percentile\":94.07,\"bb_percent_b\":0.9856,\"macd_value\":null,\"macd_signal\":null,\"macd_hist\":null,\"ytd_change_percent\":41.1,\"one_month_change_percent\":5.47,\"three_month_change_percent\":19.79,\"one_year_change_percent\":45.08,\"fifty_two_week_high\":359.67,\"fifty_two_week_low\":239.26},\"derived\":{\"trend_ema50_ema200\":\"bullish\",\"momentum_ema9_ema21\":\"bullish\",\"near_52w_high\":true,\"near_52w_low\":false}},{\"ticker\":\"TDIV.MI\",\"isin\":null,\"name\":\"VanEck Morn. Dev. Mkts Div Lead. UCITS ETF\",\"sector\":\"Mixed\",\"asset_class\":null,\"price\":46.685,\"indicators\":{\"ema9\":46.4088,\"ema21\":45.714,\"ema50\":44.7749,\"ema200\":43.2474,\"rsi14\":54.17,\"atr14\":null,\"atr14_pct\":0.92,\"hist_vol_30d\":8.61,\"hist_vol_90d\":null,\"range_1m_percentile\":null,\"range_3m_percentile\":null,\"range_1y_percentile\":97.67,\"bb_percent_b\":0.7573,\"macd_value\":null,\"macd_signal\":null,\"macd_hist\":null,\"ytd_change_percent\":12.66,\"one_month_change_percent\":3.59,\"three_month_change_percent\":6.88,\"one_year_change_percent\":13.82,\"fifty_two_week_high\":47,\"fifty_two_week_low\":36.795},\"derived\":{\"trend_ema50_ema200\":\"bullish\",\"momentum_ema9_ema21\":\"bullish\",\"near_52w_high\":true,\"near_52w_low\":false}},{\"ticker\":\"VHYL.MI\",\"isin\":null,\"name\":\"Vanguard FTSE All-World High Div. Yield UCITS ETF Dis\",\"sector\":\"Global\",\"asset_class\":null,\"price\":68.75,\"indicators\":{\"ema9\":68.4493,\"ema21\":67.711,\"ema50\":66.708,\"ema200\":65.1497,\"rsi14\":52.91,\"atr14\":null,\"atr14_pct\":0.79,\"hist_vol_30d\":8.82,\"hist_vol_90d\":null,\"range_1m_percentile\":null,\"range_3m_percentile\":null,\"range_1y_percentile\":95.13,\"bb_percent_b\":0.7229,\"macd_value\":null,\"macd_signal\":null,\"macd_hist\":null,\"ytd_change_percent\":6.03,\"one_month_change_percent\":1.36,\"three_month_change_percent\":4.56,\"one_year_change_percent\":3.7,\"fifty_two_week_high\":69.5,\"fifty_two_week_low\":55.76},\"derived\":{\"trend_ema50_ema200\":\"bullish\",\"momentum_ema9_ema21\":\"bullish\",\"near_52w_high\":true,\"near_52w_low\":false}}]}', '{\"scores\":{\"health_score\":78,\"risk_score\":42,\"diversification_score\":62,\"momentum_score\":70,\"volatility_score\":46,\"extension_score\":66},\"trend\":\"bullish\",\"risk\":\"medium\",\"volatility_comment\":\"Volatilità complessiva moderata; oro (SGLD) mostra volatilità significativamente più alta rispetto agli ETF azionari.\",\"diversification_comment\":\"Diversificazione funzionale tra azioni globali, high-dividend, mercati sviluppati\\/emergenti e oro; leggero sovrappeso su esposizione azionaria globale.\",\"notes\":\"Posizionamento vicino ai massimi a 52 settimane aumenta il rischio di ritracciamenti; supporti su EMA21\\/50 e livelli storici da monitorare.\"}', 'Portafoglio con trend generale positivo e momentum moderato; volatilità complessiva contenuta ad eccezione dell\'oro. Tutti gli strumenti sono vicino ai massimi a 52 settimane: monitorare possibili inversioni di momentum e aumento della volatilità.', '2025-12-01 15:16:28');
 
 -- --------------------------------------------------------
 
@@ -355,10 +381,10 @@ INSERT INTO `technical_snapshots` (`id`, `portfolio_id`, `isin`, `snapshot_date`
 (2, 1, 'IE00B4L5Y983', '2025-11-30', 111.4300, 53.11, 1.1461, 1.1223, 14.0700, 1.2500, 98.0100, 0.7322, '2025-11-30 20:09:37'),
 (3, 1, 'NL0011683594', '2025-11-30', 46.8050, 54.57, 0.7890, 0.7713, 8.7900, 0.9900, 98.9700, 0.8305, '2025-11-30 20:09:37'),
 (4, 1, 'IE00B8GKDB10', '2025-11-30', 69.0500, 53.55, 0.8373, 0.8198, 8.9600, 0.8200, 97.4500, 0.8784, '2025-11-30 20:09:37'),
-(5, 1, 'IE00B579F325', '2025-12-01', 352.7400, 56.28, 6.9500, 6.6084, 25.6800, 1.4600, 94.5800, 1.0057, '2025-12-01 10:31:48'),
-(6, 1, 'IE00B4L5Y983', '2025-12-01', 110.8000, 52.34, 1.1257, 1.1230, 13.8100, 1.2600, 95.6500, 0.6195, '2025-12-01 10:31:48'),
-(7, 1, 'NL0011683594', '2025-12-01', 46.7850, 54.50, 0.7802, 0.7731, 8.5400, 0.9100, 98.7500, 0.7956, '2025-12-01 10:31:48'),
-(8, 1, 'IE00B8GKDB10', '2025-12-01', 68.7600, 52.93, 0.8210, 0.8200, 8.8100, 0.7900, 95.2100, 0.7269, '2025-12-01 10:31:48');
+(5, 1, 'IE00B579F325', '2025-12-01', 352.1400, 56.09, 6.9021, 6.5988, 25.6400, 1.4600, 94.0700, 0.9856, '2025-12-01 10:31:48'),
+(6, 1, 'IE00B4L5Y983', '2025-12-01', 110.6900, 52.21, 1.1169, 1.1213, 13.8600, 1.2600, 95.2400, 0.5971, '2025-12-01 10:31:48'),
+(7, 1, 'NL0011683594', '2025-12-01', 46.6850, 54.17, 0.7722, 0.7715, 8.6100, 0.9200, 97.6700, 0.7573, '2025-12-01 10:31:48'),
+(8, 1, 'IE00B8GKDB10', '2025-12-01', 68.7500, 52.91, 0.8202, 0.8199, 8.8200, 0.7900, 95.1300, 0.7229, '2025-12-01 10:31:48');
 
 -- --------------------------------------------------------
 
@@ -391,7 +417,8 @@ INSERT INTO `transactions` (`id`, `portfolio_id`, `ticker`, `transaction_date`, 
 (4, 1, 'SGLD.MI', '2025-11-30', 'BUY', 90.000000, 272.5500, 24529.50, 0.00, 'Update holding', '2025-11-30 15:27:00'),
 (5, 1, 'SGLD.MI', '2025-11-30', 'BUY', 900.000000, 272.5500, 245295.00, 0.00, 'Update holding', '2025-11-30 15:29:48'),
 (6, 1, 'SGLD.MI', '2025-11-30', 'SELL', 990.000000, 272.5500, 269824.50, 0.00, 'Update holding', '2025-11-30 15:30:56'),
-(7, 1, 'SWDA.MI', '2025-12-01', 'BUY', 3150.000000, 111.5400, 351351.00, 0.00, 'Update holding', '2025-12-01 08:21:02');
+(7, 1, 'SWDA.MI', '2025-12-01', 'BUY', 3150.000000, 111.5400, 351351.00, 0.00, 'Update holding', '2025-12-01 08:21:02'),
+(8, 1, 'SWDA.MI', '2025-12-01', 'SELL', 3465.000000, 111.5400, 386486.10, 0.00, 'Update holding', '2025-12-01 13:56:04');
 
 -- --------------------------------------------------------
 
@@ -563,6 +590,14 @@ ALTER TABLE `snapshot_holdings`
   ADD KEY `idx_ticker` (`ticker`);
 
 --
+-- Indici per le tabelle `technical_insights`
+--
+ALTER TABLE `technical_insights`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_portfolio_scope_date` (`portfolio_id`,`scope`,`generated_at`),
+  ADD KEY `idx_isin_date` (`isin`,`generated_at`);
+
+--
 -- Indici per le tabelle `technical_snapshots`
 --
 ALTER TABLE `technical_snapshots`
@@ -588,7 +623,7 @@ ALTER TABLE `transactions`
 -- AUTO_INCREMENT per la tabella `allocation_by_asset_class`
 --
 ALTER TABLE `allocation_by_asset_class`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=132;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=136;
 
 --
 -- AUTO_INCREMENT per la tabella `cron_logs`
@@ -618,7 +653,7 @@ ALTER TABLE `metadata_cache`
 -- AUTO_INCREMENT per la tabella `monthly_performance`
 --
 ALTER TABLE `monthly_performance`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=137;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=145;
 
 --
 -- AUTO_INCREMENT per la tabella `portfolios`
@@ -636,19 +671,25 @@ ALTER TABLE `snapshots`
 -- AUTO_INCREMENT per la tabella `snapshot_holdings`
 --
 ALTER TABLE `snapshot_holdings`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=503;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=519;
+
+--
+-- AUTO_INCREMENT per la tabella `technical_insights`
+--
+ALTER TABLE `technical_insights`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT per la tabella `technical_snapshots`
 --
 ALTER TABLE `technical_snapshots`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT per la tabella `transactions`
 --
 ALTER TABLE `transactions`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 -- --------------------------------------------------------
 
