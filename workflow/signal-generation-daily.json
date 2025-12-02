@@ -1,0 +1,539 @@
+{
+  "name": "Signal Generation - Daily (19:30 CET)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "30 19 * * *"
+            }
+          ]
+        }
+      },
+      "name": "Cron Trigger - Daily 19:30 CET",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1200,
+        400
+      ],
+      "id": "1a1a1a1a-1111-1111-1111-111111111111",
+      "notes": "Esegue ogni giorno alle 19:30 CET (dopo chiusura mercati europei)"
+    },
+    {
+      "parameters": {
+        "fields": {
+          "values": [
+            {
+              "name": "APP_BASE_URL",
+              "stringValue": "https://portfolio.newwave-media.it"
+            },
+            {
+              "name": "PORTFOLIO_ID",
+              "stringValue": "1"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Config Variables",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        -960,
+        400
+      ],
+      "id": "2b2b2b2b-2222-2222-2222-222222222222",
+      "notes": "Configurazione base URL e portfolio ID"
+    },
+    {
+      "parameters": {
+        "url": "={{$json.APP_BASE_URL}}/api/holdings.php?enriched=true&include_technical=true&active_only=true",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; ETF-Portfolio-Manager/2.1; +https://portfolio.newwave-media.it)"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "name": "Get Holdings Enriched",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -720,
+        400
+      ],
+      "id": "3c3c3c3c-3333-3333-3333-333333333333",
+      "notes": "Recupera holdings arricchiti con dati tecnici"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-data",
+              "leftValue": "={{$json.data ? $json.data.length : 0}}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "IF - Data Available",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        400
+      ],
+      "id": "4d4d4d4d-4444-4444-4444-444444444444",
+      "notes": "Verifica che ci siano holdings da processare"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$node['Config Variables'].json.APP_BASE_URL}}/api/signals.php",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; ETF-Portfolio-Manager/2.1; +https://portfolio.newwave-media.it)"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"portfolio_id\": {{$node['Config Variables'].json.PORTFOLIO_ID}},\n  \"analysis_type\": \"daily_generation\",\n  \"session_type\": \"europe_close\",\n  \"include_rebalance\": true,\n  \"confidence_threshold\": 60\n}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "name": "Generate Signals",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -240,
+        320
+      ],
+      "id": "5e5e5e5e-5555-5555-5555-555555555555",
+      "notes": "Chiama SignalGeneratorService per generare segnali"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: $json (risposta da SignalGeneratorService)\n// Output: recommendations elaborate per batch processing\n\nconst response = $json;\nconst recommendations = response.recommendations || [];\nconst stats = {\n    total: recommendations.length,\n    by_urgency: {\n        IMMEDIATO: recommendations.filter(r => r.urgency === 'IMMEDIATO').length,\n        QUESTA_SETTIMANA: recommendations.filter(r => r.urgency === 'QUESTA_SETTIMANA').length,\n        PROSSIME_2_SETTIMANE: recommendations.filter(r => r.urgency === 'PROSSIME_2_SETTIMANE').length,\n        MONITORAGGIO: recommendations.filter(r => r.urgency === 'MONITORAGGIO').length\n    },\n    by_type: {\n        BUY_LIMIT: recommendations.filter(r => r.type === 'BUY_LIMIT').length,\n        SELL_PARTIAL: recommendations.filter(r => r.type === 'SELL_PARTIAL').length,\n        SET_STOP_LOSS: recommendations.filter(r => r.type === 'SET_STOP_LOSS').length,\n        SET_TAKE_PROFIT: recommendations.filter(r => r.type === 'SET_TAKE_PROFIT').length,\n        REBALANCE: recommendations.filter(r => r.type === 'REBALANCE').length\n    },\n    avg_confidence: recommendations.length > 0 \n        ? recommendations.reduce((sum, r) => sum + (r.confidence_score || 0), 0) / recommendations.length \n        : 0\n};\n\n// Log per monitoring\nconsole.log(`[Signal Generation Daily] Generated ${stats.total} recommendations:`, JSON.stringify(stats, null, 2));\n\nif (recommendations.length === 0) {\n    console.log('[Signal Generation Daily] No signals to process');\n    return [];\n}\n\nreturn recommendations.map(rec => ({\n    json: {\n        recommendation: rec,\n        metadata: {\n            generated_at: new Date().toISOString(),\n            workflow_id: 'signal_generation_daily',\n            batch_id: 'daily_' + new Date().toISOString().split('T')[0],\n            total_generated: stats.total\n        }\n    }\n}));"
+      },
+      "name": "Process Recommendations",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        320
+      ],
+      "id": "6f6f6f6f-6666-6666-6666-666666666666",
+      "notes": "Processa raccomandazioni e calcola statistiche"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-signals",
+              "leftValue": "={{$json.recommendation ? 1 : 0}}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "IF - Signals Generated",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        240,
+        320
+      ],
+      "id": "7a7a7a7a-7777-7777-7777-777777777777",
+      "notes": "Verifica se ci sono segnali da processare"
+    },
+    {
+      "parameters": {
+        "options": {
+          "batchSize": 1
+        }
+      },
+      "name": "Split In Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        480,
+        240
+      ],
+      "id": "8b8b8b8b-8888-8888-8888-888888888888",
+      "notes": "Processa una raccomandazione alla volta"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-urgency",
+              "leftValue": "={{$json.recommendation.urgency}}",
+              "rightValue": "IMMEDIATO",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "IF - High Priority",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        720,
+        240
+      ],
+      "id": "9c9c9c9c-9999-9999-9999-999999999999",
+      "notes": "Controlla se è un segnale IMMEDIATO"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$node['Config Variables'].json.APP_BASE_URL}}/api/alerts.php",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; ETF-Portfolio-Manager/2.1; +https://portfolio.newwave-media.it)"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"send\",\n  \"priority\": \"high\",\n  \"signal\": {{JSON.stringify($json.recommendation)}},\n  \"metadata\": {{JSON.stringify($json.metadata)}}\n}",
+        "options": {}
+      },
+      "name": "Send High Priority Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        960,
+        160
+      ],
+      "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      "notes": "Invia notifica email/Telegram per segnali urgenti"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$node['Config Variables'].json.APP_BASE_URL}}/api/recommendations.php",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; ETF-Portfolio-Manager/2.1; +https://portfolio.newwave-media.it)"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify($json.recommendation)}}",
+        "options": {}
+      },
+      "name": "Save Recommendation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        960,
+        320
+      ],
+      "id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+      "notes": "Salva raccomandazione nel database"
+    },
+    {
+      "parameters": {
+        "amount": 500,
+        "unit": "ms"
+      },
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1200,
+        240
+      ],
+      "id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+      "webhookId": "wait-batch-delay",
+      "notes": "Attesa 500ms tra batch per evitare sovraccarico"
+    },
+    {
+      "parameters": {
+        "jsCode": "console.log('[Signal Generation Daily] No signals generated in this execution');\nreturn [{ json: { status: 'no_signals', timestamp: new Date().toISOString() } }];"
+      },
+      "name": "Log No Signals",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        400
+      ],
+      "id": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+      "notes": "Log quando non ci sono segnali"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$node['Config Variables'].json.APP_BASE_URL}}/api/alerts.php",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; ETF-Portfolio-Manager/2.1; +https://portfolio.newwave-media.it)"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"send\",\n  \"priority\": \"critical\",\n  \"error\": \"No holdings data available\",\n  \"timestamp\": \"{{new Date().toISOString()}}\"\n}",
+        "options": {}
+      },
+      "name": "Send System Error Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -240,
+        480
+      ],
+      "id": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+      "notes": "Invia alert se non ci sono dati holdings"
+    }
+  ],
+  "connections": {
+    "Cron Trigger - Daily 19:30 CET": {
+      "main": [
+        [
+          {
+            "node": "Config Variables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config Variables": {
+      "main": [
+        [
+          {
+            "node": "Get Holdings Enriched",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Holdings Enriched": {
+      "main": [
+        [
+          {
+            "node": "IF - Data Available",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Data Available": {
+      "main": [
+        [
+          {
+            "node": "Generate Signals",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send System Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Signals": {
+      "main": [
+        [
+          {
+            "node": "Process Recommendations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Recommendations": {
+      "main": [
+        [
+          {
+            "node": "IF - Signals Generated",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Signals Generated": {
+      "main": [
+        [
+          {
+            "node": "Split In Batches",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log No Signals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split In Batches": {
+      "main": [
+        [
+          {
+            "node": "IF - High Priority",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - High Priority": {
+      "main": [
+        [
+          {
+            "node": "Send High Priority Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save Recommendation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send High Priority Alert": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Recommendation": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Split In Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "versionId": "e1e1e1e1-e1e1-e1e1-e1e1-e1e1e1e1e1e1",
+  "meta": {
+    "instanceId": "signal-generation-daily-workflow-v1"
+  },
+  "id": "SignalGenDaily001",
+  "tags": [
+    {
+      "createdAt": "2025-12-02T00:00:00.000Z",
+      "updatedAt": "2025-12-02T00:00:00.000Z",
+      "id": "1",
+      "name": "trading-signals"
+    },
+    {
+      "createdAt": "2025-12-02T00:00:00.000Z",
+      "updatedAt": "2025-12-02T00:00:00.000Z",
+      "id": "2",
+      "name": "automation"
+    }
+  ]
+}

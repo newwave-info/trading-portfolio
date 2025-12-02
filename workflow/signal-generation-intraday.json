@@ -1,0 +1,395 @@
+{
+  "name": "Signal Generation - Intraday Multi-Schedule",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8,13,18 * * 1-5"
+            }
+          ]
+        }
+      },
+      "name": "Cron Trigger - Multi Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1200,
+        400
+      ],
+      "id": "f1f1f1f1-1111-1111-1111-111111111111",
+      "notes": "Esegue alle 08:00, 13:00, 18:00 CET nei giorni feriali (lun-ven)"
+    },
+    {
+      "parameters": {
+        "fields": {
+          "values": [
+            {
+              "name": "APP_BASE_URL",
+              "stringValue": "https://portfolio.newwave-media.it"
+            },
+            {
+              "name": "PORTFOLIO_ID",
+              "stringValue": "1"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Config Variables",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        -960,
+        400
+      ],
+      "id": "f2f2f2f2-2222-2222-2222-222222222222",
+      "notes": "Configurazione base URL e portfolio ID"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Determina tipo di sessione in base all'ora\nconst now = new Date();\nconst hour = now.getHours();\nlet session_type, priority, include_rebalance, confidence_threshold, max_signals;\n\nif (hour === 8) {\n    session_type = 'morning_pre_market';\n    priority = 'overnight_gap_analysis';\n    include_rebalance = false;\n    confidence_threshold = 70; // Più alto per mattina\n    max_signals = 3;\n    console.log('[Intraday] Morning session 08:00 - Analyzing overnight gaps');\n} else if (hour === 13) {\n    session_type = 'midday_analysis';\n    priority = 'intraday_opportunities';\n    include_rebalance = false;\n    confidence_threshold = 75; // Ancora più alto per sessione centrale\n    max_signals = 2;\n    console.log('[Intraday] Midday session 13:00 - Looking for intraday opportunities');\n} else if (hour === 18) {\n    session_type = 'evening_analysis';\n    priority = 'setup_for_tomorrow';\n    include_rebalance = true; // Solo la sera include rebalance\n    confidence_threshold = 70;\n    max_signals = 5;\n    console.log('[Intraday] Evening session 18:00 - Setup for tomorrow');\n} else {\n    // Fallback per esecuzioni fuori orario\n    session_type = 'off_hours';\n    priority = 'monitoring';\n    include_rebalance = false;\n    confidence_threshold = 80;\n    max_signals = 1;\n    console.log('[Intraday] Off-hours execution at', hour, ':00');\n}\n\nconst config = $node['Config Variables'].json;\n\nreturn [{\n    json: {\n        session_type: session_type,\n        priority: priority,\n        include_rebalance: include_rebalance,\n        confidence_threshold: confidence_threshold,\n        max_signals: max_signals,\n        execution_hour: hour,\n        timestamp: now.toISOString(),\n        APP_BASE_URL: config.APP_BASE_URL,\n        PORTFOLIO_ID: config.PORTFOLIO_ID\n    }\n}];"
+      },
+      "name": "Determine Session Type",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        400
+      ],
+      "id": "f3f3f3f3-3333-3333-3333-333333333333",
+      "notes": "Determina tipo di sessione in base all'ora di esecuzione"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$json.APP_BASE_URL}}/api/signals.php",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; ETF-Portfolio-Manager/2.1; +https://portfolio.newwave-media.it)"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"portfolio_id\": {{$json.PORTFOLIO_ID}},\n  \"analysis_type\": \"{{$json.session_type}}\",\n  \"session_type\": \"{{$json.priority}}\",\n  \"include_rebalance\": {{$json.include_rebalance}},\n  \"confidence_threshold\": {{$json.confidence_threshold}},\n  \"max_signals\": {{$json.max_signals}}\n}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "name": "Generate Intraday Signals",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -480,
+        400
+      ],
+      "id": "f4f4f4f4-4444-4444-4444-444444444444",
+      "notes": "Genera segnali per la sessione corrente"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filtra solo segnali urgenti (IMMEDIATO e QUESTA_SETTIMANA)\nconst response = $json;\nconst allRecommendations = response.recommendations || [];\nconst sessionInfo = $node['Determine Session Type'].json;\n\n// Filtra per urgenza\nconst urgentSignals = allRecommendations.filter(rec => \n    rec.urgency === 'IMMEDIATO' || rec.urgency === 'QUESTA_SETTIMANA'\n);\n\n// Applica limite max_signals\nconst limitedSignals = urgentSignals.slice(0, sessionInfo.max_signals);\n\nconst stats = {\n    total_generated: allRecommendations.length,\n    urgent_count: urgentSignals.length,\n    filtered_count: limitedSignals.length,\n    session: sessionInfo.session_type,\n    hour: sessionInfo.execution_hour\n};\n\nconsole.log('[Intraday] Signal filtering stats:', JSON.stringify(stats, null, 2));\n\nif (limitedSignals.length === 0) {\n    console.log('[Intraday] No urgent signals for this session');\n    return [];\n}\n\nreturn [{\n    json: {\n        signals: limitedSignals,\n        stats: stats,\n        session_info: sessionInfo,\n        timestamp: new Date().toISOString()\n    }\n}];"
+      },
+      "name": "Filter Urgent Signals",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        400
+      ],
+      "id": "f5f5f5f5-5555-5555-5555-555555555555",
+      "notes": "Filtra solo segnali urgenti e limita al max configurato"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-urgent",
+              "leftValue": "={{$json.signals ? $json.signals.length : 0}}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "IF - Urgent Signals Found",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        0,
+        400
+      ],
+      "id": "f6f6f6f6-6666-6666-6666-666666666666",
+      "notes": "Verifica se ci sono segnali urgenti da notificare"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$node['Determine Session Type'].json.APP_BASE_URL}}/api/alerts.php",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; ETF-Portfolio-Manager/2.1; +https://portfolio.newwave-media.it)"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"send\",\n  \"priority\": \"medium\",\n  \"alert_type\": \"intraday_signals\",\n  \"signals\": {{JSON.stringify($json.signals)}},\n  \"stats\": {{JSON.stringify($json.stats)}},\n  \"session_info\": {{JSON.stringify($json.session_info)}}\n}",
+        "options": {}
+      },
+      "name": "Send Intraday Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        240,
+        320
+      ],
+      "id": "f7f7f7f7-7777-7777-7777-777777777777",
+      "notes": "Invia notifica con segnali intraday urgenti"
+    },
+    {
+      "parameters": {
+        "options": {
+          "batchSize": 1
+        }
+      },
+      "name": "Split Signals",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        480,
+        320
+      ],
+      "id": "f8f8f8f8-8888-8888-8888-888888888888",
+      "notes": "Processa ogni segnale individualmente"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$node['Determine Session Type'].json.APP_BASE_URL}}/api/recommendations.php",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; ETF-Portfolio-Manager/2.1; +https://portfolio.newwave-media.it)"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify($json.signals[0])}}",
+        "options": {}
+      },
+      "name": "Save Signal to DB",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        720,
+        320
+      ],
+      "id": "f9f9f9f9-9999-9999-9999-999999999999",
+      "notes": "Salva segnale nel database"
+    },
+    {
+      "parameters": {
+        "amount": 300,
+        "unit": "ms"
+      },
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        960,
+        320
+      ],
+      "id": "fafafafa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      "webhookId": "wait-intraday-batch",
+      "notes": "Attesa 300ms tra salvataggi"
+    },
+    {
+      "parameters": {
+        "jsCode": "const sessionInfo = $node['Determine Session Type'].json;\nconsole.log(`[Intraday] No urgent signals for ${sessionInfo.session_type} at ${sessionInfo.execution_hour}:00`);\nreturn [{ \n    json: { \n        status: 'no_urgent_signals', \n        session: sessionInfo.session_type,\n        timestamp: new Date().toISOString() \n    } \n}];"
+      },
+      "name": "Log Normal Session",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        480
+      ],
+      "id": "fbfbfbfb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+      "notes": "Log quando non ci sono segnali urgenti"
+    }
+  ],
+  "connections": {
+    "Cron Trigger - Multi Schedule": {
+      "main": [
+        [
+          {
+            "node": "Config Variables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config Variables": {
+      "main": [
+        [
+          {
+            "node": "Determine Session Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Determine Session Type": {
+      "main": [
+        [
+          {
+            "node": "Generate Intraday Signals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Intraday Signals": {
+      "main": [
+        [
+          {
+            "node": "Filter Urgent Signals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Urgent Signals": {
+      "main": [
+        [
+          {
+            "node": "IF - Urgent Signals Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Urgent Signals Found": {
+      "main": [
+        [
+          {
+            "node": "Send Intraday Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Normal Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Intraday Alert": {
+      "main": [
+        [
+          {
+            "node": "Split Signals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Signals": {
+      "main": [
+        [
+          {
+            "node": "Save Signal to DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Signal to DB": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Split Signals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "versionId": "f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1",
+  "meta": {
+    "instanceId": "signal-generation-intraday-workflow-v1"
+  },
+  "id": "SignalGenIntraday001",
+  "tags": [
+    {
+      "createdAt": "2025-12-02T00:00:00.000Z",
+      "updatedAt": "2025-12-02T00:00:00.000Z",
+      "id": "1",
+      "name": "trading-signals"
+    },
+    {
+      "createdAt": "2025-12-02T00:00:00.000Z",
+      "updatedAt": "2025-12-02T00:00:00.000Z",
+      "id": "2",
+      "name": "intraday"
+    }
+  ]
+}

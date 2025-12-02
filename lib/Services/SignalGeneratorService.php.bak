@@ -1101,3 +1101,299 @@ class SignalGeneratorService
         return $this->recommendationRepo->expireOldRecommendations($this->portfolioId);
     }
 }
+?>
+
+/**
+ * Log signal generation
+ *
+ * @param string $ticker
+ * @param string $action
+ * @param string $message
+ */
+private function logSignalGeneration($ticker, $action, $message)
+{
+    $logMessage = sprintf(
+        "[%s] %s - %s: %s\n",
+        date('Y-m-d H:i:s'),
+        $ticker,
+        $action,
+        $message
+    );
+
+    error_log($logMessage, 3, __DIR__ . '/../../logs/signal_generation.log');
+}
+
+/**
+ * Get signal generation statistics
+ *
+ * @return array
+ */
+public function getStatistics()
+{
+    return $this->recommendationRepo->getStatistics($this->portfolioId);
+}
+
+/**
+ * Clean up old recommendations
+ *
+ * @return int Affected rows
+ */
+public function cleanupOldRecommendations()
+{
+    return $this->recommendationRepo->expireOldRecommendations($this->portfolioId);
+}
+?>
+
+/**
+ * Signal Generator Service
+ *
+ * Generates trading signals based on technical analysis and portfolio allocation.
+ * Implements the Core-Satellite Risk Parity strategy from Strategia Operativa v2.
+ *
+ * @package TradingPortfolio\Services
+ * @version 1.0.0
+ */
+
+require_once __DIR__ . '/../Database/Repositories/RecommendationRepository.php';
+require_once __DIR__ . '/../Database/Repositories/HoldingRepository.php';
+require_once __DIR__ . '/../Models/Recommendation.php';
+
+class SignalGeneratorService
+{
+    /**
+     * @var RecommendationRepository
+     */
+    private $recommendationRepo;
+
+    /**
+     * @var HoldingRepository
+     */
+    private $holdingRepo;
+
+    /**
+     * @var int Default portfolio ID
+     */
+    private $portfolioId;
+
+    /**
+     * @var array Portfolio configuration
+     */
+    private $portfolioConfig;
+
+    /**
+     * @var float Total portfolio value
+     */
+    private $portfolioValue;
+
+    /**
+     * Constructor
+     *
+     * @param RecommendationRepository $recommendationRepo
+     * @param HoldingRepository $holdingRepo
+     * @param int $portfolioId
+     */
+    public function __construct(
+        RecommendationRepository $recommendationRepo,
+        HoldingRepository $holdingRepo,
+        $portfolioId = 1
+    ) {
+        $this->recommendationRepo = $recommendationRepo;
+        $this->holdingRepo = $holdingRepo;
+        $this->portfolioId = $portfolioId;
+        $this->portfolioConfig = $this->loadPortfolioConfig();
+    }
+
+    /**
+     * Generate signals for all holdings
+     *
+     * @return array Generated recommendations
+     */
+    public function generateSignals()
+    {
+        $recommendations = [];
+        $holdings = $this->holdingRepo->getEnrichedHoldings($this->portfolioId);
+        $this->portfolioValue = $this->calculatePortfolioValue($holdings);
+
+        foreach ($holdings as $holding) {
+            // Validate holding data
+            $validation = $this->validateHolding($holding);
+            if (!$validation['valid']) {
+                $this->logSignalGeneration($holding['ticker'], 'SKIPPED', $validation['reason']);
+                continue;
+            }
+
+            $holding = $validation['holding']; // With fallbacks applied
+            $confidencePenalty = $validation['confidence_penalty'];
+
+            // Generate signals for this holding
+            $signals = $this->generateSignalsForHolding($holding, $confidencePenalty);
+
+            foreach ($signals as $signal) {
+                $recommendations[] = $signal;
+            }
+        }
+
+        // Filter and deduplicate
+        $recommendations = $this->filterAndDeduplicate($recommendations);
+
+        // Persist recommendations
+        $savedRecommendations = [];
+        foreach ($recommendations as $recommendation) {
+            $id = $this->saveRecommendation($recommendation);
+            if ($id) {
+                $recommendation->set('id', $id);
+                $savedRecommendations[] = $recommendation;
+            }
+        }
+
+        return $savedRecommendations;
+    }
+
+    /**
+     * Get signal generation statistics
+     *
+     * @return array
+     */
+    public function getStatistics()
+    {
+        return $this->recommendationRepo->getStatistics($this->portfolioId);
+    }
+
+    /**
+     * Clean up old recommendations
+     *
+     * @return int Affected rows
+     */
+    public function cleanupOldRecommendations()
+    {
+        return $this->recommendationRepo->expireOldRecommendations($this->portfolioId);
+    }
+}
+?>
+
+/**
+ * Signal Generator Service
+ *
+ * Generates trading signals based on technical analysis and portfolio allocation.
+ * Implements the Core-Satellite Risk Parity strategy from Strategia Operativa v2.
+ *
+ * @package TradingPortfolio\Services
+ * @version 1.0.0
+ */
+
+require_once __DIR__ . '/../Database/Repositories/RecommendationRepository.php';
+require_once __DIR__ . '/../Database/Repositories/HoldingRepository.php';
+require_once __DIR__ . '/../Models/Recommendation.php';
+
+class SignalGeneratorService
+{
+    /**
+     * @var RecommendationRepository
+     */
+    private $recommendationRepo;
+
+    /**
+     * @var HoldingRepository
+     */
+    private $holdingRepo;
+
+    /**
+     * @var int Default portfolio ID
+     */
+    private $portfolioId;
+
+    /**
+     * @var array Portfolio configuration
+     */
+    private $portfolioConfig;
+
+    /**
+     * @var float Total portfolio value
+     */
+    private $portfolioValue;
+
+    /**
+     * Constructor
+     *
+     * @param RecommendationRepository $recommendationRepo
+     * @param HoldingRepository $holdingRepo
+     * @param int $portfolioId
+     */
+    public function __construct(
+        RecommendationRepository $recommendationRepo,
+        HoldingRepository $holdingRepo,
+        $portfolioId = 1
+    ) {
+        $this->recommendationRepo = $recommendationRepo;
+        $this->holdingRepo = $holdingRepo;
+        $this->portfolioId = $portfolioId;
+        $this->portfolioConfig = $this->loadPortfolioConfig();
+    }
+
+    /**
+     * Generate signals for all holdings
+     *
+     * @return array Generated recommendations
+     */
+    public function generateSignals()
+    {
+        $recommendations = [];
+        $holdings = $this->holdingRepo->getEnrichedHoldings($this->portfolioId);
+        $this->portfolioValue = $this->calculatePortfolioValue($holdings);
+
+        foreach ($holdings as $holding) {
+            // Validate holding data
+            $validation = $this->validateHolding($holding);
+            if (!$validation['valid']) {
+                $this->logSignalGeneration($holding['ticker'], 'SKIPPED', $validation['reason']);
+                continue;
+            }
+
+            $holding = $validation['holding']; // With fallbacks applied
+            $confidencePenalty = $validation['confidence_penalty'];
+
+            // Generate signals for this holding
+            $signals = $this->generateSignalsForHolding($holding, $confidencePenalty);
+
+            foreach ($signals as $signal) {
+                $recommendations[] = $signal;
+            }
+        }
+
+        // Filter and deduplicate
+        $recommendations = $this->filterAndDeduplicate($recommendations);
+
+        // Persist recommendations
+        $savedRecommendations = [];
+        foreach ($recommendations as $recommendation) {
+            $id = $this->saveRecommendation($recommendation);
+            if ($id) {
+                $recommendation->set('id', $id);
+                $savedRecommendations[] = $recommendation;
+            }
+        }
+
+        return $savedRecommendations;
+    }
+
+    /**
+     * Get signal generation statistics
+     *
+     * @return array
+     */
+    public function getStatistics()
+    {
+        return $this->recommendationRepo->getStatistics($this->portfolioId);
+    }
+
+    /**
+     * Clean up old recommendations
+     *
+     * @return int Affected rows
+     */
+    public function cleanupOldRecommendations()
+    {
+        return $this->recommendationRepo->expireOldRecommendations($this->portfolioId);
+    }
+}
+?>

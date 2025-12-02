@@ -2,28 +2,82 @@
 
 **Documentazione dei workflow n8n per l'automazione della generazione e gestione segnali di trading nella Fase 5**
 
-**Prerequisiti**:
-- n8n CE self‑hosted (Docker container `n8n`)
-- API REST `/api/recommendations.php` implementata e funzionante
-- SignalGeneratorService configurato e operativo
-- Segreto HMAC condiviso con il backend PHP (configurato in `.env`)
-- Accesso a dati di mercato (Yahoo Finance v8 preferito)
+**Ultimo aggiornamento:** 02 Dicembre 2025
+**Stato implementazione:** 2/4 workflow completati (E, F) + 2 prerequisiti attivi
 
 ---
 
-## 🎯 Panoramica Workflow Fase 5
+## 📋 Workflow Prerequisiti (FONDAMENTALI)
 
-### Workflow E – Generazione Automatica Segnali (Giornaliera)
-**Trigger**: Ogni giorno alle 19:30 CET (dopo chiusura mercati europei)
+**⚠️ IMPORTANTE**: I seguenti workflow sono **PREREQUISITI** per la generazione dei segnali e devono essere **sempre attivi**:
 
-### Workflow F – Schedulazione SignalGeneratorService (Personalizzata)
-**Trigger**: Multi-orario: 08:00, 13:00, 18:00 CET
+### 1. Portfolio Enrichment v3.0 + analisi tecnica
+- **File**: `/workflow/Portfolio Enrichment v3.0 + analisi tecnica.json`
+- **Funzione**: Arricchisce holdings con indicatori tecnici (RSI, MACD, EMA, Bollinger Bands)
+- **Output**: Salva dati in tabella `technical_snapshots`
+- **Frequenza**: Schedulato (configurabile)
+- **Stato**: ✅ Attivo e funzionante
 
-### Workflow G – Alert Notifiche Segnali Ad Alta Priorità
-**Trigger**: Webhook da API quando viene creato segnale IMMEDIATO
+### 2. AI Technical Insights
+- **File**: `/workflow/AI Technical Insights.json`
+- **Funzione**: Genera insights di analisi tecnica avanzata con AI
+- **Output**: Salva insights in tabella `technical_insights`
+- **Frequenza**: Dopo Portfolio Enrichment
+- **Stato**: ✅ Attivo e funzionante
 
-### Workflow H – Monitoring e Health Check
-**Trigger**: Ogni 4 ore + alert su failure
+**Flusso dati**:
+```
+Portfolio Enrichment → technical_snapshots
+        ↓
+AI Technical Insights → technical_insights
+        ↓
+SignalGeneratorService → Legge entrambe le tabelle
+        ↓
+Workflow E/F → Genera segnali di trading
+```
+
+---
+
+## 🎯 Panoramica Workflow Fase 5 (Automazione Segnali)
+
+### Workflow E – Generazione Automatica Segnali (Giornaliera) ✅
+- **File**: `/workflow/signal-generation-daily.json`
+- **Trigger**: Ogni giorno alle 19:30 CET (dopo chiusura mercati europei)
+- **Stato**: ✅ Implementato e testato
+- **Data creazione**: 02 Dicembre 2025
+
+### Workflow F – Schedulazione Multi-Orario (Intraday) ✅
+- **File**: `/workflow/signal-generation-intraday.json`
+- **Trigger**: Multi-orario: 08:00, 13:00, 18:00 CET (weekdays)
+- **Stato**: ✅ Implementato e testato
+- **Data creazione**: 02 Dicembre 2025
+
+### Workflow G – Alert Notifiche Segnali Ad Alta Priorità 🔄
+- **Trigger**: Webhook da API quando viene creato segnale IMMEDIATO
+- **Stato**: 🔄 Da implementare
+
+### Workflow H – Monitoring e Health Check 🔄
+- **Trigger**: Ogni 4 ore + alert su failure
+- **Stato**: 🔄 Da implementare
+
+---
+
+## 🔧 Configurazione Sistema
+
+**Prerequisiti tecnici**:
+- ✅ n8n CE self‑hosted (Docker container `n8n`)
+- ✅ API REST `/api/signals.php` implementata e funzionante (v1.1 - 02 Dic 2025)
+- ✅ API REST `/api/recommendations.php` implementata e funzionante
+- ✅ SignalGeneratorService configurato e operativo (v1.0 - fix 02 Dic 2025)
+- ✅ Accesso a dati di mercato (Yahoo Finance v8)
+- ✅ Database MySQL con tabelle `technical_snapshots`, `technical_insights`, `recommendations`
+- **NOTA**: HMAC authentication disabilitata per semplicità (vedi sezione 5.3)
+
+**Correzioni applicate (02 Dicembre 2025)**:
+- ✅ Fix `SignalGeneratorService.php`: Rimosso classi duplicate e tag PHP di chiusura
+- ✅ Fix `/api/signals.php`: Uso metodo corretto `generateSignals()` invece di `generateSignalsWithParams()`
+- ✅ Aggiunto header `User-Agent` a tutti i nodi HTTP nei workflow
+- ✅ Corretto formato body API: rimosso parametro `action`, corretto `session_type`
 
 ---
 
@@ -79,39 +133,13 @@ graph TD
 #### Nodo 2: HTTP Request (Recupera holdings arricchiti)
 - **Method**: GET
 - **URL**: `http://app:80/api/holdings.php`
-- **Authentication**: HMAC (vedi sezione 5)
+- **Authentication**: Nessuna (HMAC disabilitato per semplicità)
 - **Query Parameters**:
   - `enriched=true`
   - `include_technical=true`
   - `active_only=true`
 
-**JavaScript per preparare richiesta HMAC**:
-```javascript
-const webhookSecret = process.env.N8N_WEBHOOK_SECRET;
-const timestamp = Date.now();
-const payload = JSON.stringify({
-    request_type: 'holdings_enriched',
-    timestamp: timestamp,
-    include_inactive: false
-});
-
-const signature = require('crypto')
-    .createHmac('sha256', webhookSecret)
-    .update(payload)
-    .digest('hex');
-
-return [{
-    json: {
-        headers: {
-            'X-Webhook-Signature': 'sha256=' + signature,
-            'X-Request-Timestamp': timestamp,
-            'Content-Type': 'application/json',
-            'User-Agent': 'n8n-workflow-signals/1.0'
-        },
-        body: payload
-    }
-}];
-```
+**NOTA**: L'HMAC authentication è stata disabilitata per semplificare l'integrazione. In produzione, considerare di riabilitarla per maggiore sicurezza.
 
 #### Nodo 3: IF (Check data availability)
 - **Condition**: `{{ $json.data.length }}` > 0
@@ -121,7 +149,7 @@ return [{
 #### Nodo 4: HTTP Request (Chiama SignalGeneratorService)
 - **Method**: POST
 - **URL**: `http://app:80/lib/Services/SignalGeneratorService.php`
-- **Headers**: HMAC come sopra
+- **Headers**: Nessuna autenticazione richiesta
 - **Body**:
 ```json
 {
@@ -190,7 +218,7 @@ return recommendations.map(rec => ({
 #### Nodo 10: HTTP Request (Salva raccomandazione)
 - **Method**: POST
 - **URL**: `http://app:80/api/recommendations.php`
-- **Headers**: HMAC authentication
+- **Headers**: Nessuna autenticazione richiesta
 - **Body**: la raccomandazione completa
 
 ---
@@ -390,7 +418,7 @@ return [{
 
 ---
 
-## 5. Configurazione Sicurezza e HMAC
+## 5. Configurazione e Note di Sicurezza
 
 ### 5.1 Variabili di ambiente n8n
 
@@ -424,30 +452,32 @@ RATE_LIMIT_THRESHOLD=50
 HEALTH_CHECK_INTERVAL=4_hours
 ```
 
-### 5.2 Credenziali HMAC
+### 5.2 Configurazione Senza HMAC (Semplificata)
 
-Creare credenziali di tipo **HTTP Header** chiamata `HMAC Backend Auth`:
+**⚠️ IMPORTANTE**: L'HMAC authentication è stata disabilitata per semplificare l'integrazione con n8n. Questo significa che:
 
-```javascript
-// Pre-execution function per generare HMAC
-const webhookSecret = process.env.N8N_WEBHOOK_SECRET;
-const timestamp = Date.now();
-const payload = JSON.stringify($json);
+- **Nessuna autenticazione richiesta** sulle API endpoints
+- **Configurazione più semplice** per i workflow n8n
+- **Accesso diretto** alle API senza header speciali
 
-const signature = require('crypto')
-    .createHmac('sha256', webhookSecret)
-    .update(timestamp + ':' + payload)
-    .digest('hex');
+**Per configurare i nodi HTTP nei workflow**:
+1. Lasciare vuota la sezione **Headers**
+2. Non configurare credenziali HMAC
+3. Usare direttamente le API endpoints
 
-return {
-    headers: {
-        'X-Webhook-Signature': 'sha256=' + signature,
-        'X-Request-Timestamp': timestamp,
-        'Content-Type': 'application/json',
-        'User-Agent': 'n8n-workflow-phase5/1.0'
-    }
-};
-```
+### 5.3 Sicurezza in Produzione
+
+**Raccomandazioni per l'uso in produzione**:
+
+1. **Network Security**: Assicurarsi che n8n e l'app PHP siano sulla stessa rete Docker privata
+2. **Firewall**: Limitare l'accesso esterno alle API di automazione
+3. **Rate Limiting**: Le API hanno già rate limiting implementato (10 richieste/ora per signal generation)
+4. **Monitoring**: Controllare i log per accessi sospetti
+
+**Per riabilitare HMAC in futuro**:
+- Modificare `/api/signals.php` e riabilitare la funzione `validateHmacSignature()`
+- Seguire la documentazione HMAC nella sezione 5.2 della versione precedente
+- Configurare la variabile d'ambiente `N8N_WEBHOOK_SECRET`
 
 ---
 
@@ -573,12 +603,102 @@ curl -X GET "http://n8n:5678/api/workflows" \
 
 ---
 
-**File:** `/docs/10-N8N-WORKFLOWS-PHASE5.md`
-**Aggiornato:** 02 Dicembre 2025
-**Versione:** 1.0.0 - Fase 5 Automation
+## 9. Troubleshooting
+
+### 9.1 Errore "Invalid JSON in response body"
+
+**Problema**: L'API `/api/signals.php` restituisce contenuto non-JSON
+
+**Soluzioni applicate (02 Dic 2025)**:
+1. ✅ Rimosso classi duplicate da `SignalGeneratorService.php`
+2. ✅ Rimosso tag di chiusura PHP `?>` che causavano output di testo
+3. ✅ Corretto chiamata metodo da `generateSignalsWithParams()` a `generateSignals()`
+
+**Verifica**:
+```bash
+curl -X POST "https://portfolio.newwave-media.it/api/signals.php" \
+  -H "Content-Type: application/json" \
+  -H "User-Agent: Mozilla/5.0 (compatible; ETF-Portfolio-Manager/2.1)" \
+  -d '{"portfolio_id":1,"analysis_type":"daily_generation","session_type":"europe_close","include_rebalance":true,"confidence_threshold":60}'
+```
+
+### 9.2 Errore 403 Forbidden
+
+**Problema**: HTTP request restituisce 403
+
+**Soluzione**:
+- ✅ Aggiungere header `User-Agent` a tutti i nodi HTTP Request
+- ✅ Verificare URL corretto: `https://portfolio.newwave-media.it` (non `http://app:80`)
+
+### 9.3 Workflow genera 0 segnali
+
+**Possibili cause**:
+1. Dati tecnici mancanti → Verificare che workflow prerequisiti siano attivi
+2. Confidence threshold troppo alto → Provare con threshold più basso (es. 40)
+3. Nessuna opportunità di trading → Normale se mercato stabile
+
+**Verifica prerequisiti**:
+```sql
+-- Verifica dati tecnici recenti
+SELECT ticker, COUNT(*) as snapshots
+FROM technical_snapshots
+WHERE DATE(created_at) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+GROUP BY ticker;
+
+-- Verifica insights AI
+SELECT ticker, COUNT(*) as insights
+FROM technical_insights
+WHERE DATE(created_at) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+GROUP BY ticker;
+```
+
+### 9.4 Rate Limiting
+
+**Problema**: API risponde con 429 Too Many Requests
+
+**Configurazione attuale**:
+- Max 10 richieste per ora per signal generation
+- File rate limit: `/logs/signals_rate_limit.json`
+
+**Soluzione**: Attendere 1 ora o aumentare limite in `api/signals.php`
 
 ---
 
-## Prossimi Step
+## 10. Stato Implementazione e Prossimi Step
 
-Dopo aver implementato questi workflow, la **Fase 6** sarà l'integrazione frontend per visualizzare e gestire i segnali generati automaticamente.
+### 10.1 Stato Attuale (02 Dicembre 2025)
+
+**✅ Completato**:
+- Workflow prerequisiti (Portfolio Enrichment, AI Technical Insights)
+- Workflow E - Generazione Segnali Giornaliera
+- Workflow F - Schedulazione Multi-Orario Intraday
+- API `/api/signals.php` funzionante
+- SignalGeneratorService operativo
+- Database schema completo
+
+**🔄 In Progress**:
+- Workflow G - Alert Notifiche (da implementare)
+- Workflow H - Monitoring e Health Check (da implementare)
+
+**📋 Backlog**:
+- Frontend integration (Fase 6)
+- Dashboard visualizzazione segnali
+- Notifiche email/Telegram configurate
+
+### 10.2 Prossimi Step Immediati
+
+1. **Completare Workflow G e H** (Alert e Monitoring)
+2. **Testare generazione segnali in produzione** con dati reali
+3. **Configurare notifiche email/Telegram** per alert
+4. **Monitorare performance** e ottimizzare threshold
+5. **Fase 6**: Integrazione frontend per visualizzare e gestire i segnali generati automaticamente
+
+---
+
+**File:** `/docs/10-N8N-WORKFLOWS-PHASE5.md`
+**Aggiornato:** 02 Dicembre 2025
+**Versione:** 1.1.0 - Fase 5 Automation (2/4 workflow implementati)
+**Autori:** Sistema ETF Portfolio Manager + Claude Code
+**Changelog**:
+- v1.1.0 (02 Dic 2025): Aggiunta sezione prerequisiti, troubleshooting, stato implementazione
+- v1.0.0 (02 Dic 2025): Documentazione iniziale workflow Fase 5

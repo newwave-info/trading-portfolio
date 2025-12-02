@@ -21,10 +21,13 @@ Strumento web completo per la gestione e analisi di portafogli ETF con **generaz
 - **Notifiche:** Email + Telegram per alert ad alta priorità
 
 ### 🤖 **Sistema di Automazione Completo (n8n + API)**
-- **4 Workflow n8n**: Generazione automatica, schedulazione multi-orario, alert, monitoring
+- **6 Workflow n8n totali**:
+  - ✅ 2 Prerequisiti attivi: Portfolio Enrichment + AI Technical Insights
+  - ✅ 2 Implementati (Fase 5): Generazione giornaliera + Schedulazione intraday
+  - 🔄 2 Da completare: Alert notifiche + Monitoring
 - **API REST**: `/api/signals.php` + `/api/alerts.php` per automazione completa
 - **Notifiche Real-time**: Email per segnali urgenti (confidence > 80%), Telegram per update rapidi
-- **Sicurezza**: HMAC authentication, rate limiting, CORS configurabile
+- **Sicurezza**: Rate limiting (10 req/ora), CORS configurabile, HMAC disabilitato
 - **Monitoring**: Health check ogni 4 ore, logging completo, statistiche performance
 
 ### 🎯 **Sistema Raccomandazioni Operative (Database + API)**
@@ -135,8 +138,12 @@ Strumento web completo per la gestione e analisi di portafogli ETF con **generaz
 │   ├── 📄 api_rate_limit.json      # Rate limiting data
 │   └── 📄 alerts.log               # Log alert system
 ├── 📁 data/                        # Dati di configurazione (legacy)
-├── 📁 logs/                        # Log di sistema
 ├── 📁 migrations/                  # Script SQL di migrazione
+├── 📁 workflow/                    # Backup JSON workflow n8n (6 totali)
+│   ├── 📄 Portfolio Enrichment v3.0 + analisi tecnica.json  # [PREREQUISITO] Arricchimento portfolio
+│   ├── 📄 AI Technical Insights.json                         # [PREREQUISITO] Analisi tecnica AI
+│   ├── 📄 signal-generation-daily.json                       # [FASE 5] ✅ Segnali giornalieri
+│   └── 📄 signal-generation-intraday.json                    # [FASE 5] ✅ Segnali intraday
 └── 📄 .env.example                 # Template variabili ambiente
 ```
 
@@ -188,9 +195,16 @@ Strumento web completo per la gestione e analisi di portafogli ETF con **generaz
 - **[.env.example](.env.example)** - Template configurazione ambiente
 
 ### 📊 **Stato Avanzamento Fasi**
-- **✅ Fase 4**: API Layer REST completata
-- **✅ Fase 5**: Workflow n8n Automation implementata
-- **🔄 Fase 6**: Frontend Integration (in preparazione)
+- **✅ Fase 0-3**: Database, Repository, Models, SignalGeneratorService - COMPLETATE
+- **✅ Fase 4**: API Layer REST completata (`/api/signals.php`, `/api/recommendations.php`, `/api/alerts.php`)
+- **🔄 Fase 5**: Workflow n8n Automation - 4/6 workflow (2 prerequisiti + 2 Fase 5 implementati)
+  - ✅ Portfolio Enrichment v3.0 (prerequisito)
+  - ✅ AI Technical Insights (prerequisito)
+  - ✅ Signal Generation Daily (implementato 02 Dic 2025)
+  - ✅ Signal Generation Intraday (implementato 02 Dic 2025)
+  - 🔄 Alerts & Notifications (da implementare)
+  - 🔄 Monitoring & Health Check (da implementare)
+- **📋 Fase 6**: Frontend Integration (in preparazione)
 
 ### 🔧 Setup e Configurazione
 
@@ -203,6 +217,23 @@ Vedere [docs/01-ARCHITETTURA.md](docs/01-ARCHITETTURA.md) per istruzioni complet
 3. **Importa workflow**: segui le istruzioni in [docs/10-N8N-WORKFLOWS-PHASE5.md](docs/10-N8N-WORKFLOWS-PHASE5.md)
 4. **Configura notifiche**: imposta email/Telegram in `config/api.php`
 5. **Testa l'automazione**: esegui `php scripts/test-n8n-automation.php`
+
+**📁 Backup Workflow n8n:**
+I file JSON dei workflow n8n sono salvati come backup nella cartella `/workflow/`:
+
+**Prerequisiti (sempre attivi)**:
+- `Portfolio Enrichment v3.0 + analisi tecnica.json` - Arricchimento portfolio con indicatori tecnici (RSI, MACD, EMA, Bollinger Bands)
+- `AI Technical Insights.json` - Analisi tecnica avanzata con insights generati da AI
+
+**Fase 5 - Automazione Segnali**:
+- `signal-generation-daily.json` - ✅ Generazione segnali giornaliera (19:30 CET)
+- `signal-generation-intraday.json` - ✅ Schedulazione multi-orario (08:00, 13:00, 18:00 CET)
+- `alerts-notifications.json` - 🔄 Da implementare (notifiche alert ad alta priorità)
+- `monitoring-health-check.json` - 🔄 Da implementare (health check sistema)
+
+**Flusso dati**: Portfolio Enrichment → AI Technical Insights → Signal Generation → Alerts & Monitoring
+
+Questi file permettono di ripristinare o reimportare i workflow in una nuova istanza di n8n.
 
 ---
 
