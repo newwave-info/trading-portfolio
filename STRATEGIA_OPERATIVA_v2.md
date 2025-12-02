@@ -1033,18 +1033,18 @@ L'utente DEVE:
 
 ### 13.1 Fasi e Tempistiche
 
-| Fase | Descrizione | Effort | Dipendenze |
-|------|-------------|--------|------------|
-| **0** | Data Foundation (target allocation, asset class) | 1-2h | Decisioni prese ✅ |
-| **1** | DB Schema (recommendations, actions) | 30min | Fase 0 |
-| **2** | Repository Layer | 1h | Fase 1 |
-| **3** | SignalGeneratorService (core logic) | 4-6h | Fase 2 |
-| **4** | API Layer (/api/recommendations.php) | 2h | Fase 3 |
-| **5** | Workflow n8n Signal Generator | 1-2h | Fase 4 |
-| **6** | Frontend integration | 1h | Fase 4 |
-| **7** | Monitoring & tuning | Ongoing | Deploy |
+| Fase | Descrizione | Effort | Stato | Note |
+|------|-------------|--------|--------|------|
+| **0** | Data Foundation (target allocation, asset class) | 1-2h | ✅ **COMPLETATA** | Decisioni prese e database aggiornato |
+| **1** | DB Schema (recommendations, actions) | 30min | ✅ **COMPLETATA** | Tabelle create con viste e relazioni |
+| **2** | Repository Layer | 1h | ✅ **COMPLETATA** | Repository pattern implementato con BaseRepository |
+| **3** | SignalGeneratorService (core logic) | 4-6h | ✅ **COMPLETATA** | Core engine funzionante con graceful degradation |
+| **4** | API Layer (/api/recommendations.php) | 2h | 🔄 **IN CORSO** | Endpoint da implementare |
+| **5** | Workflow n8n Signal Generator | 1-2h | ⏳ **PENDING** | Attesa completamento API |
+| **6** | Frontend integration | 1h | ⏳ **PENDING** | Attesa completamento API |
+| **7** | Monitoring & tuning | Ongoing | ⏳ **PENDING** | Post-deploy |
 
-**Totale stimato: 10-14 ore**
+**Progresso: 4/7 fasi completate (57%)**
 
 ### 13.2 Decisioni Consolidate
 
@@ -1077,6 +1077,39 @@ UPDATE holdings SET target_allocation_pct = 10.3, role = 'SATELLITE' WHERE ticke
 UPDATE holdings SET target_allocation_pct = 8.0, role = 'SATELLITE' WHERE ticker = 'TDIV.MI';
 UPDATE holdings SET target_allocation_pct = 8.6, role = 'SATELLITE' WHERE ticker = 'SPYD.FRA';
 ```
+
+---
+
+## 14. Log Implementazione
+
+### 14.1 Fase 3 - SignalGeneratorService ✅ COMPLETATA (02 Dic 2025)
+
+**Issue Risolti:**
+- ✅ Parse error: syntax error, unexpected token "&" in Recommendation.php - Fix: HTML entities &amp;&amp; → &&
+- ✅ Fatal error: Call to private DatabaseManager::__construct() - Fix: Usato singleton pattern DatabaseManager::getInstance()
+- ✅ Warning: Undefined array key "target_allocation_pct" - Fix: Aggiunti campi mancanti in HoldingRepository mapping
+
+**Componenti Implementati:**
+- ✅ SignalGeneratorService con strategia Core-Satellite Risk Parity
+- ✅ Graceful degradation per dati mancanti
+- ✅ Generazione segnali: BUY/SELL/STOP_LOSS/TAKE_PROFIT/REBALANCE
+- ✅ Confidence scoring con penalità per dati incompleti
+- ✅ Repository pattern con BaseRepository
+- ✅ Test in produzione superati
+
+**Test Effettuati:**
+- ✅ Database connectivity test
+- ✅ Holdings data retrieval con campi target_allocation_pct e role
+- ✅ Signal generation con segnali reali
+- ✅ Confidence scoring validation
+- ✅ Error handling e graceful degradation
+
+**File Creati/Corretti:**
+- `lib/Models/Recommendation.php` - Fix HTML entities
+- `lib/Database/Repositories/HoldingRepository.php` - Aggiunti campi target_allocation_pct e role
+- `lib/Services/SignalGeneratorService.php` - Core engine implementato
+- `lib/Database/Repositories/RecommendationRepository.php` - Repository pattern
+- `lib/Database/Repositories/BaseRepository.php` - Base repository pattern
 
 ---
 

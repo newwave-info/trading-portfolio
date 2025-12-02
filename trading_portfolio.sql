@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Creato il: Dic 02, 2025 alle 09:45
+-- Creato il: Dic 02, 2025 alle 12:09
 -- Versione del server: 10.5.29-MariaDB-0+deb11u1
 -- Versione PHP: 8.4.12
 
@@ -104,7 +104,7 @@ CREATE TABLE `holdings` (
   `ticker` varchar(20) NOT NULL,
   `isin` varchar(20) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
-  `asset_class` enum('ETF','Stock','Bond','Cash','Other') NOT NULL,
+  `asset_class` enum('Equity','Dividend','Commodity','Bond','ETF','Stock','Cash','Other') NOT NULL DEFAULT 'ETF',
   `sector` varchar(100) DEFAULT NULL,
   `quantity` decimal(12,6) NOT NULL,
   `avg_price` decimal(12,4) NOT NULL,
@@ -177,18 +177,34 @@ CREATE TABLE `holdings` (
   `first_trade_date` bigint(20) UNSIGNED DEFAULT NULL,
   `is_active` tinyint(1) DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `target_allocation_pct` decimal(5,2) DEFAULT NULL COMMENT 'Target allocation % (es. 30.00 = 30%)',
+  `role` enum('CORE','SATELLITE','HEDGE') DEFAULT 'SATELLITE' COMMENT 'Ruolo nel portafoglio per strategia core-satellite'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Holdings with current and historical prices';
 
 --
 -- Dump dei dati per la tabella `holdings`
 --
 
-INSERT INTO `holdings` (`id`, `portfolio_id`, `ticker`, `isin`, `name`, `asset_class`, `sector`, `quantity`, `avg_price`, `current_price`, `dividend_yield`, `annual_dividend`, `dividend_frequency`, `has_dividends`, `total_dividends_5y`, `fifty_two_week_high`, `fifty_two_week_low`, `ytd_change_percent`, `one_month_change_percent`, `three_month_change_percent`, `one_year_change_percent`, `sma9`, `sma21`, `sma50`, `sma200`, `ema9`, `ema21`, `ema50`, `ema200`, `rsi14`, `macd_value`, `macd_signal`, `macd_hist`, `atr14`, `atr14_pct`, `hist_vol_30d`, `hist_vol_90d`, `vol_avg_20d`, `vol_ratio_current_20d`, `range_1m_min`, `range_1m_max`, `range_1m_percentile`, `range_3m_min`, `range_3m_max`, `range_3m_percentile`, `range_6m_min`, `range_6m_max`, `range_6m_percentile`, `range_1y_min`, `range_1y_max`, `range_1y_percentile`, `fib_low`, `fib_high`, `fib_23_6`, `fib_38_2`, `fib_50_0`, `fib_61_8`, `fib_78_6`, `fib_23_6_dist_pct`, `fib_38_2_dist_pct`, `fib_50_0_dist_pct`, `fib_61_8_dist_pct`, `fib_78_6_dist_pct`, `bb_middle`, `bb_upper`, `bb_lower`, `bb_width_pct`, `bb_percent_b`, `technical_as_of`, `previous_close`, `day_high`, `day_low`, `volume`, `price_source`, `exchange`, `first_trade_date`, `is_active`, `created_at`, `updated_at`) VALUES
-(10, 1, 'SGLD.MI', 'IE00B579F325', 'Invesco Physical Gold ETC', '', 'Gold', 10.000000, 272.5500, 350.5000, 0.0000, 0.000000, 'None', 0, 0, 359.6700, 239.2600, 40.4500, 4.9800, 19.2300, 44.4100, 344.2467, 340.8681, 327.8970, 290.4525, 345.1148, 339.0957, 327.1316, 293.2474, 55.57, 6.7713, 6.5727, 0.1986, 5.1593, 1.4700, 25.5600, 17.9800, 109915, 2.0400, 331.9500, 350.5000, 100.0000, 293.2000, 359.1800, 86.8400, 268.9700, 359.1800, 90.3800, 240.4200, 359.1800, 92.6900, 267.4500, 359.6700, 337.9061, 324.4420, 313.5600, 302.6781, 287.1851, 3.5900, 7.4300, 10.5400, 13.6400, 18.0600, 341.2175, 352.0808, 330.3542, 6.3700, 0.9272, '2025-12-02', 145.4900, 352.9800, 349.1100, 224229, 'YahooFinance_v8', 'MIL', 1417161600, 1, '2025-11-30 08:10:13', '2025-12-02 06:00:03'),
-(11, 1, 'VHYL.MI', 'IE00B8GKDB10', 'Vanguard FTSE All-World High Div. Yield UCITS ETF Dis', '', 'Global', 21.000000, 67.9400, 68.8600, 2.9100, 2.001600, 'Quarterly', 1, 20, 69.5000, 55.7600, 6.2000, 1.5200, 4.7300, 3.8600, 68.2756, 68.2271, 66.3082, 64.8214, 68.4713, 67.7210, 66.7123, 65.1508, 53.14, 0.8290, 0.8216, 0.0074, 0.5500, 0.8000, 8.7500, 8.5300, 20033, 1.1900, 67.3400, 69.3800, 74.5100, 65.7000, 69.3800, 85.8700, 62.6700, 69.3800, 92.2500, 56.4400, 69.3800, 95.9800, 62.6400, 69.5000, 67.8810, 66.8795, 66.0700, 65.2605, 64.1080, 1.4200, 2.8800, 4.0500, 5.2300, 6.9000, 68.2470, 69.3984, 67.0956, 3.3700, 0.7662, '2025-12-02', 45.5650, 68.9500, 68.6700, 23825, 'YahooFinance_v8', 'MIL', 1547798400, 1, '2025-11-30 08:10:13', '2025-12-02 06:00:03'),
-(12, 1, 'TDIV.MI', 'NL0011683594', 'VanEck Morn. Dev. Mkts Div Lead. UCITS ETF', '', 'Mixed', 50.000000, 46.0000, 46.8000, 3.8200, 1.790000, 'Quarterly', 1, 20, 47.0000, 36.7950, 12.9300, 3.8500, 7.1400, 14.1000, 46.2950, 46.0486, 44.3392, 43.3562, 46.4318, 45.7244, 44.7794, 43.2485, 54.55, 0.7814, 0.7733, 0.0081, 0.4350, 0.9300, 8.5300, 9.1600, 44015, 0.6500, 45.0650, 46.9000, 94.5500, 43.6800, 46.9000, 96.8900, 41.7650, 46.9000, 98.0500, 37.6800, 46.9000, 98.9200, 41.6900, 47.0000, 45.7468, 44.9716, 44.3450, 43.7184, 42.8263, 2.2500, 3.9100, 5.2500, 6.5800, 8.4900, 46.0977, 47.2631, 44.9324, 5.0600, 0.8013, '2025-12-02', 25.7250, 46.8900, 46.6700, 28432, 'YahooFinance_v8', 'MIL', 1556002800, 1, '2025-11-30 08:10:13', '2025-12-02 06:00:03'),
-(15, 1, 'SWDA.MI', 'IE00B4L5Y983', 'iShares Core MSCI World UCITS ETF USD (Acc)', '', 'Global', 35.000000, 111.5400, 111.0000, 0.0000, 0.000000, 'None', 0, 0, 112.5500, 82.7000, 5.4100, -0.8500, 6.3200, 5.0000, 109.9822, 110.3367, 107.4222, 102.0840, 110.3978, 109.3760, 107.7242, 103.5475, 52.58, 1.1417, 1.1262, 0.0155, 1.4179, 1.2800, 13.7500, 11.8300, 204121, 0.7900, 108.1300, 111.9600, 74.9300, 104.4000, 111.9600, 87.3000, 98.5700, 111.9600, 92.8300, 85.2900, 111.9600, 96.4000, 98.4400, 112.5500, 109.2200, 107.1600, 105.4950, 103.8300, 101.4595, 1.6000, 3.4600, 4.9600, 6.4600, 8.6000, 110.2560, 112.5861, 107.9259, 4.2300, 0.6596, '2025-12-02', 59.1400, 111.0600, 110.3400, 161358, 'YahooFinance_v8', 'MIL', 1253862000, 1, '2025-11-30 08:14:43', '2025-12-02 06:00:03');
+INSERT INTO `holdings` (`id`, `portfolio_id`, `ticker`, `isin`, `name`, `asset_class`, `sector`, `quantity`, `avg_price`, `current_price`, `dividend_yield`, `annual_dividend`, `dividend_frequency`, `has_dividends`, `total_dividends_5y`, `fifty_two_week_high`, `fifty_two_week_low`, `ytd_change_percent`, `one_month_change_percent`, `three_month_change_percent`, `one_year_change_percent`, `sma9`, `sma21`, `sma50`, `sma200`, `ema9`, `ema21`, `ema50`, `ema200`, `rsi14`, `macd_value`, `macd_signal`, `macd_hist`, `atr14`, `atr14_pct`, `hist_vol_30d`, `hist_vol_90d`, `vol_avg_20d`, `vol_ratio_current_20d`, `range_1m_min`, `range_1m_max`, `range_1m_percentile`, `range_3m_min`, `range_3m_max`, `range_3m_percentile`, `range_6m_min`, `range_6m_max`, `range_6m_percentile`, `range_1y_min`, `range_1y_max`, `range_1y_percentile`, `fib_low`, `fib_high`, `fib_23_6`, `fib_38_2`, `fib_50_0`, `fib_61_8`, `fib_78_6`, `fib_23_6_dist_pct`, `fib_38_2_dist_pct`, `fib_50_0_dist_pct`, `fib_61_8_dist_pct`, `fib_78_6_dist_pct`, `bb_middle`, `bb_upper`, `bb_lower`, `bb_width_pct`, `bb_percent_b`, `technical_as_of`, `previous_close`, `day_high`, `day_low`, `volume`, `price_source`, `exchange`, `first_trade_date`, `is_active`, `created_at`, `updated_at`, `target_allocation_pct`, `role`) VALUES
+(10, 1, 'SGLD.MI', 'IE00B579F325', 'Invesco Physical Gold ETC', 'Commodity', 'Gold', 10.000000, 272.5500, 350.5000, 0.0000, 0.000000, 'None', 0, 0, 359.6700, 239.2600, 40.4500, 4.9800, 19.2300, 44.4100, 344.2467, 340.8681, 327.8970, 290.4525, 345.1148, 339.0957, 327.1316, 293.2474, 55.57, 6.7713, 6.5727, 0.1986, 5.1593, 1.4700, 25.5600, 17.9800, 109915, 2.0400, 331.9500, 350.5000, 100.0000, 293.2000, 359.1800, 86.8400, 268.9700, 359.1800, 90.3800, 240.4200, 359.1800, 92.6900, 267.4500, 359.6700, 337.9061, 324.4420, 313.5600, 302.6781, 287.1851, 3.5900, 7.4300, 10.5400, 13.6400, 18.0600, 341.2175, 352.0808, 330.3542, 6.3700, 0.9272, '2025-12-02', 145.4900, 352.9800, 349.1100, 224229, 'YahooFinance_v8', 'MIL', 1417161600, 1, '2025-11-30 08:10:13', '2025-12-02 10:20:07', 12.00, 'HEDGE'),
+(11, 1, 'VHYL.MI', 'IE00B8GKDB10', 'Vanguard FTSE All-World High Div. Yield UCITS ETF Dis', 'Dividend', 'Global', 21.000000, 67.9400, 68.8600, 2.9100, 2.001600, 'Quarterly', 1, 20, 69.5000, 55.7600, 6.2000, 1.5200, 4.7300, 3.8600, 68.2756, 68.2271, 66.3082, 64.8214, 68.4713, 67.7210, 66.7123, 65.1508, 53.14, 0.8290, 0.8216, 0.0074, 0.5500, 0.8000, 8.7500, 8.5300, 20033, 1.1900, 67.3400, 69.3800, 74.5100, 65.7000, 69.3800, 85.8700, 62.6700, 69.3800, 92.2500, 56.4400, 69.3800, 95.9800, 62.6400, 69.5000, 67.8810, 66.8795, 66.0700, 65.2605, 64.1080, 1.4200, 2.8800, 4.0500, 5.2300, 6.9000, 68.2470, 69.3984, 67.0956, 3.3700, 0.7662, '2025-12-02', 45.5650, 68.9500, 68.6700, 23825, 'YahooFinance_v8', 'MIL', 1547798400, 1, '2025-11-30 08:10:13', '2025-12-02 10:20:07', 10.30, 'SATELLITE'),
+(12, 1, 'TDIV.MI', 'NL0011683594', 'VanEck Morn. Dev. Mkts Div Lead. UCITS ETF', 'Dividend', 'Mixed', 50.000000, 46.0000, 46.8000, 3.8200, 1.790000, 'Quarterly', 1, 20, 47.0000, 36.7950, 12.9300, 3.8500, 7.1400, 14.1000, 46.2950, 46.0486, 44.3392, 43.3562, 46.4318, 45.7244, 44.7794, 43.2485, 54.55, 0.7814, 0.7733, 0.0081, 0.4350, 0.9300, 8.5300, 9.1600, 44015, 0.6500, 45.0650, 46.9000, 94.5500, 43.6800, 46.9000, 96.8900, 41.7650, 46.9000, 98.0500, 37.6800, 46.9000, 98.9200, 41.6900, 47.0000, 45.7468, 44.9716, 44.3450, 43.7184, 42.8263, 2.2500, 3.9100, 5.2500, 6.5800, 8.4900, 46.0977, 47.2631, 44.9324, 5.0600, 0.8013, '2025-12-02', 25.7250, 46.8900, 46.6700, 28432, 'YahooFinance_v8', 'MIL', 1556002800, 1, '2025-11-30 08:10:13', '2025-12-02 10:20:07', 8.00, 'SATELLITE'),
+(15, 1, 'SWDA.MI', 'IE00B4L5Y983', 'iShares Core MSCI World UCITS ETF USD (Acc)', 'Equity', 'Global', 35.000000, 111.5400, 111.0000, 0.0000, 0.000000, 'None', 0, 0, 112.5500, 82.7000, 5.4100, -0.8500, 6.3200, 5.0000, 109.9822, 110.3367, 107.4222, 102.0840, 110.3978, 109.3760, 107.7242, 103.5475, 52.58, 1.1417, 1.1262, 0.0155, 1.4179, 1.2800, 13.7500, 11.8300, 204121, 0.7900, 108.1300, 111.9600, 74.9300, 104.4000, 111.9600, 87.3000, 98.5700, 111.9600, 92.8300, 85.2900, 111.9600, 96.4000, 98.4400, 112.5500, 109.2200, 107.1600, 105.4950, 103.8300, 101.4595, 1.6000, 3.4600, 4.9600, 6.4600, 8.6000, 110.2560, 112.5861, 107.9259, 4.2300, 0.6596, '2025-12-02', 59.1400, 111.0600, 110.3400, 161358, 'YahooFinance_v8', 'MIL', 1253862000, 1, '2025-11-30 08:14:43', '2025-12-02 10:20:07', 22.60, 'CORE');
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `macro_indicators`
+--
+
+CREATE TABLE `macro_indicators` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `indicator_name` varchar(50) NOT NULL,
+  `indicator_value` decimal(10,4) DEFAULT NULL,
+  `source` varchar(100) DEFAULT NULL,
+  `recorded_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Indicatori macroeconomici per modifica segnali (Fase 2)';
 
 -- --------------------------------------------------------
 
@@ -253,6 +269,49 @@ CREATE TABLE `portfolios` (
 
 INSERT INTO `portfolios` (`id`, `name`, `owner`, `base_currency`, `created_at`, `updated_at`) VALUES
 (1, 'Portafoglio ETF Personale', 'User', 'EUR', '2025-11-27 21:39:10', '2025-12-01 13:56:04');
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `recommendations`
+--
+
+CREATE TABLE `recommendations` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `portfolio_id` int(10) UNSIGNED NOT NULL,
+  `holding_id` int(10) UNSIGNED DEFAULT NULL,
+  `type` enum('BUY_LIMIT','BUY_MARKET','SELL_PARTIAL','SELL_ALL','SET_STOP_LOSS','SET_TAKE_PROFIT','HOLD_MONITOR','REBALANCE','MACRO_ALERT') NOT NULL,
+  `urgency` enum('IMMEDIATO','QUESTA_SETTIMANA','PROSSIME_2_SETTIMANE','MONITORAGGIO') NOT NULL,
+  `quantity` int(11) DEFAULT NULL,
+  `trigger_price` decimal(10,4) DEFAULT NULL,
+  `trigger_condition` varchar(50) DEFAULT NULL,
+  `stop_loss` decimal(10,4) DEFAULT NULL,
+  `take_profit` decimal(10,4) DEFAULT NULL,
+  `rationale_primary` text DEFAULT NULL,
+  `rationale_technical` text DEFAULT NULL,
+  `confidence_score` tinyint(4) DEFAULT NULL,
+  `data_quality_issues` text DEFAULT NULL COMMENT 'JSON array di indicatori mancanti',
+  `status` enum('ACTIVE','EXECUTED','EXPIRED','IGNORED','SUPERSEDED') DEFAULT 'ACTIVE',
+  `created_at` datetime DEFAULT current_timestamp(),
+  `expires_at` datetime DEFAULT NULL,
+  `executed_at` datetime DEFAULT NULL,
+  `executed_price` decimal(10,4) DEFAULT NULL,
+  `executed_quantity` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Raccomandazioni operative per il portfolio management';
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `recommendation_actions`
+--
+
+CREATE TABLE `recommendation_actions` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `recommendation_id` int(10) UNSIGNED NOT NULL,
+  `action` enum('VIEWED','EXECUTED','IGNORED','POSTPONED') NOT NULL,
+  `notes` text DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Storico azioni utente sulle raccomandazioni';
 
 -- --------------------------------------------------------
 
@@ -449,6 +508,40 @@ INSERT INTO `transactions` (`id`, `portfolio_id`, `ticker`, `transaction_date`, 
 -- --------------------------------------------------------
 
 --
+-- Struttura stand-in per le viste `v_active_recommendations`
+-- (Vedi sotto per la vista effettiva)
+--
+CREATE TABLE `v_active_recommendations` (
+`id` int(10) unsigned
+,`portfolio_id` int(10) unsigned
+,`holding_id` int(10) unsigned
+,`ticker` varchar(20)
+,`name` varchar(255)
+,`current_price` decimal(12,4)
+,`asset_class` enum('Equity','Dividend','Commodity','Bond','ETF','Stock','Cash','Other')
+,`role` enum('CORE','SATELLITE','HEDGE')
+,`target_allocation_pct` decimal(5,2)
+,`type` enum('BUY_LIMIT','BUY_MARKET','SELL_PARTIAL','SELL_ALL','SET_STOP_LOSS','SET_TAKE_PROFIT','HOLD_MONITOR','REBALANCE','MACRO_ALERT')
+,`urgency` enum('IMMEDIATO','QUESTA_SETTIMANA','PROSSIME_2_SETTIMANE','MONITORAGGIO')
+,`quantity` int(11)
+,`trigger_price` decimal(10,4)
+,`confidence_score` tinyint(4)
+,`status` enum('ACTIVE','EXECUTED','EXPIRED','IGNORED','SUPERSEDED')
+,`created_at` datetime
+,`expires_at` datetime
+,`days_to_expire` int(8)
+,`stop_loss` decimal(10,4)
+,`take_profit` decimal(10,4)
+,`rationale_primary` text
+,`rationale_technical` text
+,`allocation_impact_pct` decimal(34,2)
+,`urgency_icon` varchar(1)
+,`type_icon` varchar(2)
+);
+
+-- --------------------------------------------------------
+
+--
 -- Struttura stand-in per le viste `v_dividends_enriched`
 -- (Vedi sotto per la vista effettiva)
 --
@@ -483,7 +576,7 @@ CREATE TABLE `v_holdings_enriched` (
 ,`isin` varchar(20)
 ,`ticker` varchar(20)
 ,`name` varchar(255)
-,`asset_class` enum('ETF','Stock','Bond','Cash','Other')
+,`asset_class` enum('Equity','Dividend','Commodity','Bond','ETF','Stock','Cash','Other')
 ,`sector` varchar(100)
 ,`quantity` decimal(12,6)
 ,`avg_price` decimal(12,4)
@@ -580,6 +673,27 @@ CREATE TABLE `v_portfolio_metadata` (
 ,`last_update` timestamp
 );
 
+-- --------------------------------------------------------
+
+--
+-- Struttura stand-in per le viste `v_recommendation_performance`
+-- (Vedi sotto per la vista effettiva)
+--
+CREATE TABLE `v_recommendation_performance` (
+`id` int(10) unsigned
+,`type` enum('BUY_LIMIT','BUY_MARKET','SELL_PARTIAL','SELL_ALL','SET_STOP_LOSS','SET_TAKE_PROFIT','HOLD_MONITOR','REBALANCE','MACRO_ALERT')
+,`confidence_score` tinyint(4)
+,`trigger_price` decimal(10,4)
+,`executed_price` decimal(10,4)
+,`executed_at` datetime
+,`ticker` varchar(20)
+,`current_price_now` decimal(12,4)
+,`realized_pnl_pct` decimal(24,8)
+,`hit_stop` int(1)
+,`hit_tp` int(1)
+,`is_success` int(1)
+);
+
 --
 -- Indici per le tabelle scaricate
 --
@@ -622,6 +736,13 @@ ALTER TABLE `holdings`
   ADD KEY `idx_active` (`is_active`);
 
 --
+-- Indici per le tabelle `macro_indicators`
+--
+ALTER TABLE `macro_indicators`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_name_date` (`indicator_name`,`recorded_at`);
+
+--
 -- Indici per le tabelle `metadata_cache`
 --
 ALTER TABLE `metadata_cache`
@@ -643,6 +764,25 @@ ALTER TABLE `monthly_performance`
 ALTER TABLE `portfolios`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_name` (`name`);
+
+--
+-- Indici per le tabelle `recommendations`
+--
+ALTER TABLE `recommendations`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_status_urgency` (`status`,`urgency`),
+  ADD KEY `idx_portfolio_active` (`portfolio_id`,`status`),
+  ADD KEY `idx_holding_active` (`holding_id`,`status`),
+  ADD KEY `idx_created_at` (`created_at`),
+  ADD KEY `idx_expires_at` (`expires_at`);
+
+--
+-- Indici per le tabelle `recommendation_actions`
+--
+ALTER TABLE `recommendation_actions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_recommendation_action` (`recommendation_id`,`action`),
+  ADD KEY `idx_created_at` (`created_at`);
 
 --
 -- Indici per le tabelle `snapshots`
@@ -716,6 +856,12 @@ ALTER TABLE `holdings`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
+-- AUTO_INCREMENT per la tabella `macro_indicators`
+--
+ALTER TABLE `macro_indicators`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT per la tabella `metadata_cache`
 --
 ALTER TABLE `metadata_cache`
@@ -732,6 +878,18 @@ ALTER TABLE `monthly_performance`
 --
 ALTER TABLE `portfolios`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT per la tabella `recommendations`
+--
+ALTER TABLE `recommendations`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT per la tabella `recommendation_actions`
+--
+ALTER TABLE `recommendation_actions`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT per la tabella `snapshots`
@@ -766,6 +924,15 @@ ALTER TABLE `transactions`
 -- --------------------------------------------------------
 
 --
+-- Struttura per vista `v_active_recommendations`
+--
+DROP TABLE IF EXISTS `v_active_recommendations`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`poRtUsR25`@`%` SQL SECURITY DEFINER VIEW `v_active_recommendations`  AS SELECT `r`.`id` AS `id`, `r`.`portfolio_id` AS `portfolio_id`, `r`.`holding_id` AS `holding_id`, `h`.`ticker` AS `ticker`, `h`.`name` AS `name`, `h`.`current_price` AS `current_price`, `h`.`asset_class` AS `asset_class`, `h`.`role` AS `role`, `h`.`target_allocation_pct` AS `target_allocation_pct`, `r`.`type` AS `type`, `r`.`urgency` AS `urgency`, `r`.`quantity` AS `quantity`, `r`.`trigger_price` AS `trigger_price`, `r`.`confidence_score` AS `confidence_score`, `r`.`status` AS `status`, `r`.`created_at` AS `created_at`, `r`.`expires_at` AS `expires_at`, to_days(`r`.`expires_at`) - to_days(current_timestamp()) AS `days_to_expire`, `r`.`stop_loss` AS `stop_loss`, `r`.`take_profit` AS `take_profit`, `r`.`rationale_primary` AS `rationale_primary`, `r`.`rationale_technical` AS `rationale_technical`, CASE WHEN `r`.`type` in ('BUY_LIMIT','BUY_MARKET') THEN round(`r`.`quantity` * `r`.`trigger_price` / (select sum(`holdings`.`quantity` * `holdings`.`current_price`) from `holdings` where `holdings`.`portfolio_id` = `r`.`portfolio_id`) * 100,2) WHEN `r`.`type` = 'SELL_PARTIAL' THEN round(`r`.`quantity` * `h`.`current_price` / (select sum(`holdings`.`quantity` * `holdings`.`current_price`) from `holdings` where `holdings`.`portfolio_id` = `r`.`portfolio_id`) * 100,2) ELSE 0 END AS `allocation_impact_pct`, CASE `r`.`urgency` WHEN 'IMMEDIATO' THEN '🔴' WHEN 'QUESTA_SETTIMANA' THEN '🟠' WHEN 'PROSSIME_2_SETTIMANE' THEN '🟡' WHEN 'MONITORAGGIO' THEN '🟢' END AS `urgency_icon`, CASE `r`.`type` WHEN 'BUY_LIMIT' THEN '📈' WHEN 'BUY_MARKET' THEN '⚡' WHEN 'SELL_PARTIAL' THEN '📉' WHEN 'SELL_ALL' THEN '🚨' WHEN 'SET_STOP_LOSS' THEN '🛡️' WHEN 'SET_TAKE_PROFIT' THEN '🎯' WHEN 'HOLD_MONITOR' THEN '👁️' WHEN 'REBALANCE' THEN '⚖️' WHEN 'MACRO_ALERT' THEN '📊' END AS `type_icon` FROM (`recommendations` `r` left join `holdings` `h` on(`r`.`holding_id` = `h`.`id`)) WHERE `r`.`status` = 'ACTIVE' AND (`r`.`expires_at` is null OR `r`.`expires_at` > current_timestamp()) ORDER BY CASE `r`.`urgency` WHEN 'IMMEDIATO' THEN 1 WHEN 'QUESTA_SETTIMANA' THEN 2 WHEN 'PROSSIME_2_SETTIMANE' THEN 3 WHEN 'MONITORAGGIO' THEN 4 END ASC, `r`.`confidence_score` DESC, `r`.`created_at` DESC ;
+
+-- --------------------------------------------------------
+
+--
 -- Struttura per vista `v_dividends_enriched`
 --
 DROP TABLE IF EXISTS `v_dividends_enriched`;
@@ -789,6 +956,15 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`poRtUsR25`@`%` SQL SECURITY DEFINER VIEW `v_
 DROP TABLE IF EXISTS `v_portfolio_metadata`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`poRtUsR25`@`%` SQL SECURITY DEFINER VIEW `v_portfolio_metadata`  AS SELECT `p`.`id` AS `portfolio_id`, `p`.`name` AS `name`, `p`.`owner` AS `owner`, `p`.`base_currency` AS `base_currency`, count(distinct `h`.`ticker`) AS `total_holdings`, coalesce(sum(`h`.`quantity` * `h`.`avg_price`),0) AS `total_invested`, coalesce(sum(`h`.`quantity` * coalesce(`h`.`current_price`,`h`.`avg_price`)),0) AS `total_market_value`, coalesce(sum(`h`.`quantity` * coalesce(`h`.`current_price`,`h`.`avg_price`) - `h`.`quantity` * `h`.`avg_price`),0) AS `total_pnl`, CASE WHEN coalesce(sum(`h`.`quantity` * `h`.`avg_price`),0) > 0 THEN (coalesce(sum(`h`.`quantity` * coalesce(`h`.`current_price`,`h`.`avg_price`)),0) - coalesce(sum(`h`.`quantity` * `h`.`avg_price`),0)) / sum(`h`.`quantity` * `h`.`avg_price`) * 100 ELSE 0 END AS `total_pnl_pct`, coalesce((select sum(`dp`.`total_amount`) from `dividend_payments` `dp` where `dp`.`portfolio_id` = `p`.`id` and `dp`.`status` = 'RECEIVED'),0) AS `total_dividends_received`, `p`.`updated_at` AS `last_update` FROM (`portfolios` `p` left join `holdings` `h` on(`h`.`portfolio_id` = `p`.`id` and `h`.`is_active` = 1)) GROUP BY `p`.`id`, `p`.`name`, `p`.`owner`, `p`.`base_currency`, `p`.`updated_at` ;
+
+-- --------------------------------------------------------
+
+--
+-- Struttura per vista `v_recommendation_performance`
+--
+DROP TABLE IF EXISTS `v_recommendation_performance`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`poRtUsR25`@`%` SQL SECURITY DEFINER VIEW `v_recommendation_performance`  AS SELECT `r`.`id` AS `id`, `r`.`type` AS `type`, `r`.`confidence_score` AS `confidence_score`, `r`.`trigger_price` AS `trigger_price`, `r`.`executed_price` AS `executed_price`, `r`.`executed_at` AS `executed_at`, `h`.`ticker` AS `ticker`, `h`.`current_price` AS `current_price_now`, CASE WHEN `r`.`type` in ('BUY_LIMIT','BUY_MARKET') THEN (`h`.`current_price` - `r`.`executed_price`) / `r`.`executed_price` * 100 WHEN `r`.`type` in ('SELL_PARTIAL','SELL_ALL') THEN (`r`.`executed_price` - `h`.`avg_price`) / `h`.`avg_price` * 100 END AS `realized_pnl_pct`, CASE WHEN `h`.`current_price` <= `r`.`stop_loss` THEN 1 ELSE 0 END AS `hit_stop`, CASE WHEN `h`.`current_price` >= `r`.`take_profit` THEN 1 ELSE 0 END AS `hit_tp`, CASE WHEN `r`.`type` in ('BUY_LIMIT','BUY_MARKET') AND `h`.`current_price` > `r`.`executed_price` THEN 1 WHEN `r`.`type` in ('SELL_PARTIAL','SELL_ALL') AND `h`.`current_price` < `r`.`executed_price` THEN 1 ELSE 0 END AS `is_success` FROM (`recommendations` `r` left join `holdings` `h` on(`r`.`holding_id` = `h`.`id`)) WHERE `r`.`status` = 'EXECUTED' ;
 
 --
 -- Limiti per le tabelle scaricate
@@ -829,6 +1005,19 @@ ALTER TABLE `metadata_cache`
 --
 ALTER TABLE `monthly_performance`
   ADD CONSTRAINT `monthly_performance_ibfk_1` FOREIGN KEY (`portfolio_id`) REFERENCES `portfolios` (`id`) ON DELETE CASCADE;
+
+--
+-- Limiti per la tabella `recommendations`
+--
+ALTER TABLE `recommendations`
+  ADD CONSTRAINT `fk_recommendations_holding` FOREIGN KEY (`holding_id`) REFERENCES `holdings` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_recommendations_portfolio` FOREIGN KEY (`portfolio_id`) REFERENCES `portfolios` (`id`) ON DELETE CASCADE;
+
+--
+-- Limiti per la tabella `recommendation_actions`
+--
+ALTER TABLE `recommendation_actions`
+  ADD CONSTRAINT `fk_actions_recommendation` FOREIGN KEY (`recommendation_id`) REFERENCES `recommendations` (`id`) ON DELETE CASCADE;
 
 --
 -- Limiti per la tabella `snapshots`

@@ -113,7 +113,9 @@ class HoldingRepository extends BaseRepository
                 'pnl' => (float)$holding['pnl'],
                 'pnl_pct' => (float)$holding['pnl_pct'],
                 'updated_at' => $holding['updated_at'],
-                'is_active' => (int)($holding['is_active'] ?? 1)
+                'is_active' => (int)($holding['is_active'] ?? 1),
+                'target_allocation_pct' => $holding['target_allocation_pct'] !== null ? (float)$holding['target_allocation_pct'] : null,
+                'role' => $holding['role'] ?? 'SATELLITE'
             ];
         }, $holdings);
     }
