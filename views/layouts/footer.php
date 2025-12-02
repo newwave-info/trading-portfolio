@@ -187,5 +187,6 @@
 <script src="/assets/js/holdings.js?v=<?php echo time(); ?>"></script>
 <script src="/assets/js/technical-modal.js?v=<?php echo time(); ?>"></script>
 <script src="/assets/js/technical-charts.js?v=<?php echo time(); ?>"></script>
+<script src="/assets/js/recommendations.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>
