@@ -107,19 +107,6 @@
     },
     {
       "parameters": {
-        "jsCode": "/**\n * BUILD LLM PROMPT\n * Usa il contesto normalizzato da Parse Technical Context\n * e costruisce system_prompt + user_prompt come stringhe.\n */\n\nconst ctx = $json; // { portfolio_id, as_of, holdings[...] }\n\nconst systemPrompt = `\nSei un analista tecnico che analizza un portafoglio di ETF.\n- NON dai mai consigli diretti di acquisto o vendita.\n- NON parli di apertura ordini o automazione.\n- Ti limiti a descrivere trend, momentum, volatilità e posizionamento nel range.\n- Rispondi SOLO in JSON valido, senza testo extra.\n`.trim();\n\nconst userPrompt = `\nDi seguito trovi i dati di un portafoglio ETF, con indicatori tecnici per ciascun strumento.\n\nRestituisci un JSON con questa struttura:\n{\n  \"portfolio\": {\n    \"insight_text\": \"... breve sintesi in italiano ...\",\n    \"insight_json\": { ... dettagli strutturati ... }\n  },\n  \"instruments\": [\n    {\n      \"isin\": \"...\",\n      \"insight_text\": \"... breve sintesi per questo strumento ...\",\n      \"insight_json\": {\n        \"trend\": \"bullish|neutral|bearish\",\n        \"risk\": \"low|medium|high\",\n        \"flags\": [\"overbought\", \"high_volatility\", \"...\"],\n        \"notes\": \"...\"\n      }\n    }\n  ]\n}\n\nDati tecnici del portafoglio (JSON):\n${JSON.stringify(ctx, null, 2)}\n`.trim();\n\nreturn [\n  {\n    json: {\n      system_prompt: systemPrompt,\n      user_prompt: userPrompt,\n      model: \"gpt-4.1-mini\" // o quello che userai\n    }\n  }\n];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -32,
-        -224
-      ],
-      "id": "fc7beffc-3c2e-4331-b056-0cb01925269f",
-      "name": "Build LLM Prompt"
-    },
-    {
-      "parameters": {
         "jsCode": "/**\n * PARSE LLM OUTPUT (Final v2 - Structured Scores & Signals)\n *\n * Input:\n *   - output del nodo \"Message a model\" (OpenAI)\n *   - contesto tecnico dal nodo \"Parse Technical Context\"\n *\n * Output:\n *   payload completo per /api/n8n/ai_insights.php\n */\n\nconst ctx = $node[\"Parse Technical Context\"].json;\n\n// ----------------------------\n// 1) Estrarre testo dal nodo AI\n// ----------------------------\nlet raw = null;\n\nif (Array.isArray($json.output) && $json.output.length > 0) {\n  const block = $json.output[0];\n  if (Array.isArray(block.content) && block.content.length > 0) {\n    raw = block.content[0].text;\n  }\n}\n\nif (typeof raw !== \"string\") {\n  throw new Error(\"AI output is not a string: expected output[0].content[0].text\");\n}\n\n// ----------------------------\n// 2) Pulizia formattazione\n// ----------------------------\nlet cleaned = raw.trim();\n\nif (cleaned.startsWith(\"```\")) {\n  cleaned = cleaned\n    .replace(/```json/gi, \"\")\n    .replace(/```/g, \"\")\n    .trim();\n}\n\n// ----------------------------\n// 3) Parse JSON\n// ----------------------------\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch (err) {\n  throw new Error(\n    \"Failed to parse JSON from LLM: \" +\n      err.message +\n      \"\\nRaw:\\n\" +\n      cleaned\n  );\n}\n\n// ----------------------------\n// 4) Normalizzazione dei campi\n// ----------------------------\n\n// --- Portfolio block ---\nconst portfolioBlock = parsed.portfolio || {};\nconst portfolioInsightJSON = portfolioBlock.insight_json || {};\nconst portfolioScores = portfolioBlock.scores || {};\nconst portfolioText = portfolioBlock.insight_text || \"\";\n\n// --- Instruments block ---\nconst instruments = Array.isArray(parsed.instruments)\n  ? parsed.instruments\n  : [];\n\n// --- Timestamp MySQL ---\nconst now = new Date();\nconst mysqlTimestamp = now.toISOString().slice(0, 19).replace(\"T\", \" \");\n\n// ----------------------------\n// 5) Preparazione payload per PHP\n// ----------------------------\nconst payload = {\n  model: \"gpt-5.1\",          // puoi anche prenderlo dinamico\n  generated_at: mysqlTimestamp,\n\n  portfolio: {\n    raw_input_snapshot: ctx,\n    insight_json: {\n      scores: portfolioScores,\n      ...portfolioInsightJSON,\n    },\n    insight_text: portfolioText\n  },\n\n  instruments: instruments\n    .filter(i => i && (i.isin || i.ticker))\n    .map(i => ({\n      isin: i.isin || null,\n      ticker: i.ticker || null,\n      generated_at: mysqlTimestamp,\n      raw_input_snapshot: null,\n\n      insight_json: {\n        scores: i.scores || {},\n        signals: i.signals || {},\n        levels: i.levels || {},\n        ...(i.insight_json || {})\n      },\n\n      insight_text: i.insight_text || \"\"\n    }))\n};\n\n// ----------------------------\n// 6) Output verso HTTP Request finale\n// ----------------------------\nreturn [{ json: payload }];"
       },
       "type": "n8n-nodes-base.code",
@@ -161,69 +148,9 @@
       ],
       "id": "d9ce6615-2cb6-448c-97e2-fbc608313fc8",
       "name": "HTTP Request"
-    },
-    {
-      "parameters": {
-        "modelId": {
-          "__rl": true,
-          "value": "gpt-5.1",
-          "mode": "list",
-          "cachedResultName": "GPT-5.1"
-        },
-        "responses": {
-          "values": [
-            {
-              "role": "system",
-              "content": "Sei un analista tecnico che analizza un portafoglio di ETF.\n- dai consigli diretti di acquisto o vendita.\n- NON parli di apertura ordini o automazione.\n- Descrivi trend, momentum, volatilità e posizionamento nel range.\n- Rispondi SOLO in JSON valido, senza testo extra."
-            },
-            {
-              "content": "=Sei un analista tecnico incaricato di produrre una valutazione strutturata del portafoglio e dei singoli strumenti.\n\nREGOLE:\n- Non fornire mai consigli diretti di acquisto, vendita o operazioni.\n- Non parlare di apertura ordini, take profit, stop loss, automazione o operatività.\n- Puoi però descrivere “segnali tecnici”, “condizioni di rischio”, “aree monitorate”, “possibili livelli tecnici”.\n- Rispondi SOLO in JSON valido.\n- Tutti i punteggi devono essere tra 0 e 100.\n\nLa risposta JSON deve rispettare questa struttura:\n\n{\n  \"portfolio\": {\n    \"scores\": {\n      \"health_score\": 0-100,\n      \"risk_score\": 0-100,\n      \"diversification_score\": 0-100,\n      \"momentum_score\": 0-100,\n      \"volatility_score\": 0-100,\n      \"extension_score\": 0-100\n    },\n    \"insight_text\": \"breve testo in italiano\",\n    \"insight_json\": {\n      \"trend\": \"bullish|neutral|bearish\",\n      \"risk\": \"low|medium|high\",\n      \"volatility_comment\": \"string\",\n      \"diversification_comment\": \"string\",\n      \"notes\": \"string\"\n    }\n  },\n  \"instruments\": [\n    {\n      \"isin\": \"STRING\",\n      \"ticker\": \"STRING\",\n\n      \"scores\": {\n        \"trend_strength\": 0-100,\n        \"momentum_strength\": 0-100,\n        \"volatility_score\": 0-100,\n        \"overextension_score\": 0-100\n      },\n\n      \"signals\": {\n        \"trend_signal\": \"strong_uptrend|uptrend|neutral|downtrend|strong_downtrend\",\n        \"momentum_signal\": \"accelerating|stable|weakening\",\n        \"rsi_condition\": \"overbought|neutral|oversold\",\n        \"bollinger_position\": \"upper_band|middle_band|lower_band\",\n        \"range_position\": \"near_high|mid_range|near_low\",\n        \"volatility_flag\": \"high|medium|low\"\n      },\n\n      \"levels\": {\n        \"potential_support_levels\": [ ... valori numerici ... ],\n        \"potential_resistance_levels\": [ ... valori numerici ... ]\n      },\n\n      \"insight_text\": \"breve commento tecnico\",\n      \"insight_json\": {\n        \"trend\": \"bullish|neutral|bearish\",\n        \"momentum\": \"bullish|neutral|bearish\",\n        \"flags\": [\"overbought\", \"high_volatility\", \"...\"],\n        \"notes\": \"osservazioni tecniche\"\n      }\n    }\n  ]\n}\n\nDati tecnici del portafoglio:\n\n```json\n{{ JSON.stringify($json, null, 2) }}\n"
-            }
-          ]
-        },
-        "builtInTools": {},
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.openAi",
-      "typeVersion": 2.1,
-      "position": [
-        848,
-        -384
-      ],
-      "id": "012d72cf-58ea-4f36-b961-4551fc2525be",
-      "name": "Message a model1",
-      "credentials": {
-        "openAiApi": {
-          "id": "YKH8CfczdzNM1zeT",
-          "name": "OpenAi account"
-        }
-      }
     }
   ],
-  "pinData": {
-    "Message a model": [
-      {
-        "json": {
-          "output": [
-            {
-              "id": "msg_0167038df9f6817800692dcb4b20f081958a0541bafabbca8f",
-              "type": "message",
-              "status": "completed",
-              "content": [
-                {
-                  "type": "output_text",
-                  "annotations": [],
-                  "logprobs": [],
-                  "text": "{\n  \"portfolio\": {\n    \"scores\": {\n      \"health_score\": 82,\n      \"risk_score\": 38,\n      \"diversification_score\": 65,\n      \"momentum_score\": 74,\n      \"volatility_score\": 42,\n      \"extension_score\": 78\n    },\n    \"insight_text\": \"Portafoglio in solido uptrend, con momentum positivo ma non estremo e volatilità contenuta; diversi strumenti sono però vicini ai massimi annuali, con rischio di fasi correttive nel breve.\",\n    \"insight_json\": {\n      \"trend\": \"bullish\",\n      \"risk\": \"medium\",\n      \"volatility_comment\": \"Volatilità complessivamente moderata, con l’oro più vivace e gli azionari globali su livelli storicamente tranquilli.\",\n      \"diversification_comment\": \"Buona base globale con componente oro e dividendi, ma concentrazione tecnica verso strumenti tutti in area di massimi.\",\n      \"notes\": \"Scenario tecnico costruttivo: tendenza rialzista diffusa ma estensione elevata sui range a 3-12 mesi; opportuno usare ingressi graduali e stop loss sotto i supporti chiave.\"\n    }\n  },\n  \"instruments\": [\n    {\n      \"isin\": \"IE00B4L5Y983\",\n      \"ticker\": \"SWDA.MI\",\n      \"scores\": {\n        \"trend_strength\": 78,\n        \"momentum_strength\": 65,\n        \"volatility_score\": 35,\n        \"overextension_score\": 75\n      },\n      \"signals\": {\n        \"trend_signal\": \"uptrend\",\n        \"momentum_signal\": \"weakening\",\n        \"rsi_condition\": \"neutral\",\n        \"bollinger_position\": \"middle_band\",\n        \"range_position\": \"near_high\",\n        \"volatility_flag\": \"low\"\n      },\n      \"levels\": {\n        \"potential_support_levels\": [\n          109.5,\n          107.7,\n          105,\n          103.5\n        ],\n        \"potential_resistance_levels\": [\n          112.5,\n          115\n        ]\n      },\n      \"insight_text\": \"Trend rialzista ma meno brillante e prezzo vicino ai massimi annuali: operatività long ancora valida ma con ingressi graduali e stop sotto area 107,7.\",\n      \"insight_json\": {\n        \"trend\": \"bullish\",\n        \"momentum\": \"neutral\",\n        \"flags\": [\n          \"near_52w_high\",\n          \"low_volatility\"\n        ],\n        \"notes\": \"EMAs allineate al rialzo, MACD in leggero indebolimento e RSI neutro; possibile acquisto su ritracciamento verso 109–108 con stop sotto 107,5 e primo target in area 112,5–115.\"\n      }\n    },\n    {\n      \"isin\": \"IE00B579F325\",\n      \"ticker\": \"SGLD.MI\",\n      \"scores\": {\n        \"trend_strength\": 90,\n        \"momentum_strength\": 88,\n        \"volatility_score\": 72,\n        \"overextension_score\": 85\n      },\n      \"signals\": {\n        \"trend_signal\": \"strong_uptrend\",\n        \"momentum_signal\": \"accelerating\",\n        \"rsi_condition\": \"neutral\",\n        \"bollinger_position\": \"upper_band\",\n        \"range_position\": \"near_high\",\n        \"volatility_flag\": \"high\"\n      },\n      \"levels\": {\n        \"potential_support_levels\": [\n          345,\n          339,\n          327,\n          315\n        ],\n        \"potential_resistance_levels\": [\n          360,\n          370,\n          380\n        ]\n      },\n      \"insight_text\": \"Fortissimo uptrend con prezzo in prossimità dei massimi e vicino alla banda alta: long interessante ma tecnicamente esteso e volatile, meglio entrare su ritracciamenti.\",\n      \"insight_json\": {\n        \"trend\": \"bullish\",\n        \"momentum\": \"bullish\",\n        \"flags\": [\n          \"near_52w_high\",\n          \"high_volatility\",\n          \"overextension\"\n        ],\n        \"notes\": \"MACD e medie esponenziali molto forti; possibile nuova gamba rialzista ma con rischio di pullback rapido. Strategia: acquisti parziali su ritorni verso 345–339, stop sotto 327 e target in area 360–370, eventuale estensione verso 380.\"\n      }\n    },\n    {\n      \"isin\": \"NL0011683594\",\n      \"ticker\": \"TDIV.MI\",\n      \"scores\": {\n        \"trend_strength\": 82,\n        \"momentum_strength\": 72,\n        \"volatility_score\": 32,\n        \"overextension_score\": 80\n      },\n      \"signals\": {\n        \"trend_signal\": \"uptrend\",\n        \"momentum_signal\": \"stable\",\n        \"rsi_condition\": \"neutral\",\n        \"bollinger_position\": \"upper_band\",\n        \"range_position\": \"near_high\",\n        \"volatility_flag\": \"low\"\n      },\n      \"levels\": {\n        \"potential_support_levels\": [\n          45.7,\n          44.8,\n          43.2\n        ],\n        \"potential_resistance_levels\": [\n          47,\n          48.5\n        ]\n      },\n      \"insight_text\": \"Trend rialzista ben impostato, prezzo a ridosso dei massimi storici con volatilità contenuta: long ancora favorevole ma tecnicamente tirato sul breve.\",\n      \"insight_json\": {\n        \"trend\": \"bullish\",\n        \"momentum\": \"bullish\",\n        \"flags\": [\n          \"near_52w_high\",\n          \"low_volatility\",\n          \"overextension\"\n        ],\n        \"notes\": \"MACD leggermente positivo, RSI equilibrato ma percentile di range a 1 anno molto elevato. Possibile acquisto su pullback verso 45,7–45 con stop sotto 44,8 e target iniziale 47, con eventuale estensione verso 48,5.\"\n      }\n    },\n    {\n      \"isin\": \"IE00B8GKDB10\",\n      \"ticker\": \"VHYL.MI\",\n      \"scores\": {\n        \"trend_strength\": 76,\n        \"momentum_strength\": 64,\n        \"volatility_score\": 34,\n        \"overextension_score\": 78\n      },\n      \"signals\": {\n        \"trend_signal\": \"uptrend\",\n        \"momentum_signal\": \"stable\",\n        \"rsi_condition\": \"neutral\",\n        \"bollinger_position\": \"upper_band\",\n        \"range_position\": \"near_high\",\n        \"volatility_flag\": \"low\"\n      },\n      \"levels\": {\n        \"potential_support_levels\": [\n          67.7,\n          66.7,\n          65.1\n        ],\n        \"potential_resistance_levels\": [\n          69.5,\n          71\n        ]\n      },\n      \"insight_text\": \"Uptrend regolare con prezzo in area massimi e sopra tutte le medie: struttura long solida ma con margini di ingresso migliori in caso di ritracciamento.\",\n      \"insight_json\": {\n        \"trend\": \"bullish\",\n        \"momentum\": \"bullish\",\n        \"flags\": [\n          \"near_52w_high\",\n          \"low_volatility\",\n          \"overextension\"\n        ],\n        \"notes\": \"EMA9 sopra EMA21 e 50, MACD lievemente positivo e volatilità bassa; preferibile comprare su ritorni verso 67,7–67 con stop sotto 66,7 e target principale 69,5, eventuale estensione verso 71.\"\n      }\n    }\n  ]\n}"
-                }
-              ],
-              "role": "assistant"
-            }
-          ]
-        }
-      }
-    ]
-  },
+  "pinData": {},
   "connections": {
     "Schedule Trigger": {
       "main": [
@@ -269,11 +196,6 @@
         ]
       ]
     },
-    "Build LLM Prompt": {
-      "main": [
-        []
-      ]
-    },
     "Message a model": {
       "main": [
         [
@@ -301,7 +223,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "c8dc8a71-94f6-4e21-ad6c-1b6e4e0f7468",
+  "versionId": "6bc6af57-6029-45c1-8306-95d19ee2c946",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "fe117d56aad4346ee596609bb8c3079d6edd34e383a675201472f524674346cc"
