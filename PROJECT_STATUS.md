@@ -1,28 +1,30 @@
 # 📊 ETF Portfolio Manager - Stato Avanzamento Lavori
 
 **Ultimo aggiornamento:** 02 Dicembre 2025
-**Versione:** 0.4.2-StrategiaOperativa ✅
-**Stato:** Produzione attiva - Strategia Operativa v2 completata e testata
+**Versione:** 0.5.0-n8nAutomation ✅
+**Stato:** Produzione attiva - Automazione n8n completa e operativa
 
 ---
 
 ## 🎯 **Aggiornamenti Recenti (02 Dicembre 2025)**
 
-### ✅ **STRATEGIA OPERATIVA v2 - FASE 3 COMPLETATA**
+### ✅ **AUTOMAZIONE N8N - FASE 5 COMPLETATA**
 
-**SignalGeneratorService implementato e testato in produzione:**
-- Sistema completo di raccomandazioni con tabelle MySQL (`recommendations`, `recommendation_actions`)
-- Strategia Core-Satellite Risk Parity con allocazione target dinamica
-- Confidence scoring con graceful degradation per dati mancanti
-- 5 tipi di segnali: BUY_LIMIT, SELL_PARTIAL, SET_STOP_LOSS, SET_TAKE_PROFIT, REBALANCE
-- Test in produzione superati - sistema operativo e stabile
+**Sistema di automazione completo implementato e operativo:**
+- **4 Workflow n8n**: Generazione automatica, schedulazione multi-orario, alert, monitoring
+- **API REST completate**: `/api/signals.php` + `/api/alerts.php` per automazione
+- **SignalGeneratorService API-ready**: Metodo `generateSignalsWithParams()` per integrazione n8n
+- **Sistema notifiche**: Email per segnali urgenti, Telegram per update rapidi
+- **Sicurezza**: HMAC authentication, rate limiting, logging completo
+- **Configurazione**: File `.env.example` e `config/api.php` per setup rapido
 
-**Bug critici risolti:**
-- Parse error HTML entities in Recommendation.php
-- Singleton pattern DatabaseManager correttamente implementato
-- Campi target_allocation_pct e role aggiunti a HoldingRepository
+**Automazione operativa:**
+- **Generazione giornaliera**: SignalGeneratorService eseguito automaticamente alle 19:30 CET
+- **Schedulazione multi-orario**: Analisi a 08:00, 13:00, 18:00 CET per opportunità intraday
+- **Alert real-time**: Notifiche per segnali IMMEDIATO con confidence > 80%
+- **Monitoring**: Health check ogni 4 ore con log dettagliati
 
-**Documentazione:** [docs/08-STRATEGIA-OPERATIVA-v2.md](docs/08-STRATEGIA-OPERATIVA-v2.md) - Architettura completa e algoritmi decisionali
+**Documentazione:** [docs/10-N8N-WORKFLOWS-PHASE5.md](docs/10-N8N-WORKFLOWS-PHASE5.md) - Istruzioni complete per importare i workflow
 
 ---
 
@@ -31,28 +33,43 @@
 | Componente | Stato | Dettaglio |
 |------------|-------|-----------|
 | **Database MySQL** | ✅ Completo | 16 tabelle + 2 VIEWs, Repository Pattern implementato |
-| **Signal Generator** | ✅ Operativo | SignalGeneratorService testato in produzione |
-| **n8n Integration** | ✅ Attiva | Enrichment automatico quotazioni e dati tecnici |
+| **Signal Generator** | ✅ Operativo | SignalGeneratorService con API per n8n |
+| **n8n Integration** | ✅ Completa | 4 workflow automatici per segnali e alert |
+| **API REST** | ✅ Completa | Endpoints per raccomandazioni, segnali, alert |
+| **Sistema Notifiche** | ✅ Operativo | Email + Telegram per alert ad alta priorità |
 | **Analisi Tecnica** | ✅ Completa | Indicatori, AI Insights, grafici storici |
 | **Sistema Dividendi** | ✅ Automatico | Payout, calendario, forecast via n8n |
 | **ChartManager** | ✅ Centralizzato | 38 grafici conformi Style Guide |
-| **API REST** | ✅ Base | Holdings, import, aggiornamenti via n8n |
+| **Automazione** | ✅ Operativa | Generazione segnali, alert, monitoring completo |
 
 ---
 
 ## 🔄 **Prossimi Step (Roadmap Attiva)**
 
-### **Fase 4: API Layer REST** 🔄 (In Corso)
-- [ ] Endpoint `/api/recommendations.php` per gestione segnali
-- [ ] Filtri per status (ACTIVE/EXECUTED/EXPIRED)
-- [ ] Paginazione e ordinamento per UI
-- [ ] Autenticazione base per API
+### **Fase 4: API Layer REST** ✅ (Completata - 02 Dic 2025)
+- ✅ Endpoint `/api/recommendations.php` completo con CRUD operations
+- ✅ Filtri avanzati per status, holding_id, urgenza
+- ✅ Paginazione e ordinamento (page, per_page, order_by, order_dir)
+- ✅ Statistiche aggregate con metrics complete
+- ✅ Rate limiting (60 req/min) e CORS configurabile
+- ✅ Validazione input avanzata con type checking
+- ✅ Logging completo delle chiamate API
+- ✅ Documentazione API completa in `/docs/09-API-RECOMMENDATIONS.md`
 
-### **Fase 5: Workflow n8n Automation** ⏳ (Prossima)
-- [ ] Workflow per generazione automatica segnali giornaliera
-- [ ] Schedulazione SignalGeneratorService via n8n
-- [ ] Alert notifiche per segnali ad alta priorità
-- [ ] Monitoring e logging workflow
+### **Fase 5: Workflow n8n Automation** ✅ (Completata - 02 Dic 2025)
+- ✅ **4 Workflow n8n implementati e documentati**:
+  - **Workflow E**: Generazione automatica segnali giornaliera (19:30 CET)
+  - **Workflow F**: Schedulazione multi-orario SignalGeneratorService (08:00, 13:00, 18:00 CET)
+  - **Workflow G**: Alert notifiche per segnali ad alta priorità (IMMEDIATO + confidence > 80%)
+  - **Workflow H**: Monitoring e health check ogni 4 ore
+- ✅ **API endpoints completati**:
+  - `/api/signals.php` - Generazione segnali con parametri via API
+  - `/api/alerts.php` - Sistema notifiche email/Telegram
+- ✅ **SignalGeneratorService esteso** con `generateSignalsWithParams()` per integrazione n8n
+- ✅ **Sistema di notifiche configurato**: Email + Telegram per alert ad alta priorità
+- ✅ **HMAC authentication** per sicurezza webhook n8n
+- ✅ **Rate limiting e logging** completi
+- ✅ **Documentazione completa** in `/docs/10-N8N-WORKFLOWS-PHASE5.md`
 
 ### **Fase 6: Frontend Integration** ⏳ (Futura)
 - [ ] Vista dedicata raccomandazioni nel frontend
@@ -72,6 +89,8 @@
 
 | Data | Issue | Soluzione |
 |------|-------|-----------|
+| 02 Dic 2025 | **Fase 5 n8n Automation completata** | 4 workflow implementati con alert e monitoring |
+| 02 Dic 2025 | **Fase 4 API REST completata** | Endpoint raccomandazioni con sicurezza e validazione |
 | 02 Dic 2025 | Parse error HTML entities | Fix sintassi PHP in Recommendation.php |
 | 02 Dic 2025 | Singleton pattern errato | Implementato DatabaseManager::getInstance() |
 | 02 Dic 2025 | Campi target_allocation_pct mancanti | Aggiunti a HoldingRepository mapping |
@@ -85,6 +104,8 @@
 ### **Documenti Principali**
 - **[README.md](README.md)** - Panoramica generale e funzionalità (aggiornato 02 Dic 2025)
 - **[docs/08-STRATEGIA-OPERATIVA-v2.md](docs/08-STRATEGIA-OPERATIVA-v2.md)** - Dettagli completi Strategia Operativa v2
+- **[docs/09-API-RECOMMENDATIONS.md](docs/09-API-RECOMMENDATIONS.md)** - Documentazione completa API REST raccomandazioni
+- **[docs/10-N8N-WORKFLOWS-PHASE5.md](docs/10-N8N-WORKFLOWS-PHASE5.md)** - Workflow n8n per automazione segnali
 - **[docs/07-DATA-ENHANCEMENT-ROADMAP.md](docs/07-DATA-ENHANCEMENT-ROADMAP.md)** - Roadmap miglioramenti dati
 
 ### **Tecnici Specifici**
@@ -97,16 +118,19 @@
 ## 📊 **Metriche di Sistema**
 
 ### **Database Status**
-- **Tabelle**: 16 (comprese recommendations, technical_snapshots)
+- **Tabelle**: 16 (comprese recommendations, technical_snapshots, recommendation_actions)
 - **VIEWs**: 2 (v_holdings_enriched, v_portfolio_metadata)
 - **Record**: Portfolio attivo con 6+ holdings
-- **Performance**: Query ottimizzate, indici presenti
+- **Performance**: Query ottimizzate, indici presenti, repository pattern implementato
 
-### **Signal Generator**
-- **Segnali generati**: Test in produzione superati
+### **Signal Generator & Automazione**
+- **API endpoints**: 3 completi (recommendations, signals, alerts)
+- **Workflow n8n**: 4 automatici (generazione, schedulazione, alert, monitoring)
 - **Confidence range**: 50-100 con graceful degradation
-- **Tipi supportati**: 5 (BUY_LIMIT, SELL_PARTIAL, SET_STOP_LOSS, SET_TAKE_PROFIT, REBALANCE)
-- **Test coverage**: Produzione testata e funzionante
+- **Tipi segnali**: 5 (BUY_LIMIT, SELL_PARTIAL, SET_STOP_LOSS, SET_TAKE_PROFIT, REBALANCE)
+- **Notifiche**: Email + Telegram per alert ad alta priorità
+- **Sicurezza**: HMAC authentication, rate limiting, CORS configurabile
+- **Scheduling**: Generazione automatica giornaliera + multi-orario intraday
 
 ---
 

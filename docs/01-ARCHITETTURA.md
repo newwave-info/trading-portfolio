@@ -12,6 +12,10 @@ Questo documento descrive l’architettura logica e fisica di **ETF Portfolio Ma
   - dati specifici dell’utente/portafoglio (holdings, transazioni, snapshots)
   - dati di mercato condivisi (prezzi, anagrafiche ETF, commissioni Fineco)
 - Integrazione con **n8n CE self‑hosted** per:
+  - **generazione automatica segnali di trading** (Fase 5)
+  - **schedulazione multi-orario** per opportunità intraday (Fase 5)
+  - **alert notifiche** email/Telegram per segnali urgenti (Fase 5)
+  - **monitoring e health check** del sistema (Fase 5)
   - analisi tecnica
   - sentiment macro/news
   - scouting opportunità
@@ -38,7 +42,9 @@ Questo documento descrive l’architettura logica e fisica di **ETF Portfolio Ma
 │ - Dashboard │
 │ - Gestione utenti/portafogli │
 │ - CRUD Holdings/Transactions │
-│ - API REST (web-app + n8n) │
+│ - API REST per frontend │
+│ - API REST per automazione │
+│ - SignalGeneratorService │
 │ - Session Management │
 └─────────┬──────────────────┬─────────┘
 │ │
@@ -105,9 +111,123 @@ Dati uguali per tutti gli utenti/portafogli, aggiornati principalmente da workfl
 Questa area permette di:
 - evitare duplicazioni di dati tra utenti
 - ridurre le chiamate ai provider esterni (rate limit)
-- avere un’unica fonte di verità per prezzi, anagrafiche e commissioni.
+- avere un'unica fonte di verità per prezzi, anagrafiche e commissioni.
 
-#### 3.2.2 Area `utente` (dati specifici)
+---
+
+## 4. Automazione con n8n (Fase 5)
+
+### 4.1 Architettura Automazione
+
+Il sistema implementa **4 workflow principali** in n8n per l'automazione completa:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    n8n Workflows                           │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  [Cron 19:30] ──► [Get Holdings] ──► [Generate Signals]   │
+│                    │   Daily Workflow E                      │
+│                    ▼                                         │
+│              [Process Signals] ──► [Send Alerts]           │
+│                                                             │
+│  [Cron 08:13:18] ──► [Multi-session Analysis]             │
+│                    │   Multi-time Workflow F               │
+│                    ▼                                         │
+│              [Filter Urgent] ──► [Send Notifications]      │
+│                                                             │
+│  [Webhook] ──► [High Priority Check] ──► [Alert System]  │
+│              │   Alert Workflow G                           │
+│              ▼                                               │
+│        [Email Alert] + [Telegram Alert]                    │
+│                                                             │
+│  [Cron 4h] ──► [Health Check] ──► [System Status]        │
+│              │   Monitoring Workflow H                      │
+│              ▼                                               │
+│        [Log Status] + [Alert if Issues]                    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 4.2 API per Automazione
+
+#### 4.2.1 `/api/signals.php`
+- **Metodi**: GET (status), POST (generazione)
+- **Autenticazione**: HMAC con timestamp
+- **Rate limiting**: 10 richieste/ora per IP
+- **Parametri principali**:
+  - `analysis_type`: daily_generation, morning_analysis, etc.
+  - `confidence_threshold`: 50-100 (default: 60)
+  - `max_signals`: limite segnali per sessione
+  - `holding_id`: opzionale, per singolo strumento
+
+#### 4.2.2 `/api/alerts.php`
+- **Metodi**: GET (lista), POST (crea alert)
+- **Tipi di alert**:
+  - `high-priority`: segnali IMMEDIATO con confidence > 80%
+  - `system-health`: problemi di sistema
+  - `rate-limit`: soglie di rate limiting superate
+- **Canali notifica**:
+  - Email: template HTML per segnali urgenti
+  - Telegram: messaggi brevi con formattazione
+
+### 4.3 Sicurezza e Rate Limiting
+
+#### 4.3.1 HMAC Authentication
+```php
+// Esempio di generazione HMAC in n8n
+const webhookSecret = process.env.N8N_WEBHOOK_SECRET;
+const timestamp = Date.now();
+const payload = JSON.stringify(requestData);
+
+const signature = crypto
+  .createHmac('sha256', webhookSecret)
+  .update(timestamp + ':' + payload)
+  .digest('hex');
+
+// Headers da inviare
+headers: {
+  'X-Webhook-Signature': 'sha256=' + signature,
+  'X-Request-Timestamp': timestamp,
+  'Content-Type': 'application/json'
+}
+```
+
+#### 4.3.2 Rate Limiting
+- **File-based** per semplicità (Redis opzionale in produzione)
+- **Window**: 1 ora per signal generation
+- **Max requests**: 10 per IP
+- **Cleanup automatico** dei vecchi record
+
+### 4.4 Configurazione Ambiente
+
+#### 4.4.1 Variabili Obbligatorie
+```bash
+# n8n Integration
+N8N_WEBHOOK_SECRET=your_32_character_secret_key
+
+# Alert Configuration
+ALERT_EMAIL_TO=your-email@example.com
+ALERT_EMAIL_FROM=noreply@your-domain.com
+
+# SMTP Configuration
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-smtp-username
+SMTP_PASS=your-smtp-password
+
+# Telegram Bot
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+TELEGRAM_CHAT_ID=your_telegram_chat_id
+```
+
+#### 4.4.2 Configurazione API
+Vedere `/config/api.php` per:
+- CORS origins consentite
+- Parametri rate limiting
+- Soglie per notifiche
+- Template email
+
+#### 4.2.3 Area `utente` (dati specifici)
 
 Dati soggettivi per singolo utente e portafoglio:
 
@@ -327,5 +447,8 @@ Per maggiori dettagli:
 - `docs/02-GESTIONE-UTENTI.md` – autenticazione, sessioni, sicurezza.
 - `docs/03-DATABASE.md` – schema fisico completo, DDL, indici.
 - `docs/04-API-REST.md` – definizione endpoint, payload ed errori.
-- `docs/06-N8N-WORKFLOWS.md` – definizione dettagliata dei workflow A/B/C/D.
+- `docs/06-N8N-WORKFLOWS.md` – definizione dettagliata dei workflow A/B/C/D (base).
+- `docs/08-STRATEGIA-OPERATIVA-v2.md` – strategia Core-Satellite Risk Parity per segnali.
+- `docs/09-API-RECOMMENDATIONS.md` – documentazione API REST raccomandazioni (Fase 4).
+- `docs/10-N8N-WORKFLOWS-PHASE5.md` – automazione completa con 4 workflow (Fase 5).
 - `docs/07-DOCKER-SETUP.md` – configurazione Docker Compose, .env, volumi.

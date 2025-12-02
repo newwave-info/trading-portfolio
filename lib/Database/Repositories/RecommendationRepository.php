@@ -266,6 +266,143 @@ class RecommendationRepository extends BaseRepository
     }
 
     /**
+     * Get filtered recommendations with pagination and sorting
+     *
+     * @param int $portfolioId
+     * @param array $filters Array of filters [status, holding_id, urgency]
+     * @param int $page Page number (1-based)
+     * @param int $perPage Items per page
+     * @param string $orderBy Sort column
+     * @param string $orderDir Sort direction (ASC/DESC)
+     * @return array ['data' => [], 'total' => int]
+     */
+    public function getFilteredRecommendations($portfolioId, array $filters = [], $page = 1, $perPage = 20, $orderBy = 'created_at', $orderDir = 'DESC')
+    {
+        // Base query
+        $sql = "
+            SELECT SQL_CALC_FOUND_ROWS
+                r.*,
+                h.ticker,
+                h.name,
+                h.current_price,
+                h.asset_class,
+                h.role,
+                h.target_allocation_pct,
+                DATEDIFF(r.expires_at, NOW()) as days_to_expire
+            FROM recommendations r
+            LEFT JOIN holdings h ON r.holding_id = h.id
+            WHERE r.portfolio_id = ?
+        ";
+
+        $params = [$portfolioId];
+        $conditions = [];
+
+        // Applica filtri
+        if (isset($filters['status'])) {
+            $conditions[] = "r.status = ?";
+            $params[] = $filters['status'];
+        }
+
+        if (isset($filters['holding_id'])) {
+            $conditions[] = "r.holding_id = ?";
+            $params[] = $filters['holding_id'];
+        }
+
+        if (isset($filters['urgency'])) {
+            $conditions[] = "r.urgency = ?";
+            $params[] = $filters['urgency'];
+        }
+
+        // Aggiungi condizioni WHERE
+        if (!empty($conditions)) {
+            $sql .= " AND " . implode(" AND ", $conditions);
+        }
+
+        // Ordinamento
+        $allowedOrderBy = ['created_at', 'confidence_score', 'urgency', 'trigger_price', 'expires_at'];
+        if (in_array($orderBy, $allowedOrderBy)) {
+            $sql .= " ORDER BY r.$orderBy $orderDir";
+        }
+
+        // Paginazione
+        $offset = ($page - 1) * $perPage;
+        $sql .= " LIMIT $offset, $perPage";
+
+        // Esegui query principale
+        $data = $this->fetchAll($sql, $params);
+
+        // Ottieni il totale (SQL_CALC_FOUND_ROWS)
+        $totalResult = $this->fetchOne("SELECT FOUND_ROWS() as total");
+        $total = (int)($totalResult['total'] ?? 0);
+
+        return [
+            'data' => $data,
+            'total' => $total
+        ];
+    }
+
+    /**
+     * Find recommendation by ID with holding data
+     *
+     * @param int $id
+     * @param int|null $portfolioId
+     * @return array|null
+     */
+    public function findById($id, $portfolioId = null)
+    {
+        $portfolioId = $portfolioId ?: self::DEFAULT_PORTFOLIO_ID;
+
+        $sql = "
+            SELECT
+                r.*,
+                h.ticker,
+                h.name,
+                h.current_price,
+                h.asset_class,
+                h.role,
+                h.target_allocation_pct,
+                h.quantity as current_quantity,
+                h.avg_price
+            FROM recommendations r
+            LEFT JOIN holdings h ON r.holding_id = h.id
+            WHERE r.id = ? AND r.portfolio_id = ?
+            LIMIT 1
+        ";
+
+        return $this->fetchOne($sql, [$id, $portfolioId]);
+    }
+
+    /**
+     * Soft delete recommendation
+     *
+     * @param int $id
+     * @param int|null $portfolioId
+     * @return bool
+     */
+    public function softDelete($id, $portfolioId = null)
+    {
+        $portfolioId = $portfolioId ?: self::DEFAULT_PORTFOLIO_ID;
+
+        $sql = "UPDATE recommendations
+                SET is_active = 0, updated_at = NOW()
+                WHERE id = ? AND portfolio_id = ? AND is_active = 1";
+
+        return $this->execute($sql, [$id, $portfolioId]) > 0;
+    }
+
+    /**
+     * Soft delete recommendation by setting is_active = 0
+     *
+     * @param int $id
+     * @param int|null $portfolioId
+     * @return bool
+     */
+    public function delete($id, $portfolioId = null)
+    {
+        return $this->softDelete($id, $portfolioId);
+    }
+
+    /**
      * Log user action on recommendation
      *
      * @param int $recommendationId
