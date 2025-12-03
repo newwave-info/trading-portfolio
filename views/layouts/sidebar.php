@@ -21,9 +21,13 @@
                     <span>Holdings</span>
                 </div>
                 <div class="nav-item flex items-center gap-2.5 pl-4 py-1.5 cursor-pointer text-[13px] text-gray-600 transition-colors duration-200 hover:text-purple-600" onclick="showView('performance'); toggleSidebar()">
-                        <i class="fa-solid fa-chart-area text-[11px] text-current"></i>
-                        <span>Performance & Flussi</span>
-                    </div>
+                    <i class="fa-solid fa-chart-area text-[11px] text-current"></i>
+                    <span>Performance</span>
+                </div>
+                <div class="nav-item flex items-center gap-2.5 pl-4 py-1.5 cursor-pointer text-[13px] text-gray-600 transition-colors duration-200 hover:text-purple-600" onclick="showView('flows'); toggleSidebar()">
+                    <i class="fa-solid fa-diagram-project text-[11px] text-current"></i>
+                    <span>Flussi</span>
+                </div>
                     <div class="nav-item flex items-center gap-2.5 pl-4 py-1.5 cursor-pointer text-[13px] text-gray-600 transition-colors duration-200 hover:text-purple-600" onclick="showView('technical'); toggleSidebar()">
                         <i class="fa-solid fa-magnifying-glass-chart text-[11px] text-current"></i>
                         <span>Analisi Tecnica</span>

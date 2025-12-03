@@ -107,10 +107,10 @@
             backgroundColor: colors[index % colors.length],
             borderColor: colors[index % colors.length].replace('0.6', '1'),
             borderWidth: 2,
-            fill: true,
             tension: 0,
             pointStyle: 'rect',
-            pointRadius: 3
+            pointRadius: 3,
+            fill: false
         }));
 
         new Chart(ctx, {
@@ -154,7 +154,7 @@
                 },
                 scales: {
                     x: {
-                        stacked: true,
+                        stacked: false,
                         title: {
                             display: true,
                             text: 'Data'
@@ -165,7 +165,7 @@
                         }
                     },
                     y: {
-                        stacked: true,
+                        stacked: false,
                         min: 0,
                         max: 100,
                         title: {

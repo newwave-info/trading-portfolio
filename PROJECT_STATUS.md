@@ -1,7 +1,7 @@
 # 📊 ETF Portfolio Manager - Stato Avanzamento Lavori
 
 **Ultimo aggiornamento:** 02 Dicembre 2025
-**Versione:** 0.5.0-n8nAutomation ✅
+**Versione:** 0.5.2 (frontend flows)
 **Stato:** Produzione attiva - Automazione n8n completa e operativa
 
 ---
@@ -39,7 +39,7 @@
 | **Sistema Notifiche** | ✅ Operativo | Email + Telegram per alert ad alta priorità |
 | **Analisi Tecnica** | ✅ Completa | Indicatori, AI Insights, grafici storici |
 | **Sistema Dividendi** | ✅ Automatico | Payout, calendario, forecast via n8n |
-| **ChartManager** | ✅ Centralizzato | 38 grafici conformi Style Guide |
+| **ChartManager** | ✅ Centralizzato | Grafici performance 7/30/90 gg, allocazione per ticker via API live |
 | **Automazione** | ✅ Operativa | Generazione segnali, alert, monitoring completo |
 
 ---
@@ -76,6 +76,7 @@
 - [ ] UI per gestione segnali (approva/ignora/posticipa)
 - [ ] Notifiche real-time per nuovi segnali
 - [ ] Dashboard segnali con filtri e statistiche
+- [x] Pulizia tab Dashboard rimossa, Performance/holdings come default
 
 ### **Fase 7: Advanced Analytics** ⏳ (Long-term)
 - [ ] Performance tracking segnali eseguiti
@@ -89,6 +90,8 @@
 
 | Data | Issue | Soluzione |
 |------|-------|-----------|
+| 02 Dic 2025 | KPI performance mostravano 0% | Calcolo 1M/3M/YTD da snapshot con fallback mensile; rimosso widget Best Performer |
+| 02 Dic 2025 | Vista Dashboard legacy | Tab dashboard rimosso, holdings/performance come default |
 | 02 Dic 2025 | **Fase 5 n8n Automation completata** | 4 workflow implementati con alert e monitoring |
 | 02 Dic 2025 | **Fase 4 API REST completata** | Endpoint raccomandazioni con sicurezza e validazione |
 | 02 Dic 2025 | Parse error HTML entities | Fix sintassi PHP in Recommendation.php |

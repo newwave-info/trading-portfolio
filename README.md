@@ -1,6 +1,6 @@
 # ETF Portfolio Manager
 
-**Versione:** 0.5.0-n8nAutomation ✅
+**Versione:** 0.5.2 (frontend flows)
 **Stato:** Produzione attiva con Automazione n8n Completa
 **Data ultimo aggiornamento:** 02 Dicembre 2025
 
@@ -42,11 +42,11 @@ Strumento web completo per la gestione e analisi di portafogli ETF con **generaz
 
 ## 🚀 Funzionalità Principali
 
-### 📈 **Dashboard & Performance**
-- Visualizzazione metriche portafoglio in real-time
-- Grafici performance con ChartManager centralizzato
+### 📈 **Performance & Allocazioni**
+- KPI 7/30/90 giorni basati su snapshot DB (fallback mensile per 30/90)
+- Grafici performance ChartManager (7/30/90 giorni, valore + %)
 - Storico snapshots temporali per tracking performance
-- Analisi allocazioni per asset class e settori
+- Vista dedicata “Flussi & Allocazioni” con grafico allocazione per ticker (API live, niente JSON)
 
 ### 💼 **Gestione Holdings**
 - CRUD completo holdings con API REST
@@ -118,9 +118,7 @@ Strumento web completo per la gestione e analisi di portafogli ETF con **generaz
 │   ├── 📄 02-GESTIONE-UTENTI.md    # Gestione multi-utente
 │   ├── 📄 03-DATABASE.md           # Schema database
 │   ├── 📄 04-API-REST.md           # Documentazione API
-│   ├── 📄 05-FRONTEND.md           # Frontend guidelines
 │   ├── 📄 06-N8N-WORKFLOWS.md      # Workflow automazione (base)
-│   ├── 📄 07-DATA-ENHANCEMENT-ROADMAP.md  # Miglioramenti dati
 │   ├── 📄 08-STRATEGIA-OPERATIVA-v2.md    # Strategia segnali trading
 │   ├── 📄 09-API-RECOMMENDATIONS.md       # API REST raccomandazioni (Fase 4)
 │   └── 📄 10-N8N-WORKFLOWS-PHASE5.md      # Automazione n8n completa (Fase 5)
@@ -186,7 +184,6 @@ Strumento web completo per la gestione e analisi di portafogli ETF con **generaz
 - **[docs/08-STRATEGIA-OPERATIVA-v2.md](docs/08-STRATEGIA-OPERATIVA-v2.md)** - Strategia Operativa v2 completa
 - **[docs/09-API-RECOMMENDATIONS.md](docs/09-API-RECOMMENDATIONS.md)** - API REST raccomandazioni (Fase 4)
 - **[docs/10-N8N-WORKFLOWS-PHASE5.md](docs/10-N8N-WORKFLOWS-PHASE5.md)** - Automazione n8n completa (Fase 5)
-- **[docs/07-DATA-ENHANCEMENT-ROADMAP.md](docs/07-DATA-ENHANCEMENT-ROADMAP.md)** - Roadmap miglioramenti dati
 
 ### 🔧 **Setup e Configurazione**
 - **[docs/01-ARCHITETTURA.md](docs/01-ARCHITETTURA.md)** - Istruzioni complete di installazione

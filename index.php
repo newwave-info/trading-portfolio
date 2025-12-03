@@ -29,6 +29,7 @@ require_once __DIR__ . '/views/layouts/sidebar.php';
 // Includi tutte le viste (tabs)
 require_once __DIR__ . '/views/tabs/holdings.php';
 require_once __DIR__ . '/views/tabs/performance.php';
+require_once __DIR__ . '/views/tabs/flows.php';
 require_once __DIR__ . '/views/tabs/technical.php';
 require_once __DIR__ . '/views/tabs/charts.php';
 require_once __DIR__ . '/views/tabs/dividends.php';
