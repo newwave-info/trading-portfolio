@@ -273,6 +273,9 @@ function showView(viewId) {
     // Scroll to top on view change
     document.querySelector('.flex-1.overflow-y-auto')?.scrollTo(0, 0);
 
+    // Inizializza grafici della view mostrata (senza animazioni di fade/slide)
+    initChartsInView(viewId);
+
     setTimeout(() => {
         Object.values(Chart.instances).forEach(chart => chart.resize());
     }, 100);
@@ -282,50 +285,25 @@ function showView(viewId) {
 window.initializedCharts = window.initializedCharts || new Set();
 const initializedCharts = window.initializedCharts; // Local alias for convenience
 
+// Helper per pattern: fallback a colore pieno se pattern non disponibile
+const diag = (color) => (typeof pattern !== 'undefined' ? pattern.draw('diagonal', color) : color);
+
 // Animation config
 const animationConfig = {
-    duration: 800,
-    easing: 'easeOutQuart'
+    x: {
+        duration: 600,
+        easing: 'easeOutCubic',
+        from: 0
+    },
+    y: {
+        duration: 900,
+        easing: 'easeOutCubic',
+        from: ctx => {
+            const yScale = ctx?.chart?.scales?.y;
+            return yScale ? yScale.min : 0;
+        }
+    }
 };
-
-// Intersection Observer for chart animations
-// Canvas da escludere dall'inizializzazione automatica (hanno script inline)
-const excludedCharts = new Set([
-    'performanceChart',
-    'allocationChart',
-    'cumulativeGainChart',
-    'valueOverTimeChart',
-    'dividendsMonthlyChart',
-    'dividendsCumulativeChart',
-    'performanceDetailChart'
-]);
-
-const chartObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            const chartId = entry.target.id;
-            if (chartId && !initializedCharts.has(chartId) && !excludedCharts.has(chartId)) {
-                initChart(chartId);
-                initializedCharts.add(chartId);
-            }
-        }
-    });
-}, {
-    threshold: 0.2
-});
-
-// Intersection Observer for element animations
-const animationObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('animate-in');
-            animationObserver.unobserve(entry.target);
-        }
-    });
-}, {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-});
 
 // Filter technical analysis table
 function filterTechnicalTable(signal) {
@@ -358,8 +336,8 @@ function filterTechnicalTable(signal) {
     });
 }
 
-// Initialize sortable tables
-document.addEventListener('DOMContentLoaded', function() {
+// Initialize sortable tables and charts after DOM ready
+function initAppUI() {
     // Initialize theme
     initTheme();
 
@@ -372,22 +350,27 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('Tablesort initialized for:', table.id || 'unnamed table');
                 } catch (e) {
                     console.error('Error initializing Tablesort:', e);
-                }
-            });
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAppUI);
+} else {
+    initAppUI();
+}
         } else {
             console.error('Tablesort library not loaded');
         }
     }, 100);
 
-    // Observe all chart canvases
-    document.querySelectorAll('canvas').forEach(canvas => {
-        chartObserver.observe(canvas);
-    });
-
-    // Observe elements for animations
-    document.querySelectorAll('.widget-card, .widget-metric-large, .widget-metric-medium, .ai-insight-box').forEach(el => {
-        animationObserver.observe(el);
-    });
+    // Inizializza i grafici solo per la view attiva
+    const activeView = document.querySelector('.view:not(.hidden)');
+    if (activeView) {
+        initChartsInView(activeView.id);
+    } else {
+        // Fallback: mostra holdings se nessuna view è visibile (evita pagina vuota)
+        showView('holdings');
+    }
 
     // Initialize sidebar state - Portfolio Manager open, Dashboard active
     const portfolioMenu = document.getElementById('portfolioMenu');
@@ -435,6 +418,22 @@ function initChart(chartId) {
     }
 }
 
+// Initialize all charts within a specific view
+function initChartsInView(viewId) {
+    if (!viewId) return;
+    const chartConfigs = getChartConfigs();
+    const viewEl = document.getElementById(viewId);
+    if (!viewEl) return;
+
+    viewEl.querySelectorAll('canvas').forEach(canvas => {
+        const id = canvas.id;
+        if (id && chartConfigs[id] && !initializedCharts.has(id)) {
+            initChart(id);
+            initializedCharts.add(id);
+        }
+    });
+}
+
 // Get all chart configurations
 function getChartConfigs() {
     return {
@@ -467,7 +466,7 @@ function getChartConfigs() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 plugins: {
                     legend: { display: false },
                     htmlLegend: { containerID: 'radarChart-legend' }
@@ -485,7 +484,7 @@ function getChartConfigs() {
                         label: 'Ricavi',
                         data: [526, 553, 825],
                         borderColor: '#8b5cf6',
-                        backgroundColor: pattern.draw('diagonal', 'rgba(139, 92, 246, 0.05)'),
+                        backgroundColor: diag('rgba(139, 92, 246, 0.05)'),
                         borderWidth: 3,
                         fill: true,
                         tension: 0,
@@ -512,7 +511,7 @@ function getChartConfigs() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 plugins: { legend: { display: false }, htmlLegend: { containerID: 'revenueChart-legend' } },
                 scales: { y: { beginAtZero: true, ticks: { callback: v => v + ' €k' } } }
             }
@@ -523,14 +522,14 @@ function getChartConfigs() {
             data: {
                 labels: ['2023', '2024', '2025'],
                 datasets: [
-                    { label: 'EBIT', data: [16, 33, 180], backgroundColor: pattern.draw('diagonal', '#8b5cf6'), borderColor: '#8b5cf6', borderRadius: 0 },
-                    { label: 'Utile', data: [3, 4, 151], backgroundColor: pattern.draw('diagonal', '#52525b'), borderColor: '#52525b', borderRadius: 0 }
+                    { label: 'EBIT', data: [16, 33, 180], backgroundColor: diag('#8b5cf6'), borderColor: '#8b5cf6', borderRadius: 0 },
+                    { label: 'Utile', data: [3, 4, 151], backgroundColor: diag('#52525b'), borderColor: '#52525b', borderRadius: 0 }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 plugins: { legend: { display: false }, htmlLegend: { containerID: 'profitChart-legend' } },
                 scales: { y: { beginAtZero: true, ticks: { callback: v => v + ' €k' } } }
             }
@@ -542,14 +541,14 @@ function getChartConfigs() {
                 labels: ['2023', '2024', '2025'],
                 datasets: [{
                     data: [1.92, 0.92, 1.52],
-                    backgroundColor: [pattern.draw('diagonal', '#a78bfa'), pattern.draw('diagonal', '#52525b'), pattern.draw('diagonal', '#8b5cf6')],
+                    backgroundColor: [diag('#a78bfa'), diag('#52525b'), diag('#8b5cf6')],
                     borderRadius: 0
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 plugins: { legend: { display: false } },
                 scales: { y: { beginAtZero: true, max: 2.5 } }
             }
@@ -561,14 +560,14 @@ function getChartConfigs() {
                 labels: ['2023', '2024', '2025'],
                 datasets: [{
                     data: [0.20, 0.02, 0.06],
-                    backgroundColor: [pattern.draw('diagonal', '#a78bfa'), pattern.draw('diagonal', '#52525b'), pattern.draw('diagonal', '#8b5cf6')],
+                    backgroundColor: [diag('#a78bfa'), diag('#52525b'), diag('#8b5cf6')],
                     borderRadius: 0
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 plugins: { legend: { display: false } },
                 scales: { y: { beginAtZero: true, max: 0.3 } }
             }
@@ -580,14 +579,14 @@ function getChartConfigs() {
                 labels: ['2023', '2024', '2025'],
                 datasets: [{
                     data: [-43, -63, 100],
-                    backgroundColor: [pattern.draw('diagonal', '#71717a'), pattern.draw('diagonal', '#52525b'), pattern.draw('diagonal', '#8b5cf6')],
+                    backgroundColor: [diag('#71717a'), diag('#52525b'), diag('#8b5cf6')],
                     borderRadius: 0
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 plugins: { legend: { display: false } },
                 scales: { y: { ticks: { callback: v => v + ' €k' } } }
             }
@@ -600,13 +599,13 @@ function getChartConfigs() {
                 datasets: [{
                     data: [150.7, 25.6, 12.6, 31.2, -69.4, -66.3, 9.8],
                     backgroundColor: [
-                        pattern.draw('diagonal', '#8b5cf6'),
-                        pattern.draw('diagonal', '#a78bfa'),
-                        pattern.draw('diagonal', '#c4b5fd'),
-                        pattern.draw('diagonal', '#ddd6fe'),
-                        pattern.draw('diagonal', '#71717a'),
-                        pattern.draw('diagonal', '#52525b'),
-                        pattern.draw('diagonal', '#3f3f46')
+                        diag('#8b5cf6'),
+                        diag('#a78bfa'),
+                        diag('#c4b5fd'),
+                        diag('#ddd6fe'),
+                        diag('#71717a'),
+                        diag('#52525b'),
+                        diag('#3f3f46')
                     ],
                     borderRadius: 0
                 }]
@@ -614,7 +613,7 @@ function getChartConfigs() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 plugins: { legend: { display: false } },
                 scales: { y: { ticks: { callback: v => v + ' €k' } } }
             }
@@ -629,7 +628,7 @@ function getChartConfigs() {
                         label: 'Cash Flow Operativo',
                         data: [62, 97, 189],
                         borderColor: '#8b5cf6',
-                        backgroundColor: pattern.draw('diagonal', 'rgba(139, 92, 246, 0.05)'),
+                        backgroundColor: diag('rgba(139, 92, 246, 0.05)'),
                         borderWidth: 3,
                         fill: true,
                         tension: 0,
@@ -656,7 +655,7 @@ function getChartConfigs() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 plugins: { legend: { display: false }, htmlLegend: { containerID: 'cashFlowTrendChart-legend' } },
                 scales: { y: { beginAtZero: true, ticks: { callback: v => v + ' €k' } } }
             }
@@ -667,14 +666,14 @@ function getChartConfigs() {
             data: {
                 labels: ['2023', '2024', '2025'],
                 datasets: [
-                    { label: 'Breve', data: [229, 393, 272], backgroundColor: pattern.draw('diagonal', '#8b5cf6'), borderColor: '#8b5cf6', borderRadius: 0 },
-                    { label: 'Lungo', data: [200, 182, 234], backgroundColor: pattern.draw('diagonal', '#52525b'), borderColor: '#52525b', borderRadius: 0 }
+                    { label: 'Breve', data: [229, 393, 272], backgroundColor: diag('#8b5cf6'), borderColor: '#8b5cf6', borderRadius: 0 },
+                    { label: 'Lungo', data: [200, 182, 234], backgroundColor: diag('#52525b'), borderColor: '#52525b', borderRadius: 0 }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 plugins: { legend: { display: false }, htmlLegend: { containerID: 'debtStructureChart-legend' } },
                 scales: { y: { beginAtZero: true, ticks: { callback: v => v + ' €k' } } }
             }
@@ -687,14 +686,14 @@ function getChartConfigs() {
                 datasets: [{
                     label: 'ICR',
                     data: [2.2, 1.5, 8.2],
-                    backgroundColor: [pattern.draw('diagonal', '#a78bfa'), pattern.draw('diagonal', '#52525b'), pattern.draw('diagonal', '#8b5cf6')],
+                    backgroundColor: [diag('#a78bfa'), diag('#52525b'), diag('#8b5cf6')],
                     borderRadius: 0
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 plugins: { legend: { display: false } },
                 scales: { y: { beginAtZero: true, max: 10 } }
             }
@@ -706,14 +705,14 @@ function getChartConfigs() {
                 labels: ['2023', '2024', '2025'],
                 datasets: [{
                     data: [0.5, 0.7, 18.3],
-                    backgroundColor: [pattern.draw('diagonal', '#71717a'), pattern.draw('diagonal', '#52525b'), pattern.draw('diagonal', '#8b5cf6')],
+                    backgroundColor: [diag('#71717a'), diag('#52525b'), diag('#8b5cf6')],
                     borderRadius: 0
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 plugins: { legend: { display: false } },
                 scales: { y: { beginAtZero: true, max: 20, ticks: { callback: v => v + '%' } } }
             }
@@ -725,14 +724,14 @@ function getChartConfigs() {
                 labels: ['2023', '2024', '2025'],
                 datasets: [{
                     data: [0.86, 0.69, 0.92],
-                    backgroundColor: [pattern.draw('diagonal', '#71717a'), pattern.draw('diagonal', '#52525b'), pattern.draw('diagonal', '#8b5cf6')],
+                    backgroundColor: [diag('#71717a'), diag('#52525b'), diag('#8b5cf6')],
                     borderRadius: 0
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 plugins: { legend: { display: false } },
                 scales: { y: { beginAtZero: true, max: 1.2 } }
             }
@@ -744,14 +743,14 @@ function getChartConfigs() {
                 labels: ['2023', '2024', '2025'],
                 datasets: [{
                     data: [3.80, 4.41, 2.69],
-                    backgroundColor: [pattern.draw('diagonal', '#a78bfa'), pattern.draw('diagonal', '#52525b'), pattern.draw('diagonal', '#8b5cf6')],
+                    backgroundColor: [diag('#a78bfa'), diag('#52525b'), diag('#8b5cf6')],
                     borderRadius: 0
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 plugins: { legend: { display: false } },
                 scales: { y: { beginAtZero: true, max: 5 } }
             }
@@ -763,14 +762,14 @@ function getChartConfigs() {
                 labels: ['2023', '2024', '2025'],
                 datasets: [{
                     data: [0.43, 0.45, 16.8],
-                    backgroundColor: [pattern.draw('diagonal', '#71717a'), pattern.draw('diagonal', '#52525b'), pattern.draw('diagonal', '#8b5cf6')],
+                    backgroundColor: [diag('#71717a'), diag('#52525b'), diag('#8b5cf6')],
                     borderRadius: 0
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 plugins: { legend: { display: false } },
                 scales: { y: { beginAtZero: true, max: 20, ticks: { callback: v => v + '%' } } }
             }
@@ -808,7 +807,7 @@ function getChartConfigs() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 plugins: { legend: { display: false }, htmlLegend: { containerID: 'productivityChart-legend' } },
                 scales: { y: { beginAtZero: true } }
             }
@@ -820,14 +819,14 @@ function getChartConfigs() {
                 labels: ['2023→2024', '2024→2025'],
                 datasets: [{
                     data: [319, 66],
-                    backgroundColor: [pattern.draw('diagonal', '#52525b'), pattern.draw('diagonal', '#8b5cf6')],
+                    backgroundColor: [diag('#52525b'), diag('#8b5cf6')],
                     borderRadius: 0
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 plugins: { legend: { display: false } },
                 scales: { y: { beginAtZero: true, ticks: { callback: v => v + ' €k' } } }
             }
@@ -865,7 +864,7 @@ function getChartConfigs() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 plugins: { legend: { display: false }, htmlLegend: { containerID: 'breakEvenChart-legend' } },
                 scales: {
                     x: { display: true },
@@ -896,7 +895,7 @@ function getChartConfigs() {
                         label: 'ROE %',
                         data: [1.6, 2.0, 45.3],
                         borderColor: '#8b5cf6',
-                        backgroundColor: pattern.draw('diagonal', 'rgba(139, 92, 246, 0.05)'),
+                        backgroundColor: diag('rgba(139, 92, 246, 0.05)'),
                         borderWidth: 3,
                         fill: true,
                         tension: 0,
@@ -910,7 +909,7 @@ function getChartConfigs() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 plugins: { legend: { display: false }, htmlLegend: { containerID: 'debtROEChart-legend' } },
                 scales: { y: { beginAtZero: true, max: 50 } }
             }
@@ -925,7 +924,7 @@ function getChartConfigs() {
                         label: 'Costi %',
                         data: [83.5, 82.5, 72.3],
                         borderColor: '#8b5cf6',
-                        backgroundColor: pattern.draw('diagonal', 'rgba(139, 92, 246, 0.05)'),
+                        backgroundColor: diag('rgba(139, 92, 246, 0.05)'),
                         borderWidth: 3,
                         fill: true,
                         tension: 0,
@@ -952,7 +951,7 @@ function getChartConfigs() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 plugins: { legend: { display: false }, htmlLegend: { containerID: 'costDSOChart-legend' } },
                 scales: { y: { beginAtZero: true, max: 90 } }
             }
@@ -964,14 +963,14 @@ function getChartConfigs() {
                 labels: ['2023', '2024', '2025'],
                 datasets: [{
                     data: [1.85, 1.42, 3.18],
-                    backgroundColor: [pattern.draw('diagonal', '#a78bfa'), pattern.draw('diagonal', '#52525b'), pattern.draw('diagonal', '#8b5cf6')],
+                    backgroundColor: [diag('#a78bfa'), diag('#52525b'), diag('#8b5cf6')],
                     borderRadius: 0
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 plugins: { legend: { display: false } },
                 scales: { y: { beginAtZero: true, max: 4 } }
             }
@@ -992,7 +991,7 @@ function getChartConfigs() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 cutout: '75%',
                 plugins: {
                     legend: { display: false },
@@ -1021,7 +1020,7 @@ function getChartConfigs() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 cutout: '75%',
                 plugins: {
                     legend: { display: false },
@@ -1050,7 +1049,7 @@ function getChartConfigs() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 cutout: '75%',
                 plugins: {
                     legend: { display: false },
@@ -1073,7 +1072,7 @@ function getChartConfigs() {
                         label: 'Ricavi',
                         data: [526, 553, 825],
                         borderColor: '#8b5cf6',
-                        backgroundColor: pattern.draw('diagonal', 'rgba(139, 92, 246, 0.05)'),
+                        backgroundColor: diag('rgba(139, 92, 246, 0.05)'),
                         borderWidth: 3,
                         fill: true,
                         tension: 0,
@@ -1165,7 +1164,7 @@ function getChartConfigs() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: animationConfig,
+                animations: animationConfig,
                 plugins: { legend: { display: false }, htmlLegend: { containerID: 'patrimonioLineChart-legend' } },
                 scales: { y: { beginAtZero: true, ticks: { callback: v => v + ' €k' } } }
             }

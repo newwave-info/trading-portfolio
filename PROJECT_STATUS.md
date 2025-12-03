@@ -1,7 +1,7 @@
 # 📊 ETF Portfolio Manager - Stato Avanzamento Lavori
 
 **Ultimo aggiornamento:** 02 Dicembre 2025
-**Versione:** 0.5.2 (frontend flows)
+**Versione:** 0.5.3 (frontend flows + bugfix animazioni)
 **Stato:** Produzione attiva - Automazione n8n completa e operativa
 
 ---

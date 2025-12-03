@@ -11,10 +11,6 @@
                             <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Evoluzione Allocazione nel Tempo</span>
                         </div>
                     </div>
-                    <div class="bg-gray-50 p-3 rounded mb-4 text-sm text-gray-700">
-                        <strong>Interpretazione:</strong> Questo grafico mostra come è cambiata l'allocazione % per ticker nel tempo.
-                        Permette di identificare ribilanciamenti, nuove posizioni e chiusure.
-                    </div>
                     <div id="allocationHistoryLoading" class="text-center py-8">
                         <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-purple border-t-transparent"></div>
                         <p class="text-gray-600 mt-2 text-sm">Caricamento dati allocazione...</p>
@@ -48,7 +44,7 @@
                             Nessuna transazione registrata. Aggiungi/modifica una posizione o attendi payout dividendi.
                         </div>
                     <?php else: ?>
-                        <div class="overflow-x-auto">
+                        <div class="overflow-x-hidden">
                             <table class="w-full text-sm">
                                 <thead class="bg-gray-50 border-b border-gray-200">
                                     <tr>
@@ -57,7 +53,6 @@
                                         <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Ticker</th>
                                         <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Quantità</th>
                                         <th class="px-4 py-3 text-right font-semibold text-gray-700 text-[11px] uppercase">Importo</th>
-                                        <th class="px-4 py-3 text-left font-semibold text-gray-700 text-[11px] uppercase">Note</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -103,9 +98,6 @@
     "."
 ); ?>
                                             </td>
-                                            <td class="px-4 py-3 text-left text-[11px] text-gray-600"><?php echo htmlspecialchars(
-                                                $tx["notes"] ?? $tx["note"] ?? "-"
-                                            ); ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>

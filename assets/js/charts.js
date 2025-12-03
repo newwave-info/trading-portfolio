@@ -21,10 +21,21 @@ const ChartManager = {
     negative: "#ef4444",
   },
 
-  // Opzioni comuni animazione
+  // Opzioni comuni animazione (linee che crescono dal valore minimo)
   animation: {
-    duration: 800,
-    easing: "easeOutQuart",
+    x: {
+      duration: 600,
+      easing: "easeOutCubic",
+      from: 0,
+    },
+    y: {
+      duration: 900,
+      easing: "easeOutCubic",
+      from: (ctx) => {
+        const yScale = ctx?.chart?.scales?.y;
+        return yScale ? yScale.min : 0;
+      },
+    },
   },
 
   // Stile punti standard
@@ -126,7 +137,7 @@ const ChartManager = {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        animation: this.animation,
+        animations: this.animation,
         plugins: {
           legend: {
             display: true,
@@ -213,7 +224,7 @@ const ChartManager = {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        animation: this.animation,
+        animations: this.animation,
         plugins: {
           legend: {
             display: true,
@@ -300,7 +311,7 @@ const ChartManager = {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        animation: this.animation,
+        animations: this.animation,
         plugins: {
           legend: {
             display: true,
@@ -378,7 +389,7 @@ const ChartManager = {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        animation: this.animation,
+        animations: this.animation,
         plugins: {
           legend: {
             display: true,
@@ -452,7 +463,7 @@ const ChartManager = {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        animation: this.animation,
+        animations: this.animation,
         plugins: {
           legend: {
             display: true,
@@ -509,7 +520,7 @@ const ChartManager = {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        animation: this.animation,
+        animations: this.animation,
         plugins: {
           legend: { display: false },
         },
@@ -557,7 +568,7 @@ const ChartManager = {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        animation: this.animation,
+        animations: this.animation,
         cutout: "75%",
         plugins: {
           legend: {

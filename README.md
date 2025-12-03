@@ -1,6 +1,6 @@
 # ETF Portfolio Manager
 
-**Versione:** 0.5.2 (frontend flows)
+**Versione:** 0.5.3 (frontend flows + bugfix animazioni)
 **Stato:** Produzione attiva con Automazione n8n Completa
 **Data ultimo aggiornamento:** 02 Dicembre 2025
 
@@ -44,7 +44,7 @@ Strumento web completo per la gestione e analisi di portafogli ETF con **generaz
 
 ### 📈 **Performance & Allocazioni**
 - KPI 7/30/90 giorni basati su snapshot DB (fallback mensile per 30/90)
-- Grafici performance ChartManager (7/30/90 giorni, valore + %)
+- Grafici performance ChartManager (7/30/90 giorni, valore + %) con animazioni di crescita dai valori base (niente fade/slide)
 - Storico snapshots temporali per tracking performance
 - Vista dedicata “Flussi & Allocazioni” con grafico allocazione per ticker (API live, niente JSON)
 

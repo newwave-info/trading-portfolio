@@ -73,6 +73,9 @@ class PortfolioMetricsService
         $monthly = $this->buildMonthlyPerformanceFromSnapshots($year, $portfolioId);
         $this->portfolioRepo->updateMonthlyPerformance($monthly, $year, $portfolioId);
 
+        // Aggiorna timestamp portfolio per riflettere l'ultimo enrichment
+        $this->portfolioRepo->updateLastUpdate($portfolioId);
+
         return [
             'success' => true,
             'allocations' => count($allocations),

@@ -72,9 +72,8 @@ function closeImportModal() {
 // CRUD OPERATIONS
 // ============================================
 
-// Inizializzazione Event Listeners quando DOM è pronto
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Holdings.js: DOM ready, inizializzazione event listeners...');
+function initHoldingsUI() {
+    console.log('Holdings.js: inizializzazione event listeners...');
 
     // Chiudi modal con ESC
     document.addEventListener('keydown', function(e) {
@@ -226,7 +225,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (localStorage.getItem('activeView')) {
         localStorage.removeItem('activeView');
     }
-});
+}
+
+// Inizializzazione Event Listeners quando DOM è pronto (anche se DOMContentLoaded è già passato)
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initHoldingsUI);
+} else {
+    initHoldingsUI();
+}
 
 // Edit Holding
 function editHolding(holding) {

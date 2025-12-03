@@ -234,7 +234,7 @@
                                             <span class="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Storico Performance Giornaliero</span>
                                         </div>
                                     </div>
-                                    <div class="overflow-x-auto">
+                                    <div class="overflow-x-hidden">
                                         <table class="w-full text-sm sortable-table">
                                             <thead class="bg-gray-50 border-b border-gray-200">
                                                 <tr>

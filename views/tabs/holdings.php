@@ -30,7 +30,6 @@
                     <div class="widget-card widget-purple p-4 sm:p-6">
                         <div class="text-[11px] text-gray-500 uppercase tracking-wider">Posizioni Attive</div>
                         <div class="text-2xl font-bold text-primary"><?php echo $metadata['total_holdings'] ?? count($top_holdings); ?></div>
-                        <div class="text-[11px] text-gray-500 mt-1">Agg. <?php echo isset($metadata['last_update']) ? date('d/m H:i', strtotime($metadata['last_update'])) : '-'; ?></div>
                     </div>
                     <div class="widget-card widget-purple p-4 sm:p-6">
                         <div class="text-[11px] text-gray-500 uppercase tracking-wider">Allocazione per Asset Class</div>

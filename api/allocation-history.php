@@ -121,39 +121,35 @@ try {
         }
     }
 
-    // Step 4: Calcola percentuali e costruisci struttura response
+    // Step 4: Calcola percentuali e costruisce structure response
     $dates = [];
     $allTickers = [];
-    $allocationsByTicker = [];
 
+    // Colleziona date e lista completa tickers
     foreach ($snapshotMap as $snap) {
         $dates[] = $snap['date'];
-        $totalValue = $snap['total_value'];
-
-        foreach ($snap['holdings'] as $ticker => $value) {
-            if (!in_array($ticker, $allTickers)) {
+        foreach (array_keys($snap['holdings']) as $ticker) {
+            if (!in_array($ticker, $allTickers, true)) {
                 $allTickers[] = $ticker;
             }
-
-            $percentage = $totalValue > 0 ? ($value / $totalValue) * 100 : 0;
-
-            if (!isset($allocationsByTicker[$ticker])) {
-                $allocationsByTicker[$ticker] = [];
-            }
-
-            $allocationsByTicker[$ticker][] = round($percentage, 2);
         }
     }
 
-    // Step 5: Riempie valori mancanti con 0 (ticker non presente in alcuni snapshot)
+    // Inizializza allocazioni con 0 per mantenere allineamento delle date
+    $allocationsByTicker = [];
     foreach ($allTickers as $ticker) {
-        $count = count($dates);
-        $existingCount = count($allocationsByTicker[$ticker]);
+        $allocationsByTicker[$ticker] = array_fill(0, count($dates), 0);
+    }
 
-        // Pad con 0 se necessario
-        if ($existingCount < $count) {
-            $allocationsByTicker[$ticker] = array_pad($allocationsByTicker[$ticker], $count, 0);
+    // Popola le percentuali in posizione corretta per ciascuna data
+    $dateIndex = 0;
+    foreach ($snapshotMap as $snap) {
+        $totalValue = $snap['total_value'];
+        foreach ($snap['holdings'] as $ticker => $value) {
+            $percentage = $totalValue > 0 ? ($value / $totalValue) * 100 : 0;
+            $allocationsByTicker[$ticker][$dateIndex] = round($percentage, 2);
         }
+        $dateIndex++;
     }
 
     // Response
