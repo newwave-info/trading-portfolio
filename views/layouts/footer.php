@@ -113,22 +113,6 @@
             fill: false
         }));
 
-        const riseAnimations = {
-            x: {
-                duration: 600,
-                easing: 'easeOutCubic',
-                from: 0
-            },
-            y: {
-                duration: 900,
-                easing: 'easeOutCubic',
-                from: context => {
-                    const yScale = context?.chart?.scales?.y;
-                    return yScale ? yScale.min : 0;
-                }
-            }
-        };
-
         new Chart(ctx, {
             type: 'line',
             data: {
@@ -142,7 +126,7 @@
                     mode: 'index',
                     intersect: false
                 },
-                animations: riseAnimations,
+                animation: false,
                 plugins: {
                     legend: {
                         display: true,

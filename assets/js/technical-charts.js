@@ -149,6 +149,7 @@ function createRSIChart(labels, data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: false,
             plugins: {
                 legend: {
                     display: true,
@@ -237,6 +238,7 @@ function createMACDChart(labels, data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: false,
             plugins: {
                 legend: {
                     display: true,
@@ -296,6 +298,7 @@ function createVolatilityChart(labels, data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: false,
             plugins: {
                 legend: {
                     display: true,
@@ -391,6 +394,7 @@ function createBollingerChart(labels, data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: false,
             plugins: {
                 legend: {
                     display: true,
@@ -489,6 +493,7 @@ function createRangePercentileChart(labels, data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: false,
             plugins: {
                 legend: {
                     display: true,
