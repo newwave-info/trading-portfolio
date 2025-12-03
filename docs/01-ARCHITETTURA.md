@@ -39,7 +39,6 @@ Questo documento descrive l’architettura logica e fisica di **ETF Portfolio Ma
 ▼
 ┌──────────────────────────────────────┐
 │ PHP 8.2 + Apache (portfolio-app) │
-│ - Dashboard │
 │ - Gestione utenti/portafogli │
 │ - CRUD Holdings/Transactions │
 │ - API REST per frontend │
@@ -70,7 +69,6 @@ Questo documento descrive l’architettura logica e fisica di **ETF Portfolio Ma
 - **Web server**: Apache 2.4
 - **Ruoli principali**:
   - Rendering delle viste (template PHP/CSS/JS) per:
-    - dashboard
     - holdings
     - transazioni
     - dividendi
@@ -82,7 +80,7 @@ Questo documento descrive l’architettura logica e fisica di **ETF Portfolio Ma
   - Business logic:
     - calcolo P&L realizzato/non realizzato
     - allocazioni e drift rispetto al target
-    - aggregazioni per dashboard (totali, top holdings, ecc.).
+    - aggregazioni per holdings/performance (totali, top holdings, ecc.).
 
 La web‑app è deployata come **un singolo container** Docker (`app`) che include Apache + PHP + codice applicativo.
 
@@ -343,7 +341,7 @@ Le variabili sono gestite via file `.env` e non sono committate in repository.
    - creazione holdings iniziali
    - scrittura transactions storiche.
 6. Al termine:
-   - la dashboard riflette lo stato iniziale del portafoglio.
+   - la vista holdings/performance riflette lo stato iniziale del portafoglio.
 
 ### 5.3 Aggiornamento quotidiano prezzi e analisi tecnica (Workflow A)
 
@@ -358,7 +356,7 @@ Le variabili sono gestite via file `.env` e non sono committate in repository.
    - chiamata HTTP autenticata HMAC su endpoint `/api/analysis/results`.
 4. La web‑app:
    - salva analisi in `analysis_results` (o tabella equivalente).
-   - espone sintesi segnali in dashboard e pagina titolo.
+   - espone sintesi segnali in pagina titolo.
 
 ### 5.4 Scouting opportunità ETF (Workflow B)
 

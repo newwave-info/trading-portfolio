@@ -220,16 +220,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Ripristina vista corrente dopo reload
-    const activeView = localStorage.getItem('activeView');
-    if (activeView && activeView !== 'dashboard') {
-        console.log('Ripristino vista:', activeView);
-        // Simula click sul link della sidebar
-        const viewLink = document.querySelector(`[data-view="${activeView}"]`);
-        if (viewLink) {
-            viewLink.click();
-            // Pulisci localStorage
-            localStorage.removeItem('activeView');
-        }
+    const activeView = localStorage.getItem('activeView') || 'holdings';
+    showView(activeView);
+    // Pulisci localStorage dopo il ripristino
+    if (localStorage.getItem('activeView')) {
+        localStorage.removeItem('activeView');
     }
 });
 

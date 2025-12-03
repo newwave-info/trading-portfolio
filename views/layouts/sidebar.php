@@ -15,16 +15,12 @@
                 <i class="accordion-icon fa-solid fa-chevron-down text-[10px] text-purple-600 transition-transform duration-200 rotate-180 ml-auto"></i>
             </button>
             <div id="portfolioMenu" class="accordion-content mt-2">
-                <div class="ml-3 border-l border-gray-200 space-y-1">
-                    <div class="nav-item active flex items-center gap-2.5 pl-4 py-1.5 cursor-pointer text-[13px] text-purple-600 font-medium transition-colors duration-200 hover:text-purple-600" onclick="showView('dashboard'); toggleSidebar()">
-                        <i class="fa-solid fa-gauge text-[11px] text-current"></i>
-                        <span>Dashboard</span>
-                    </div>
-                    <div class="nav-item flex items-center gap-2.5 pl-4 py-1.5 cursor-pointer text-[13px] text-gray-600 transition-colors duration-200 hover:text-purple-600" onclick="showView('holdings'); toggleSidebar()">
-                        <i class="fa-solid fa-list text-[11px] text-current"></i>
-                        <span>Holdings</span>
-                    </div>
-                    <div class="nav-item flex items-center gap-2.5 pl-4 py-1.5 cursor-pointer text-[13px] text-gray-600 transition-colors duration-200 hover:text-purple-600" onclick="showView('performance'); toggleSidebar()">
+            <div class="ml-3 border-l border-gray-200 space-y-1">
+                <div class="nav-item active flex items-center gap-2.5 pl-4 py-1.5 cursor-pointer text-[13px] text-purple-600 font-medium transition-colors duration-200 hover:text-purple-600" onclick="showView('holdings'); toggleSidebar()">
+                    <i class="fa-solid fa-list text-[11px] text-current"></i>
+                    <span>Holdings</span>
+                </div>
+                <div class="nav-item flex items-center gap-2.5 pl-4 py-1.5 cursor-pointer text-[13px] text-gray-600 transition-colors duration-200 hover:text-purple-600" onclick="showView('performance'); toggleSidebar()">
                         <i class="fa-solid fa-chart-area text-[11px] text-current"></i>
                         <span>Performance & Flussi</span>
                     </div>
