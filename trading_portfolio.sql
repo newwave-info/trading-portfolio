@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Creato il: Dic 02, 2025 alle 12:09
+-- Creato il: Dic 03, 2025 alle 19:56
 -- Versione del server: 10.5.29-MariaDB-0+deb11u1
 -- Versione PHP: 8.4.12
 
@@ -41,7 +41,8 @@ CREATE TABLE `allocation_by_asset_class` (
 --
 
 INSERT INTO `allocation_by_asset_class` (`id`, `portfolio_id`, `asset_class`, `market_value`, `percentage`, `updated_at`) VALUES
-(141, 1, '', 11176.06, 100.0000, '2025-12-02 06:00:03');
+(176, 1, 'Equity', 7653.04, 68.8183, '2025-12-03 11:30:03'),
+(177, 1, 'Commodity', 3467.60, 31.1817, '2025-12-03 11:30:03');
 
 -- --------------------------------------------------------
 
@@ -90,7 +91,8 @@ INSERT INTO `dividend_payments` (`id`, `portfolio_id`, `ticker`, `ex_date`, `pay
 (147, 1, 'VHYL.MI', '2025-12-20', '2026-01-19', 0.500400, 10.51, 21.000000, 'FORECAST', '2025-11-29 16:15:20', '2025-11-29 16:32:10'),
 (148, 1, 'VHYL.MI', '2026-03-23', '2026-04-22', 0.500400, 10.51, 21.000000, 'FORECAST', '2025-11-29 16:15:20', '2025-11-29 16:32:10'),
 (149, 1, 'VHYL.MI', '2026-06-24', '2026-07-24', 0.500400, 10.51, 21.000000, 'FORECAST', '2025-11-29 16:15:20', '2025-11-29 16:32:10'),
-(150, 1, 'VHYL.MI', '2026-09-25', '2026-10-25', 0.500400, 10.51, 21.000000, 'FORECAST', '2025-11-29 16:15:20', '2025-11-29 16:32:10');
+(150, 1, 'VHYL.MI', '2026-09-25', '2026-10-25', 0.500400, 10.51, 21.000000, 'FORECAST', '2025-11-29 16:15:20', '2025-11-29 16:32:10'),
+(151, 1, 'TDIV.MI', '2025-12-03', '2026-01-02', 0.447500, 22.38, 50.000000, 'RECEIVED', '2025-12-03 06:00:01', '2025-12-03 06:00:01');
 
 -- --------------------------------------------------------
 
@@ -187,10 +189,10 @@ CREATE TABLE `holdings` (
 --
 
 INSERT INTO `holdings` (`id`, `portfolio_id`, `ticker`, `isin`, `name`, `asset_class`, `sector`, `quantity`, `avg_price`, `current_price`, `dividend_yield`, `annual_dividend`, `dividend_frequency`, `has_dividends`, `total_dividends_5y`, `fifty_two_week_high`, `fifty_two_week_low`, `ytd_change_percent`, `one_month_change_percent`, `three_month_change_percent`, `one_year_change_percent`, `sma9`, `sma21`, `sma50`, `sma200`, `ema9`, `ema21`, `ema50`, `ema200`, `rsi14`, `macd_value`, `macd_signal`, `macd_hist`, `atr14`, `atr14_pct`, `hist_vol_30d`, `hist_vol_90d`, `vol_avg_20d`, `vol_ratio_current_20d`, `range_1m_min`, `range_1m_max`, `range_1m_percentile`, `range_3m_min`, `range_3m_max`, `range_3m_percentile`, `range_6m_min`, `range_6m_max`, `range_6m_percentile`, `range_1y_min`, `range_1y_max`, `range_1y_percentile`, `fib_low`, `fib_high`, `fib_23_6`, `fib_38_2`, `fib_50_0`, `fib_61_8`, `fib_78_6`, `fib_23_6_dist_pct`, `fib_38_2_dist_pct`, `fib_50_0_dist_pct`, `fib_61_8_dist_pct`, `fib_78_6_dist_pct`, `bb_middle`, `bb_upper`, `bb_lower`, `bb_width_pct`, `bb_percent_b`, `technical_as_of`, `previous_close`, `day_high`, `day_low`, `volume`, `price_source`, `exchange`, `first_trade_date`, `is_active`, `created_at`, `updated_at`, `target_allocation_pct`, `role`) VALUES
-(10, 1, 'SGLD.MI', 'IE00B579F325', 'Invesco Physical Gold ETC', 'Commodity', 'Gold', 10.000000, 272.5500, 350.5000, 0.0000, 0.000000, 'None', 0, 0, 359.6700, 239.2600, 40.4500, 4.9800, 19.2300, 44.4100, 344.2467, 340.8681, 327.8970, 290.4525, 345.1148, 339.0957, 327.1316, 293.2474, 55.57, 6.7713, 6.5727, 0.1986, 5.1593, 1.4700, 25.5600, 17.9800, 109915, 2.0400, 331.9500, 350.5000, 100.0000, 293.2000, 359.1800, 86.8400, 268.9700, 359.1800, 90.3800, 240.4200, 359.1800, 92.6900, 267.4500, 359.6700, 337.9061, 324.4420, 313.5600, 302.6781, 287.1851, 3.5900, 7.4300, 10.5400, 13.6400, 18.0600, 341.2175, 352.0808, 330.3542, 6.3700, 0.9272, '2025-12-02', 145.4900, 352.9800, 349.1100, 224229, 'YahooFinance_v8', 'MIL', 1417161600, 1, '2025-11-30 08:10:13', '2025-12-02 10:20:07', 12.00, 'HEDGE'),
-(11, 1, 'VHYL.MI', 'IE00B8GKDB10', 'Vanguard FTSE All-World High Div. Yield UCITS ETF Dis', 'Dividend', 'Global', 21.000000, 67.9400, 68.8600, 2.9100, 2.001600, 'Quarterly', 1, 20, 69.5000, 55.7600, 6.2000, 1.5200, 4.7300, 3.8600, 68.2756, 68.2271, 66.3082, 64.8214, 68.4713, 67.7210, 66.7123, 65.1508, 53.14, 0.8290, 0.8216, 0.0074, 0.5500, 0.8000, 8.7500, 8.5300, 20033, 1.1900, 67.3400, 69.3800, 74.5100, 65.7000, 69.3800, 85.8700, 62.6700, 69.3800, 92.2500, 56.4400, 69.3800, 95.9800, 62.6400, 69.5000, 67.8810, 66.8795, 66.0700, 65.2605, 64.1080, 1.4200, 2.8800, 4.0500, 5.2300, 6.9000, 68.2470, 69.3984, 67.0956, 3.3700, 0.7662, '2025-12-02', 45.5650, 68.9500, 68.6700, 23825, 'YahooFinance_v8', 'MIL', 1547798400, 1, '2025-11-30 08:10:13', '2025-12-02 10:20:07', 10.30, 'SATELLITE'),
-(12, 1, 'TDIV.MI', 'NL0011683594', 'VanEck Morn. Dev. Mkts Div Lead. UCITS ETF', 'Dividend', 'Mixed', 50.000000, 46.0000, 46.8000, 3.8200, 1.790000, 'Quarterly', 1, 20, 47.0000, 36.7950, 12.9300, 3.8500, 7.1400, 14.1000, 46.2950, 46.0486, 44.3392, 43.3562, 46.4318, 45.7244, 44.7794, 43.2485, 54.55, 0.7814, 0.7733, 0.0081, 0.4350, 0.9300, 8.5300, 9.1600, 44015, 0.6500, 45.0650, 46.9000, 94.5500, 43.6800, 46.9000, 96.8900, 41.7650, 46.9000, 98.0500, 37.6800, 46.9000, 98.9200, 41.6900, 47.0000, 45.7468, 44.9716, 44.3450, 43.7184, 42.8263, 2.2500, 3.9100, 5.2500, 6.5800, 8.4900, 46.0977, 47.2631, 44.9324, 5.0600, 0.8013, '2025-12-02', 25.7250, 46.8900, 46.6700, 28432, 'YahooFinance_v8', 'MIL', 1556002800, 1, '2025-11-30 08:10:13', '2025-12-02 10:20:07', 8.00, 'SATELLITE'),
-(15, 1, 'SWDA.MI', 'IE00B4L5Y983', 'iShares Core MSCI World UCITS ETF USD (Acc)', 'Equity', 'Global', 35.000000, 111.5400, 111.0000, 0.0000, 0.000000, 'None', 0, 0, 112.5500, 82.7000, 5.4100, -0.8500, 6.3200, 5.0000, 109.9822, 110.3367, 107.4222, 102.0840, 110.3978, 109.3760, 107.7242, 103.5475, 52.58, 1.1417, 1.1262, 0.0155, 1.4179, 1.2800, 13.7500, 11.8300, 204121, 0.7900, 108.1300, 111.9600, 74.9300, 104.4000, 111.9600, 87.3000, 98.5700, 111.9600, 92.8300, 85.2900, 111.9600, 96.4000, 98.4400, 112.5500, 109.2200, 107.1600, 105.4950, 103.8300, 101.4595, 1.6000, 3.4600, 4.9600, 6.4600, 8.6000, 110.2560, 112.5861, 107.9259, 4.2300, 0.6596, '2025-12-02', 59.1400, 111.0600, 110.3400, 161358, 'YahooFinance_v8', 'MIL', 1253862000, 1, '2025-11-30 08:14:43', '2025-12-02 10:20:07', 22.60, 'CORE');
+(10, 1, 'SGLD.MI', 'IE00B579F325', 'Invesco Physical Gold ETC', 'Commodity', 'Gold', 10.000000, 272.5500, 346.7600, 0.0000, 0.000000, 'None', 0, 0, 359.6700, 239.2600, 38.9500, 4.2300, 17.8500, 42.8800, 345.7956, 342.1605, 329.4490, 291.2122, 345.7375, 340.4416, 328.6480, 294.3089, 53.97, 6.2674, 6.5062, -0.2388, 4.7507, 1.3700, 20.6600, 17.9900, 109290, 0.1000, 331.9500, 350.5000, 79.8400, 294.2400, 359.1800, 80.8700, 268.9700, 359.1800, 86.2300, 240.4200, 359.1800, 89.5400, 267.4500, 359.6700, 337.9061, 324.4420, 313.5600, 302.6781, 287.1851, 2.5500, 6.4400, 9.5700, 12.7100, 17.1800, 342.5795, 352.4639, 332.6952, 5.7700, 0.7115, '2025-12-03', 145.8600, 348.1800, 346.5000, 11342, 'YahooFinance_v8', 'MIL', 1417161600, 1, '2025-11-30 08:10:13', '2025-12-03 11:30:03', 12.00, 'HEDGE'),
+(11, 1, 'VHYL.MI', 'IE00B8GKDB10', 'Vanguard FTSE All-World High Div. Yield UCITS ETF Dis', 'Equity', 'Global', 21.000000, 67.9400, 68.5900, 2.9200, 2.001600, 'Quarterly', 1, 20, 69.5000, 55.7600, 5.7800, 1.0600, 4.4000, 3.8900, 68.4956, 68.3014, 66.4030, 64.8305, 68.5268, 67.8784, 66.8597, 65.2197, 52.51, 0.7580, 0.8051, -0.0471, 0.4921, 0.7200, 8.2700, 8.4900, 18905, 0.1200, 67.3400, 69.3800, 61.2700, 65.7000, 69.3800, 78.5300, 62.6700, 69.3800, 88.2300, 56.4400, 69.3800, 93.8900, 62.6400, 69.5000, 67.8810, 66.8795, 66.0700, 65.2605, 64.1080, 1.0300, 2.4900, 3.6700, 4.8500, 6.5300, 68.3130, 69.4675, 67.1585, 3.3800, 0.6200, '2025-12-03', 45.6300, 68.7100, 68.5500, 2245, 'YahooFinance_v8', 'MIL', 1547798400, 1, '2025-11-30 08:10:13', '2025-12-03 11:30:03', 10.30, 'SATELLITE'),
+(12, 1, 'TDIV.MI', 'NL0011683594', 'VanEck Morn. Dev. Mkts Div Lead. UCITS ETF', 'Equity', 'Mixed', 50.000000, 46.0000, 46.5950, 3.8400, 1.790000, 'Quarterly', 1, 20, 47.0000, 36.7950, 12.4400, 3.3000, 6.4800, 15.1200, 46.5311, 46.2045, 44.4514, 43.3856, 46.5313, 45.8966, 44.9286, 43.3173, 53.72, 0.7329, 0.7648, -0.0319, 0.4257, 0.9100, 8.6800, 9.2100, 42750, 0.2300, 45.1050, 46.9000, 83.0100, 43.7600, 46.9000, 90.2900, 41.7650, 46.9000, 94.0600, 37.6800, 46.9000, 96.6900, 41.6900, 47.0000, 45.7468, 44.9716, 44.3450, 43.7184, 42.8263, 1.8200, 3.4800, 4.8300, 6.1700, 8.0900, 46.2477, 47.3054, 45.1901, 4.5700, 0.6642, '2025-12-03', 25.5150, 46.7050, 46.5650, 9876, 'YahooFinance_v8', 'MIL', 1556002800, 1, '2025-11-30 08:10:13', '2025-12-03 11:30:03', 8.00, 'SATELLITE'),
+(15, 1, 'SWDA.MI', 'IE00B4L5Y983', 'iShares Core MSCI World UCITS ETF USD (Acc)', 'Equity', 'Global', 35.000000, 111.5400, 110.9400, 0.0000, 0.000000, 'None', 0, 0, 112.5500, 82.7000, 5.3600, -0.5400, 6.1100, 4.7200, 110.4422, 110.2648, 107.5746, 102.1110, 110.6090, 109.6557, 107.9753, 103.6948, 52.49, 1.0972, 1.1208, -0.0236, 1.2950, 1.1700, 12.9000, 11.7700, 192687, 0.4900, 108.1300, 111.9600, 73.3700, 104.5500, 111.9600, 86.2300, 98.5700, 111.9600, 92.3800, 85.2900, 111.9600, 96.1800, 98.4400, 112.5500, 109.2200, 107.1600, 105.4950, 103.8300, 101.4595, 1.5500, 3.4100, 4.9100, 6.4100, 8.5500, 110.1905, 112.3934, 107.9876, 4.0000, 0.6701, '2025-12-03', 58.8100, 111.1900, 110.8600, 94400, 'YahooFinance_v8', 'MIL', 1253862000, 1, '2025-11-30 08:14:43', '2025-12-03 11:30:03', 22.60, 'CORE');
 
 -- --------------------------------------------------------
 
@@ -246,7 +248,7 @@ CREATE TABLE `monthly_performance` (
 
 INSERT INTO `monthly_performance` (`id`, `portfolio_id`, `year`, `month`, `month_label`, `total_value`, `total_invested`, `total_gain`, `gain_pct`) VALUES
 (1, 1, 2025, 11, 'Nov', 46285.60, 45491.24, 794.36, 1.7462),
-(114, 1, 2025, 12, 'Dec', 11176.06, 10356.14, 819.92, 7.9172);
+(114, 1, 2025, 12, 'Dec', 11120.64, 10356.14, 764.50, 7.3821);
 
 -- --------------------------------------------------------
 
@@ -299,6 +301,17 @@ CREATE TABLE `recommendations` (
   `executed_quantity` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Raccomandazioni operative per il portfolio management';
 
+--
+-- Dump dei dati per la tabella `recommendations`
+--
+
+INSERT INTO `recommendations` (`id`, `portfolio_id`, `holding_id`, `type`, `urgency`, `quantity`, `trigger_price`, `trigger_condition`, `stop_loss`, `take_profit`, `rationale_primary`, `rationale_technical`, `confidence_score`, `data_quality_issues`, `status`, `created_at`, `expires_at`, `executed_at`, `executed_price`, `executed_quantity`) VALUES
+(1, 1, 15, 'SELL_PARTIAL', 'MONITORAGGIO', NULL, NULL, NULL, NULL, NULL, 'SWDA.MI: RIBILANCIAMENTO - peso 34.9% vs target 0.0%', 'Deviazione allocazione 34.9%, necessario alleggerimento', 50, NULL, 'ACTIVE', '2025-12-02 14:12:44', '2025-12-16 13:12:44', NULL, NULL, NULL),
+(2, 1, 10, 'SELL_PARTIAL', 'QUESTA_SETTIMANA', 5, 347.2200, 'market_order', NULL, NULL, 'SGLD.MI: ALLEGGERISCI 5 unità (50% della posizione)', 'RSI 54.2 (neutro), P&L 27.4%, Sovrapeso 31.1% (target: 0.0%)', 75, NULL, 'ACTIVE', '2025-12-02 14:12:44', '2025-12-09 13:12:44', NULL, NULL, NULL),
+(3, 1, 10, 'SET_TAKE_PROFIT', 'QUESTA_SETTIMANA', 2, 352.3633, 'limit_order', NULL, 352.3633, 'SGLD.MI: TAKE PROFIT parziale - vendi 2 unità (20% posizione)', 'P&L 27.4%, RSI 54.2, Resistenza €352.36, Max 52W €359.67', 60, NULL, 'ACTIVE', '2025-12-02 14:12:44', '2025-12-09 13:12:44', NULL, NULL, NULL),
+(4, 1, 12, 'SELL_PARTIAL', 'MONITORAGGIO', NULL, NULL, NULL, NULL, NULL, 'TDIV.MI: RIBILANCIAMENTO - peso 21.0% vs target 0.0%', 'Deviazione allocazione 21.0%, necessario alleggerimento', 50, NULL, 'ACTIVE', '2025-12-02 14:12:44', '2025-12-16 13:12:44', NULL, NULL, NULL),
+(5, 1, 11, 'SELL_PARTIAL', 'MONITORAGGIO', NULL, NULL, NULL, NULL, NULL, 'VHYL.MI: RIBILANCIAMENTO - peso 13.0% vs target 0.0%', 'Deviazione allocazione 13.0%, necessario alleggerimento', 50, NULL, 'ACTIVE', '2025-12-02 14:12:44', '2025-12-16 13:12:44', NULL, NULL, NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -342,7 +355,8 @@ INSERT INTO `snapshots` (`id`, `portfolio_id`, `snapshot_date`, `total_invested`
 (3, 1, '2025-11-29', 6452.27, 6452.27, 0.00, 0.0000, 0.00, '{\"holdings_count\":3}', '2025-11-29 13:07:51'),
 (4, 1, '2025-11-30', 45491.24, 46285.60, 794.36, 1.7462, 0.00, '{\"holdings_count\":4}', '2025-11-30 08:00:40'),
 (5, 1, '2025-12-01', 10356.14, 11176.06, 819.92, 7.9172, 0.00, '{\"holdings_count\":4}', '2025-12-01 06:00:02'),
-(6, 1, '2025-12-02', 10356.14, 11176.06, 819.92, 7.9172, 0.00, '{\"holdings_count\":4}', '2025-12-02 06:00:01');
+(6, 1, '2025-12-02', 10356.14, 11140.47, 784.33, 7.5736, 0.00, '{\"holdings_count\":4}', '2025-12-02 06:00:01'),
+(7, 1, '2025-12-03', 10356.14, 11120.64, 764.50, 7.3821, 0.00, '{\"holdings_count\":4}', '2025-12-03 06:00:01');
 
 -- --------------------------------------------------------
 
@@ -383,10 +397,14 @@ INSERT INTO `snapshot_holdings` (`id`, `snapshot_id`, `ticker`, `quantity`, `avg
 (528, 5, 'SGLD.MI', 10.000000, 272.5500, 350.5000, 3505.00, 2725.50, 779.50, 28.6003),
 (529, 5, 'TDIV.MI', 50.000000, 46.0000, 46.8000, 2340.00, 2300.00, 40.00, 1.7391),
 (530, 5, 'VHYL.MI', 21.000000, 67.9400, 68.8600, 1446.06, 1426.74, 19.32, 1.3541),
-(539, 6, 'SWDA.MI', 35.000000, 111.5400, 111.0000, 3885.00, 3903.90, -18.90, -0.4841),
-(540, 6, 'SGLD.MI', 10.000000, 272.5500, 350.5000, 3505.00, 2725.50, 779.50, 28.6003),
-(541, 6, 'TDIV.MI', 50.000000, 46.0000, 46.8000, 2340.00, 2300.00, 40.00, 1.7391),
-(542, 6, 'VHYL.MI', 21.000000, 67.9400, 68.8600, 1446.06, 1426.74, 19.32, 1.3541);
+(583, 6, 'SWDA.MI', 35.000000, 111.5400, 111.0400, 3886.40, 3903.90, -17.50, -0.4500),
+(584, 6, 'SGLD.MI', 10.000000, 272.5500, 346.9500, 3469.50, 2725.50, 744.00, 27.3000),
+(585, 6, 'TDIV.MI', 50.000000, 46.0000, 46.8500, 2342.50, 2300.00, 42.50, 1.8500),
+(586, 6, 'VHYL.MI', 21.000000, 67.9400, 68.6700, 1442.07, 1426.74, 15.33, 1.0700),
+(607, 7, 'SWDA.MI', 35.000000, 111.5400, 110.9400, 3882.90, 3903.90, -21.00, -0.5400),
+(608, 7, 'SGLD.MI', 10.000000, 272.5500, 346.7600, 3467.60, 2725.50, 742.10, 27.2300),
+(609, 7, 'TDIV.MI', 50.000000, 46.0000, 46.5950, 2329.75, 2300.00, 29.75, 1.2900),
+(610, 7, 'VHYL.MI', 21.000000, 67.9400, 68.5900, 1440.39, 1426.74, 13.65, 0.9600);
 
 -- --------------------------------------------------------
 
@@ -429,7 +447,12 @@ INSERT INTO `technical_insights` (`id`, `portfolio_id`, `isin`, `ticker`, `instr
 (20, 1, 'IE00B4L5Y983', 'SWDA.MI', 'iShares Core MSCI World UCITS ETF USD (Acc)', 'instrument', 'gpt-5.1', '2025-12-01 18:24:16', NULL, '{\"scores\":{\"trend_strength\":78,\"momentum_strength\":65,\"volatility_score\":35,\"overextension_score\":75},\"signals\":{\"trend_signal\":\"uptrend\",\"momentum_signal\":\"weakening\",\"rsi_condition\":\"neutral\",\"bollinger_position\":\"middle_band\",\"range_position\":\"near_high\",\"volatility_flag\":\"low\"},\"levels\":{\"potential_support_levels\":[109.5,107.7,105,103.5],\"potential_resistance_levels\":[112.5,115]},\"trend\":\"bullish\",\"momentum\":\"neutral\",\"flags\":[\"near_52w_high\",\"low_volatility\"],\"notes\":\"EMAs allineate al rialzo, MACD in leggero indebolimento e RSI neutro; possibile acquisto su ritracciamento verso 109–108 con stop sotto 107,5 e primo target in area 112,5–115.\"}', 'Trend rialzista ma meno brillante e prezzo vicino ai massimi annuali: operatività long ancora valida ma con ingressi graduali e stop sotto area 107,7.', '2025-12-01 18:36:51'),
 (21, 1, 'IE00B579F325', 'SGLD.MI', 'Invesco Physical Gold ETC', 'instrument', 'gpt-5.1', '2025-12-01 18:24:16', NULL, '{\"scores\":{\"trend_strength\":90,\"momentum_strength\":88,\"volatility_score\":72,\"overextension_score\":85},\"signals\":{\"trend_signal\":\"strong_uptrend\",\"momentum_signal\":\"accelerating\",\"rsi_condition\":\"neutral\",\"bollinger_position\":\"upper_band\",\"range_position\":\"near_high\",\"volatility_flag\":\"high\"},\"levels\":{\"potential_support_levels\":[345,339,327,315],\"potential_resistance_levels\":[360,370,380]},\"trend\":\"bullish\",\"momentum\":\"bullish\",\"flags\":[\"near_52w_high\",\"high_volatility\",\"overextension\"],\"notes\":\"MACD e medie esponenziali molto forti; possibile nuova gamba rialzista ma con rischio di pullback rapido. Strategia: acquisti parziali su ritorni verso 345–339, stop sotto 327 e target in area 360–370, eventuale estensione verso 380.\"}', 'Fortissimo uptrend con prezzo in prossimità dei massimi e vicino alla banda alta: long interessante ma tecnicamente esteso e volatile, meglio entrare su ritracciamenti.', '2025-12-01 18:36:51'),
 (22, 1, 'NL0011683594', 'TDIV.MI', 'VanEck Morn. Dev. Mkts Div Lead. UCITS ETF', 'instrument', 'gpt-5.1', '2025-12-01 18:24:16', NULL, '{\"scores\":{\"trend_strength\":82,\"momentum_strength\":72,\"volatility_score\":32,\"overextension_score\":80},\"signals\":{\"trend_signal\":\"uptrend\",\"momentum_signal\":\"stable\",\"rsi_condition\":\"neutral\",\"bollinger_position\":\"upper_band\",\"range_position\":\"near_high\",\"volatility_flag\":\"low\"},\"levels\":{\"potential_support_levels\":[45.7,44.8,43.2],\"potential_resistance_levels\":[47,48.5]},\"trend\":\"bullish\",\"momentum\":\"bullish\",\"flags\":[\"near_52w_high\",\"low_volatility\",\"overextension\"],\"notes\":\"MACD leggermente positivo, RSI equilibrato ma percentile di range a 1 anno molto elevato. Possibile acquisto su pullback verso 45,7–45 con stop sotto 44,8 e target iniziale 47, con eventuale estensione verso 48,5.\"}', 'Trend rialzista ben impostato, prezzo a ridosso dei massimi storici con volatilità contenuta: long ancora favorevole ma tecnicamente tirato sul breve.', '2025-12-01 18:36:51'),
-(23, 1, 'IE00B8GKDB10', 'VHYL.MI', 'Vanguard FTSE All-World High Div. Yield UCITS ETF Dis', 'instrument', 'gpt-5.1', '2025-12-01 18:24:16', NULL, '{\"scores\":{\"trend_strength\":76,\"momentum_strength\":64,\"volatility_score\":34,\"overextension_score\":78},\"signals\":{\"trend_signal\":\"uptrend\",\"momentum_signal\":\"stable\",\"rsi_condition\":\"neutral\",\"bollinger_position\":\"upper_band\",\"range_position\":\"near_high\",\"volatility_flag\":\"low\"},\"levels\":{\"potential_support_levels\":[67.7,66.7,65.1],\"potential_resistance_levels\":[69.5,71]},\"trend\":\"bullish\",\"momentum\":\"bullish\",\"flags\":[\"near_52w_high\",\"low_volatility\",\"overextension\"],\"notes\":\"EMA9 sopra EMA21 e 50, MACD lievemente positivo e volatilità bassa; preferibile comprare su ritorni verso 67,7–67 con stop sotto 66,7 e target principale 69,5, eventuale estensione verso 71.\"}', 'Uptrend regolare con prezzo in area massimi e sopra tutte le medie: struttura long solida ma con margini di ingresso migliori in caso di ritracciamento.', '2025-12-01 18:36:51');
+(23, 1, 'IE00B8GKDB10', 'VHYL.MI', 'Vanguard FTSE All-World High Div. Yield UCITS ETF Dis', 'instrument', 'gpt-5.1', '2025-12-01 18:24:16', NULL, '{\"scores\":{\"trend_strength\":76,\"momentum_strength\":64,\"volatility_score\":34,\"overextension_score\":78},\"signals\":{\"trend_signal\":\"uptrend\",\"momentum_signal\":\"stable\",\"rsi_condition\":\"neutral\",\"bollinger_position\":\"upper_band\",\"range_position\":\"near_high\",\"volatility_flag\":\"low\"},\"levels\":{\"potential_support_levels\":[67.7,66.7,65.1],\"potential_resistance_levels\":[69.5,71]},\"trend\":\"bullish\",\"momentum\":\"bullish\",\"flags\":[\"near_52w_high\",\"low_volatility\",\"overextension\"],\"notes\":\"EMA9 sopra EMA21 e 50, MACD lievemente positivo e volatilità bassa; preferibile comprare su ritorni verso 67,7–67 con stop sotto 66,7 e target principale 69,5, eventuale estensione verso 71.\"}', 'Uptrend regolare con prezzo in area massimi e sopra tutte le medie: struttura long solida ma con margini di ingresso migliori in caso di ritracciamento.', '2025-12-01 18:36:51'),
+(24, 1, NULL, NULL, NULL, 'portfolio', 'gpt-5.1', '2025-12-02 19:46:38', '{\"portfolio_id\":1,\"as_of\":\"2025-12-02T19:46:19.700Z\",\"holdings\":[{\"ticker\":\"SWDA.MI\",\"isin\":\"IE00B4L5Y983\",\"name\":\"iShares Core MSCI World UCITS ETF USD (Acc)\",\"sector\":\"Global\",\"asset_class\":\"Equity\",\"price\":111.04,\"indicators\":{\"ema9\":110.5262,\"ema21\":109.5272,\"ema50\":107.8543,\"ema200\":103.622,\"rsi14\":52.63,\"atr14\":1.3914,\"atr14_pct\":1.25,\"hist_vol_30d\":12.93,\"hist_vol_90d\":11.83,\"range_1m_percentile\":75.98,\"range_3m_percentile\":87.58,\"range_1y_percentile\":96.55,\"bb_percent_b\":0.677,\"macd_value\":1.1284,\"macd_signal\":1.1267,\"macd_hist\":0.0018,\"ytd_change_percent\":5.45,\"one_month_change_percent\":-0.81,\"three_month_change_percent\":5.49,\"one_year_change_percent\":5.1,\"fifty_two_week_high\":112.55,\"fifty_two_week_low\":82.7},\"derived\":{\"trend_ema50_ema200\":\"bullish\",\"momentum_ema9_ema21\":\"bullish\",\"near_52w_high\":true,\"near_52w_low\":false}},{\"ticker\":\"SGLD.MI\",\"isin\":\"IE00B579F325\",\"name\":\"Invesco Physical Gold ETC\",\"sector\":\"Gold\",\"asset_class\":\"Commodity\",\"price\":346.95,\"indicators\":{\"ema9\":345.4818,\"ema21\":339.8097,\"ema50\":327.9088,\"ema200\":293.7817,\"rsi14\":54.06,\"atr14\":5.01,\"atr14_pct\":1.44,\"hist_vol_30d\":24.84,\"hist_vol_90d\":17.99,\"range_1m_percentile\":80.86,\"range_3m_percentile\":81.46,\"range_1y_percentile\":89.7,\"bb_percent_b\":0.7415,\"macd_value\":6.5391,\"macd_signal\":6.5659,\"macd_hist\":-0.0269,\"ytd_change_percent\":39.02,\"one_month_change_percent\":3.91,\"three_month_change_percent\":18.33,\"one_year_change_percent\":43.06,\"fifty_two_week_high\":359.67,\"fifty_two_week_low\":239.26},\"derived\":{\"trend_ema50_ema200\":\"bullish\",\"momentum_ema9_ema21\":\"bullish\",\"near_52w_high\":false,\"near_52w_low\":false}},{\"ticker\":\"TDIV.MI\",\"isin\":\"NL0011683594\",\"name\":\"VanEck Morn. Dev. Mkts Div Lead. UCITS ETF\",\"sector\":\"Mixed\",\"asset_class\":\"Equity\",\"price\":46.85,\"indicators\":{\"ema9\":46.5154,\"ema21\":45.8267,\"ema50\":44.8606,\"ema200\":43.2844,\"rsi14\":54.7,\"atr14\":0.4146,\"atr14_pct\":0.88,\"hist_vol_30d\":8.45,\"hist_vol_90d\":9.15,\"range_1m_percentile\":97.28,\"range_3m_percentile\":98.41,\"range_1y_percentile\":99.46,\"bb_percent_b\":0.7982,\"macd_value\":0.7705,\"macd_signal\":0.7728,\"macd_hist\":-0.0022,\"ytd_change_percent\":13.06,\"one_month_change_percent\":3.96,\"three_month_change_percent\":6.57,\"one_year_change_percent\":14.38,\"fifty_two_week_high\":47,\"fifty_two_week_low\":36.795},\"derived\":{\"trend_ema50_ema200\":\"bullish\",\"momentum_ema9_ema21\":\"bullish\",\"near_52w_high\":true,\"near_52w_low\":false}},{\"ticker\":\"VHYL.MI\",\"isin\":\"IE00B8GKDB10\",\"name\":\"Vanguard FTSE All-World High Div. Yield UCITS ETF Dis\",\"sector\":\"Global\",\"asset_class\":\"Equity\",\"price\":68.67,\"indicators\":{\"ema9\":68.511,\"ema21\":67.8072,\"ema50\":66.7891,\"ema200\":65.1858,\"rsi14\":52.71,\"atr14\":0.5207,\"atr14_pct\":0.76,\"hist_vol_30d\":8.29,\"hist_vol_90d\":8.53,\"range_1m_percentile\":65.2,\"range_3m_percentile\":80.71,\"range_1y_percentile\":94.51,\"bb_percent_b\":0.6663,\"macd_value\":0.7979,\"macd_signal\":0.8169,\"macd_hist\":-0.019,\"ytd_change_percent\":5.91,\"one_month_change_percent\":1.24,\"three_month_change_percent\":3.73,\"one_year_change_percent\":3.47,\"fifty_two_week_high\":69.5,\"fifty_two_week_low\":55.76},\"derived\":{\"trend_ema50_ema200\":\"bullish\",\"momentum_ema9_ema21\":\"bullish\",\"near_52w_high\":true,\"near_52w_low\":false}}]}', '{\"scores\":{\"health_score\":78,\"risk_score\":42,\"diversification_score\":70,\"momentum_score\":65,\"volatility_score\":40,\"extension_score\":82},\"trend\":\"bullish\",\"risk\":\"medium\",\"volatility_comment\":\"Volatilità complessivamente moderata, leggermente più elevata sull’oro ma ancora gestibile.\",\"diversification_comment\":\"Buona diversificazione tra azionario globale\\/dividendo e oro, anche se la componente equity globale è preponderante.\",\"notes\":\"Trend rialzista diffuso ma con forte estensione verso i massimi 52 settimane su più ETF: preferibili acquisti su ritracciamento e stop loss tecnici sotto le EMA chiave o i supporti recenti.\"}', 'Portafoglio globalmente rialzista, con trend sani e volatilità moderata; diversi strumenti sono però vicini ai massimi annuali, suggerendo ingressi selettivi e gestione prudente dei livelli di stop.', '2025-12-02 19:46:39'),
+(25, 1, 'IE00B4L5Y983', 'SWDA.MI', 'iShares Core MSCI World UCITS ETF USD (Acc)', 'instrument', 'gpt-5.1', '2025-12-02 19:46:38', NULL, '{\"scores\":{\"trend_strength\":80,\"momentum_strength\":60,\"volatility_score\":35,\"overextension_score\":85},\"signals\":{\"trend_signal\":\"uptrend\",\"momentum_signal\":\"stable\",\"rsi_condition\":\"neutral\",\"bollinger_position\":\"upper_band\",\"range_position\":\"near_high\",\"volatility_flag\":\"low\"},\"levels\":{\"potential_support_levels\":[109,107.8,105,103.6],\"potential_resistance_levels\":[112.5,115]},\"trend\":\"bullish\",\"momentum\":\"neutral\",\"flags\":[\"overextension\"],\"notes\":\"EMA allineate al rialzo, MACD positivo ma con istogramma quasi piatto; estensione forte (96° percentile 1Y) suggerisce rischio di pullback.\"}', 'Trend rialzista sano ma molto vicino ai massimi annuali; meglio comprare solo su ritracciamenti verso area 109–108 con stop sotto 107,8 e possibili prese di profitto in zona 112,5–115.', '2025-12-02 19:46:39'),
+(26, 1, 'IE00B579F325', 'SGLD.MI', 'Invesco Physical Gold ETC', 'instrument', 'gpt-5.1', '2025-12-02 19:46:38', NULL, '{\"scores\":{\"trend_strength\":85,\"momentum_strength\":70,\"volatility_score\":70,\"overextension_score\":75},\"signals\":{\"trend_signal\":\"strong_uptrend\",\"momentum_signal\":\"weakening\",\"rsi_condition\":\"neutral\",\"bollinger_position\":\"upper_band\",\"range_position\":\"near_high\",\"volatility_flag\":\"high\"},\"levels\":{\"potential_support_levels\":[340,335,328,310],\"potential_resistance_levels\":[359.5,365,380]},\"trend\":\"bullish\",\"momentum\":\"neutral\",\"flags\":[\"high_volatility\",\"overextension\"],\"notes\":\"EMA ben distanziate e rialziste, MACD sopra lo zero ma istogramma negativo indica perdita di spinta; alta volatilità implica stop più larghi e dimensione posizione contenuta.\"}', 'Oro in forte trend rialzista ma con volatilità elevata e segnali di momentum in lieve indebolimento; acquistabile solo con approccio tattico su pullback verso 340–335, stop sotto 328 e primo take profit in area 359–365.', '2025-12-02 19:46:39'),
+(27, 1, 'NL0011683594', 'TDIV.MI', 'VanEck Morn. Dev. Mkts Div Lead. UCITS ETF', 'instrument', 'gpt-5.1', '2025-12-02 19:46:38', NULL, '{\"scores\":{\"trend_strength\":88,\"momentum_strength\":75,\"volatility_score\":30,\"overextension_score\":90},\"signals\":{\"trend_signal\":\"strong_uptrend\",\"momentum_signal\":\"weakening\",\"rsi_condition\":\"neutral\",\"bollinger_position\":\"upper_band\",\"range_position\":\"near_high\",\"volatility_flag\":\"low\"},\"levels\":{\"potential_support_levels\":[46,45.3,44.9,43.3],\"potential_resistance_levels\":[47,48.5,50]},\"trend\":\"bullish\",\"momentum\":\"bullish\",\"flags\":[\"overextension\"],\"notes\":\"Range su 1m\\/3m\\/1y oltre 97° percentile indica forte estensione; MACD leggermente in divergenza (istogramma negativo) suggerisce possibile consolidamento a breve.\"}', 'ETF dividendo in forte uptrend e su nuovi massimi, ma molto esteso: preferibile attendere un ritracciamento verso 46–45,3 per nuovi acquisti, con stop sotto 44,9 e target progressivi in area 47 e 48,5–50.', '2025-12-02 19:46:39'),
+(28, 1, 'IE00B8GKDB10', 'VHYL.MI', 'Vanguard FTSE All-World High Div. Yield UCITS ETF Dis', 'instrument', 'gpt-5.1', '2025-12-02 19:46:38', NULL, '{\"scores\":{\"trend_strength\":78,\"momentum_strength\":60,\"volatility_score\":30,\"overextension_score\":80},\"signals\":{\"trend_signal\":\"uptrend\",\"momentum_signal\":\"weakening\",\"rsi_condition\":\"neutral\",\"bollinger_position\":\"upper_band\",\"range_position\":\"near_high\",\"volatility_flag\":\"low\"},\"levels\":{\"potential_support_levels\":[67.8,66.8,65.2],\"potential_resistance_levels\":[69.5,71,72.5]},\"trend\":\"bullish\",\"momentum\":\"neutral\",\"flags\":[\"overextension\"],\"notes\":\"EMA in configurazione rialzista ma MACD in leggero indebolimento; volatilità contenuta, ma prossimità ai massimi suggerisce rischio di breve consolidamento o pullback.\"}', 'Trend rialzista moderato e vicino ai massimi 52 settimane; ingressi più prudenti su ritorni verso 67,8–66,8 con stop sotto 66,8 e area 69,5–71 come zona di possibile presa di profitto.', '2025-12-02 19:46:39');
 
 -- --------------------------------------------------------
 
@@ -466,10 +489,14 @@ INSERT INTO `technical_snapshots` (`id`, `portfolio_id`, `isin`, `snapshot_date`
 (6, 1, 'IE00B4L5Y983', '2025-12-01', 111.0000, 52.58, 1.1417, 1.1262, 13.7500, 1.2800, 96.4000, 0.6596, '2025-12-01 10:31:48'),
 (7, 1, 'NL0011683594', '2025-12-01', 46.8000, 54.55, 0.7814, 0.7733, 8.5300, 0.9300, 98.9200, 0.8013, '2025-12-01 10:31:48'),
 (8, 1, 'IE00B8GKDB10', '2025-12-01', 68.8600, 53.14, 0.8290, 0.8216, 8.7500, 0.8000, 95.9800, 0.7662, '2025-12-01 10:31:48'),
-(17, 1, 'IE00B579F325', '2025-12-02', 350.5000, 55.57, 6.7713, 6.5727, 25.5600, 1.4700, 92.6900, 0.9272, '2025-12-02 06:00:03'),
-(18, 1, 'IE00B4L5Y983', '2025-12-02', 111.0000, 52.58, 1.1417, 1.1262, 13.7500, 1.2800, 96.4000, 0.6596, '2025-12-02 06:00:03'),
-(19, 1, 'NL0011683594', '2025-12-02', 46.8000, 54.55, 0.7814, 0.7733, 8.5300, 0.9300, 98.9200, 0.8013, '2025-12-02 06:00:03'),
-(20, 1, 'IE00B8GKDB10', '2025-12-02', 68.8600, 53.14, 0.8290, 0.8216, 8.7500, 0.8000, 95.9800, 0.7662, '2025-12-02 06:00:03');
+(17, 1, 'IE00B579F325', '2025-12-02', 346.9500, 54.06, 6.5391, 6.5659, 24.8400, 1.4400, 89.7000, 0.7415, '2025-12-02 06:00:03'),
+(18, 1, 'IE00B4L5Y983', '2025-12-02', 111.0400, 52.63, 1.1284, 1.1267, 12.9300, 1.2500, 96.5500, 0.6770, '2025-12-02 06:00:03'),
+(19, 1, 'NL0011683594', '2025-12-02', 46.8500, 54.70, 0.7705, 0.7728, 8.4500, 0.8800, 99.4600, 0.7982, '2025-12-02 06:00:03'),
+(20, 1, 'IE00B8GKDB10', '2025-12-02', 68.6700, 52.71, 0.7979, 0.8169, 8.2900, 0.7600, 94.5100, 0.6663, '2025-12-02 06:00:03'),
+(33, 1, 'IE00B579F325', '2025-12-03', 346.7600, 53.97, 6.2674, 6.5062, 20.6600, 1.3700, 89.5400, 0.7115, '2025-12-03 06:00:03'),
+(34, 1, 'IE00B4L5Y983', '2025-12-03', 110.9400, 52.49, 1.0972, 1.1208, 12.9000, 1.1700, 96.1800, 0.6701, '2025-12-03 06:00:03'),
+(35, 1, 'NL0011683594', '2025-12-03', 46.5950, 53.72, 0.7329, 0.7648, 8.6800, 0.9100, 96.6900, 0.6642, '2025-12-03 06:00:03'),
+(36, 1, 'IE00B8GKDB10', '2025-12-03', 68.5900, 52.51, 0.7580, 0.8051, 8.2700, 0.7200, 93.8900, 0.6200, '2025-12-03 06:00:03');
 
 -- --------------------------------------------------------
 
@@ -562,95 +589,6 @@ CREATE TABLE `v_dividends_enriched` (
 ,`quantity_at_ex_date` decimal(12,6)
 ,`paid_amount` decimal(24,12)
 ,`owned_on_snapshot` int(1)
-);
-
--- --------------------------------------------------------
-
---
--- Struttura stand-in per le viste `v_holdings_enriched`
--- (Vedi sotto per la vista effettiva)
---
-CREATE TABLE `v_holdings_enriched` (
-`id` int(10) unsigned
-,`portfolio_id` int(10) unsigned
-,`isin` varchar(20)
-,`ticker` varchar(20)
-,`name` varchar(255)
-,`asset_class` enum('Equity','Dividend','Commodity','Bond','ETF','Stock','Cash','Other')
-,`sector` varchar(100)
-,`quantity` decimal(12,6)
-,`avg_price` decimal(12,4)
-,`current_price` decimal(12,4)
-,`previous_close` decimal(12,4)
-,`invested` decimal(24,10)
-,`market_value` decimal(24,10)
-,`pnl` decimal(25,10)
-,`pnl_pct` decimal(24,8)
-,`fifty_two_week_high` decimal(12,4)
-,`fifty_two_week_low` decimal(12,4)
-,`day_high` decimal(12,4)
-,`day_low` decimal(12,4)
-,`ytd_change_percent` decimal(8,4)
-,`one_month_change_percent` decimal(8,4)
-,`three_month_change_percent` decimal(8,4)
-,`one_year_change_percent` decimal(8,4)
-,`volume` bigint(20) unsigned
-,`exchange` varchar(20)
-,`dividend_yield` decimal(8,4)
-,`annual_dividend` decimal(12,6)
-,`dividend_frequency` varchar(20)
-,`has_dividends` tinyint(1)
-,`total_dividends_5y` int(10) unsigned
-,`first_trade_date` bigint(20) unsigned
-,`price_source` varchar(50)
-,`is_active` tinyint(1)
-,`created_at` timestamp
-,`updated_at` timestamp
-,`sma9` decimal(12,4)
-,`sma21` decimal(12,4)
-,`sma50` decimal(12,4)
-,`sma200` decimal(12,4)
-,`ema9` decimal(12,4)
-,`ema21` decimal(12,4)
-,`ema50` decimal(12,4)
-,`ema200` decimal(12,4)
-,`rsi14` decimal(6,2)
-,`macd_value` decimal(12,4)
-,`macd_signal` decimal(12,4)
-,`macd_hist` decimal(12,4)
-,`atr14` decimal(12,4)
-,`atr14_pct` decimal(8,4)
-,`hist_vol_30d` decimal(8,4)
-,`hist_vol_90d` decimal(8,4)
-,`range_1m_min` decimal(12,4)
-,`range_1m_max` decimal(12,4)
-,`range_1m_percentile` decimal(8,4)
-,`range_3m_min` decimal(12,4)
-,`range_3m_max` decimal(12,4)
-,`range_3m_percentile` decimal(8,4)
-,`range_6m_min` decimal(12,4)
-,`range_6m_max` decimal(12,4)
-,`range_6m_percentile` decimal(8,4)
-,`range_1y_min` decimal(12,4)
-,`range_1y_max` decimal(12,4)
-,`range_1y_percentile` decimal(8,4)
-,`fib_low` decimal(12,4)
-,`fib_high` decimal(12,4)
-,`fib_23_6` decimal(12,4)
-,`fib_38_2` decimal(12,4)
-,`fib_50_0` decimal(12,4)
-,`fib_61_8` decimal(12,4)
-,`fib_78_6` decimal(12,4)
-,`fib_23_6_dist_pct` decimal(8,4)
-,`fib_38_2_dist_pct` decimal(8,4)
-,`fib_50_0_dist_pct` decimal(8,4)
-,`fib_61_8_dist_pct` decimal(8,4)
-,`fib_78_6_dist_pct` decimal(8,4)
-,`bb_middle` decimal(12,4)
-,`bb_upper` decimal(12,4)
-,`bb_lower` decimal(12,4)
-,`bb_width_pct` decimal(8,4)
-,`bb_percent_b` decimal(8,4)
 );
 
 -- --------------------------------------------------------
@@ -835,7 +773,7 @@ ALTER TABLE `transactions`
 -- AUTO_INCREMENT per la tabella `allocation_by_asset_class`
 --
 ALTER TABLE `allocation_by_asset_class`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=142;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=178;
 
 --
 -- AUTO_INCREMENT per la tabella `cron_logs`
@@ -847,7 +785,7 @@ ALTER TABLE `cron_logs`
 -- AUTO_INCREMENT per la tabella `dividend_payments`
 --
 ALTER TABLE `dividend_payments`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=151;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=152;
 
 --
 -- AUTO_INCREMENT per la tabella `holdings`
@@ -871,7 +809,7 @@ ALTER TABLE `metadata_cache`
 -- AUTO_INCREMENT per la tabella `monthly_performance`
 --
 ALTER TABLE `monthly_performance`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=157;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=191;
 
 --
 -- AUTO_INCREMENT per la tabella `portfolios`
@@ -883,7 +821,7 @@ ALTER TABLE `portfolios`
 -- AUTO_INCREMENT per la tabella `recommendations`
 --
 ALTER TABLE `recommendations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT per la tabella `recommendation_actions`
@@ -895,25 +833,25 @@ ALTER TABLE `recommendation_actions`
 -- AUTO_INCREMENT per la tabella `snapshots`
 --
 ALTER TABLE `snapshots`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT per la tabella `snapshot_holdings`
 --
 ALTER TABLE `snapshot_holdings`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=543;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=611;
 
 --
 -- AUTO_INCREMENT per la tabella `technical_insights`
 --
 ALTER TABLE `technical_insights`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT per la tabella `technical_snapshots`
 --
 ALTER TABLE `technical_snapshots`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT per la tabella `transactions`
@@ -937,7 +875,45 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`poRtUsR25`@`%` SQL SECURITY DEFINER VIEW `v_
 --
 DROP TABLE IF EXISTS `v_dividends_enriched`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`poRtUsR25`@`%` SQL SECURITY DEFINER VIEW `v_dividends_enriched`  AS WITH ranked AS (SELECT `dp`.`id` AS `dp_id`, `dp`.`portfolio_id` AS `portfolio_id`, `dp`.`ticker` AS `ticker`, `dp`.`ex_date` AS `ex_date`, `sh`.`quantity` AS `quantity`, `s`.`snapshot_date` AS `snapshot_date`, row_number() over ( partition by `dp`.`id` order by `s`.`snapshot_date` desc) AS `rn` FROM ((`dividend_payments` `dp` join `snapshots` `s` on(`s`.`portfolio_id` = `dp`.`portfolio_id` and `s`.`snapshot_date` <= `dp`.`ex_date`)) join `snapshot_holdings` `sh` on(`sh`.`snapshot_id` = `s`.`id` and `sh`.`ticker` = `dp`.`ticker`)))  SELECT `dp`.`id` AS `id`, `dp`.`portfolio_id` AS `portfolio_id`, `dp`.`ticker` AS `ticker`, `dp`.`ex_date` AS `ex_date`, `dp`.`payment_date` AS `payment_date`, `dp`.`amount_per_share` AS `amount_per_share`, `dp`.`total_amount` AS `total_amount`, `dp`.`quantity` AS `quantity`, `dp`.`status` AS `status`, `dp`.`created_at` AS `created_at`, `dp`.`updated_at` AS `updated_at`, `r`.`snapshot_date` AS `snapshot_date_used`, CASE WHEN `r`.`rn` = 1 THEN `r`.`quantity` ELSE NULL END AS `snapshot_quantity`, coalesce(case when `r`.`rn` = 1 then `r`.`quantity` end,`dp`.`quantity`) AS `quantity_at_ex_date`, `dp`.`amount_per_share`* coalesce(case when `r`.`rn` = 1 then `r`.`quantity` end,`dp`.`quantity`) AS `paid_amount`, CASE WHEN `r`.`rn` = 1 THEN 1 ELSE 0 END AS `owned_on_snapshot` FROM (`dividend_payments` `dp` left join `ranked` `r` on(`r`.`dp_id` = `dp`.`id` and `r`.`rn` = 1)))  ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`poRtUsR25`@`%` SQL SECURITY DEFINER VIEW `v_dividends_enriched` AS
+WITH ranked AS (
+    SELECT
+        `dp`.`id` AS `dp_id`,
+        `dp`.`portfolio_id` AS `portfolio_id`,
+        `dp`.`ticker` AS `ticker`,
+        `dp`.`ex_date` AS `ex_date`,
+        `sh`.`quantity` AS `quantity`,
+        `s`.`snapshot_date` AS `snapshot_date`,
+        row_number() over (PARTITION BY `dp`.`id` ORDER BY `s`.`snapshot_date` DESC) AS `rn`
+    FROM `dividend_payments` `dp`
+    JOIN `snapshots` `s`
+        ON `s`.`portfolio_id` = `dp`.`portfolio_id`
+        AND `s`.`snapshot_date` <= `dp`.`ex_date`
+    JOIN `snapshot_holdings` `sh`
+        ON `sh`.`snapshot_id` = `s`.`id`
+        AND `sh`.`ticker` = `dp`.`ticker`
+)
+SELECT
+    `dp`.`id` AS `id`,
+    `dp`.`portfolio_id` AS `portfolio_id`,
+    `dp`.`ticker` AS `ticker`,
+    `dp`.`ex_date` AS `ex_date`,
+    `dp`.`payment_date` AS `payment_date`,
+    `dp`.`amount_per_share` AS `amount_per_share`,
+    `dp`.`total_amount` AS `total_amount`,
+    `dp`.`quantity` AS `quantity`,
+    `dp`.`status` AS `status`,
+    `dp`.`created_at` AS `created_at`,
+    `dp`.`updated_at` AS `updated_at`,
+    `r`.`snapshot_date` AS `snapshot_date_used`,
+    CASE WHEN `r`.`rn` = 1 THEN `r`.`quantity` ELSE NULL END AS `snapshot_quantity`,
+    COALESCE(CASE WHEN `r`.`rn` = 1 THEN `r`.`quantity` END, `dp`.`quantity`) AS `quantity_at_ex_date`,
+    `dp`.`amount_per_share` * COALESCE(CASE WHEN `r`.`rn` = 1 THEN `r`.`quantity` END, `dp`.`quantity`) AS `paid_amount`,
+    CASE WHEN `r`.`rn` = 1 THEN 1 ELSE 0 END AS `owned_on_snapshot`
+FROM `dividend_payments` `dp`
+LEFT JOIN `ranked` `r`
+    ON `r`.`dp_id` = `dp`.`id`
+    AND `r`.`rn` = 1;
 
 -- --------------------------------------------------------
 
@@ -946,7 +922,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`poRtUsR25`@`%` SQL SECURITY DEFINER VIEW `v_
 --
 DROP TABLE IF EXISTS `v_holdings_enriched`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`poRtUsR25`@`%` SQL SECURITY DEFINER VIEW `v_holdings_enriched`  AS SELECT `h`.`id` AS `id`, `h`.`portfolio_id` AS `portfolio_id`, `h`.`isin` AS `isin`, `h`.`ticker` AS `ticker`, `h`.`name` AS `name`, `h`.`asset_class` AS `asset_class`, `h`.`sector` AS `sector`, `h`.`quantity` AS `quantity`, `h`.`avg_price` AS `avg_price`, `h`.`current_price` AS `current_price`, `h`.`previous_close` AS `previous_close`, `h`.`quantity`* `h`.`avg_price` AS `invested`, `h`.`quantity`* coalesce(`h`.`current_price`,`h`.`avg_price`) AS `market_value`, `h`.`quantity`* coalesce(`h`.`current_price`,`h`.`avg_price`) - `h`.`quantity` * `h`.`avg_price` AS `pnl`, CASE WHEN `h`.`avg_price` > 0 THEN (coalesce(`h`.`current_price`,`h`.`avg_price`) - `h`.`avg_price`) / `h`.`avg_price` * 100 ELSE 0 END AS `pnl_pct`, `h`.`fifty_two_week_high` AS `fifty_two_week_high`, `h`.`fifty_two_week_low` AS `fifty_two_week_low`, `h`.`day_high` AS `day_high`, `h`.`day_low` AS `day_low`, `h`.`ytd_change_percent` AS `ytd_change_percent`, `h`.`one_month_change_percent` AS `one_month_change_percent`, `h`.`three_month_change_percent` AS `three_month_change_percent`, `h`.`one_year_change_percent` AS `one_year_change_percent`, `h`.`volume` AS `volume`, `h`.`exchange` AS `exchange`, `h`.`dividend_yield` AS `dividend_yield`, `h`.`annual_dividend` AS `annual_dividend`, `h`.`dividend_frequency` AS `dividend_frequency`, `h`.`has_dividends` AS `has_dividends`, `h`.`total_dividends_5y` AS `total_dividends_5y`, `h`.`first_trade_date` AS `first_trade_date`, `h`.`price_source` AS `price_source`, `h`.`is_active` AS `is_active`, `h`.`created_at` AS `created_at`, `h`.`updated_at` AS `updated_at`, `h`.`sma9` AS `sma9`, `h`.`sma21` AS `sma21`, `h`.`sma50` AS `sma50`, `h`.`sma200` AS `sma200`, `h`.`ema9` AS `ema9`, `h`.`ema21` AS `ema21`, `h`.`ema50` AS `ema50`, `h`.`ema200` AS `ema200`, `h`.`rsi14` AS `rsi14`, `h`.`macd_value` AS `macd_value`, `h`.`macd_signal` AS `macd_signal`, `h`.`macd_hist` AS `macd_hist`, `h`.`atr14` AS `atr14`, `h`.`atr14_pct` AS `atr14_pct`, `h`.`hist_vol_30d` AS `hist_vol_30d`, `h`.`hist_vol_90d` AS `hist_vol_90d`, `h`.`range_1m_min` AS `range_1m_min`, `h`.`range_1m_max` AS `range_1m_max`, `h`.`range_1m_percentile` AS `range_1m_percentile`, `h`.`range_3m_min` AS `range_3m_min`, `h`.`range_3m_max` AS `range_3m_max`, `h`.`range_3m_percentile` AS `range_3m_percentile`, `h`.`range_6m_min` AS `range_6m_min`, `h`.`range_6m_max` AS `range_6m_max`, `h`.`range_6m_percentile` AS `range_6m_percentile`, `h`.`range_1y_min` AS `range_1y_min`, `h`.`range_1y_max` AS `range_1y_max`, `h`.`range_1y_percentile` AS `range_1y_percentile`, `h`.`fib_low` AS `fib_low`, `h`.`fib_high` AS `fib_high`, `h`.`fib_23_6` AS `fib_23_6`, `h`.`fib_38_2` AS `fib_38_2`, `h`.`fib_50_0` AS `fib_50_0`, `h`.`fib_61_8` AS `fib_61_8`, `h`.`fib_78_6` AS `fib_78_6`, `h`.`fib_23_6_dist_pct` AS `fib_23_6_dist_pct`, `h`.`fib_38_2_dist_pct` AS `fib_38_2_dist_pct`, `h`.`fib_50_0_dist_pct` AS `fib_50_0_dist_pct`, `h`.`fib_61_8_dist_pct` AS `fib_61_8_dist_pct`, `h`.`fib_78_6_dist_pct` AS `fib_78_6_dist_pct`, `h`.`bb_middle` AS `bb_middle`, `h`.`bb_upper` AS `bb_upper`, `h`.`bb_lower` AS `bb_lower`, `h`.`bb_width_pct` AS `bb_width_pct`, `h`.`bb_percent_b` AS `bb_percent_b` FROM `holdings` AS `h` WHERE `h`.`is_active` = 1 ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`poRtUsR25`@`%` SQL SECURITY DEFINER VIEW `v_holdings_enriched`  AS SELECT `h`.`id` AS `id`, `h`.`portfolio_id` AS `portfolio_id`, `h`.`ticker` AS `ticker`, `h`.`isin` AS `isin`, `h`.`name` AS `name`, `h`.`asset_class` AS `asset_class`, `h`.`sector` AS `sector`, `h`.`quantity` AS `quantity`, `h`.`avg_price` AS `avg_price`, `h`.`current_price` AS `current_price`, `h`.`price_source` AS `price_source`, `h`.`dividend_yield` AS `dividend_yield`, `h`.`annual_dividend` AS `annual_dividend`, `h`.`dividend_frequency` AS `dividend_frequency`, `h`.`has_dividends` AS `has_dividends`, `h`.`total_dividends_5y` AS `total_dividends_5y`, `h`.`fifty_two_week_high` AS `fifty_two_week_high`, `h`.`fifty_two_week_low` AS `fifty_two_week_low`, `h`.`ytd_change_percent` AS `ytd_change_percent`, `h`.`one_month_change_percent` AS `one_month_change_percent`, `h`.`three_month_change_percent` AS `three_month_change_percent`, `h`.`one_year_change_percent` AS `one_year_change_percent`, `h`.`previous_close` AS `previous_close`, `h`.`day_high` AS `day_high`, `h`.`day_low` AS `day_low`, `h`.`volume` AS `volume`, `h`.`exchange` AS `exchange`, `h`.`first_trade_date` AS `first_trade_date`, `h`.`ema9` AS `ema9`, `h`.`ema21` AS `ema21`, `h`.`ema50` AS `ema50`, `h`.`ema200` AS `ema200`, `h`.`rsi14` AS `rsi14`, `h`.`macd_value` AS `macd_value`, `h`.`macd_signal` AS `macd_signal`, `h`.`macd_hist` AS `macd_hist`, `h`.`hist_vol_30d` AS `hist_vol_30d`, `h`.`atr14_pct` AS `atr14_pct`, `h`.`range_1y_percentile` AS `range_1y_percentile`, `h`.`bb_percent_b` AS `bb_percent_b`, `h`.`atr14` AS `atr14`, `h`.`hist_vol_90d` AS `hist_vol_90d`, `h`.`range_1m_min` AS `range_1m_min`, `h`.`range_1m_max` AS `range_1m_max`, `h`.`range_1m_percentile` AS `range_1m_percentile`, `h`.`range_3m_min` AS `range_3m_min`, `h`.`range_3m_max` AS `range_3m_max`, `h`.`range_3m_percentile` AS `range_3m_percentile`, `h`.`range_6m_min` AS `range_6m_min`, `h`.`range_6m_max` AS `range_6m_max`, `h`.`range_6m_percentile` AS `range_6m_percentile`, `h`.`range_1y_min` AS `range_1y_min`, `h`.`range_1y_max` AS `range_1y_max`, `h`.`fib_low` AS `fib_low`, `h`.`fib_high` AS `fib_high`, `h`.`fib_23_6` AS `fib_23_6`, `h`.`fib_38_2` AS `fib_38_2`, `h`.`fib_50_0` AS `fib_50_0`, `h`.`fib_61_8` AS `fib_61_8`, `h`.`fib_78_6` AS `fib_78_6`, `h`.`fib_23_6_dist_pct` AS `fib_23_6_dist_pct`, `h`.`fib_38_2_dist_pct` AS `fib_38_2_dist_pct`, `h`.`fib_50_0_dist_pct` AS `fib_50_0_dist_pct`, `h`.`fib_61_8_dist_pct` AS `fib_61_8_dist_pct`, `h`.`fib_78_6_dist_pct` AS `fib_78_6_dist_pct`, `h`.`bb_middle` AS `bb_middle`, `h`.`bb_upper` AS `bb_upper`, `h`.`bb_lower` AS `bb_lower`, `h`.`bb_width_pct` AS `bb_width_pct`, `h`.`target_allocation_pct` AS `target_allocation_pct`, `h`.`role` AS `role`, `h`.`quantity`* `h`.`avg_price` AS `invested`, `h`.`quantity`* coalesce(`h`.`current_price`,`h`.`avg_price`) AS `market_value`, `h`.`quantity`* coalesce(`h`.`current_price`,`h`.`avg_price`) - `h`.`quantity` * `h`.`avg_price` AS `pnl`, CASE WHEN `h`.`avg_price` > 0 THEN round((coalesce(`h`.`current_price`,`h`.`avg_price`) - `h`.`avg_price`) / `h`.`avg_price` * 100,2) ELSE 0 END AS `pnl_pct`, `h`.`updated_at` AS `updated_at`, `h`.`is_active` AS `is_active` FROM `holdings` AS `h` WHERE `h`.`is_active` = 1 ;
 
 -- --------------------------------------------------------
 
